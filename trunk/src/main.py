@@ -9,6 +9,12 @@ reload(sys)
 sys.setdefaultencoding('iso-8859-1')
 del sys.setdefaultencoding
 
+name = "PyICQt"
+exe = os.path.realpath(sys.executable)
+if (exe.find("python") >= 0):
+	print("Restarting with process name %s..." % (name))
+	os.execv(exe, [name, sys.argv[0]]+sys.argv[1:])
+
 import config
 import xmlconfig
 conffile = "config.xml"
@@ -36,6 +42,7 @@ for o, v in opts:
 		print "   -o <var>=<setting>  set config var to setting"
 		os._exit(0)
 reload(debug)
+
 if (config.extendedDebugOn):
 	from twisted.python import log
 	if (debug.debugFile):
@@ -77,19 +84,12 @@ class PyTransport(component.Service):
 		# Discovery, as well as some builtin features
 		self.discovery = disco.Discovery(self)
 		self.discovery.addIdentity("gateway", legacy.id, legacy.name)
-		if (legacy.confid and legacy.confid != ""):
-			self.discovery.addIdentity("conference", legacy.confid, legacy.name + " Chatrooms")
-			self.discovery.addFeature("http://jabber.org/protocol/muc", None) # So that clients know you can create groupchat rooms on the server
 		self.discovery.addFeature("jabber:iq:register", self.registermanager.incomingRegisterIq)
 		self.discovery.addFeature("jabber:iq:gateway", self.gatewayTranslator.incomingIq)
 		
 		self.xmlstream = None
 		self.sessions = {}
 		
-		# Groupchat ID handling
-		self.lastID = 0
-		self.reservedIDs = []
-
 		# Message IDs
 		self.messageID = 0
 		
@@ -101,8 +101,7 @@ class PyTransport(component.Service):
 			self.loop = task.LoopingCall(self.loopCall)
 			self.loop.start(60.0) # call every 60 seconds
 			twisted.python.log.addObserver(self.exceptionLogger)
-		
-	
+
 	def removeMe(self):
 		debug.log("PyTransport: Service shutting down")
 		dic = utils.copyDict(self.sessions)
@@ -121,18 +120,6 @@ class PyTransport(component.Service):
 	def makeMessageID(self):
 		self.messageID += 1
 		return str(self.messageID)
-	
-	def makeID(self):
-		newID = "r" + str(self.lastID)
-		self.lastID += 1
-		if(self.reservedIDs.count(newID) > 0):
-			# Ack, it's already used.. Try again
-			return self.makeID()
-		else:
-			return newID
-	
-	def reserveID(self, ID):
-		self.reservedIDs.append(ID)
 	
 	def loopCall(self):
 		if(len(self.sessions) > 0):

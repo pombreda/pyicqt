@@ -163,7 +163,6 @@ class JabberConnection:
 
 		if(invite):
 			debug.log("User: %s - JabberConnection parsed message groupchat invite packet \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, utils.latin1(invite)))
-			self.inviteReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, invite)
 			return
 
 		# Check message event stuff
@@ -215,10 +214,6 @@ class JabberConnection:
 	
 	def messageReceived(self, source, resource, dest, destr, mtype, body):
 		""" Override this method to be notified when a message is received """
-		pass
-	
-	def inviteReceived(self, source, resource, dest, destr, roomjid):
-		""" Override this method to be notified when an invitation is received """
 		pass
 	
 	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status):

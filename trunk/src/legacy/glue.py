@@ -3,7 +3,6 @@
 
 from tlib import oscar
 from tlib.domish import Element
-import groupchat
 import icqt
 import config
 import debug
@@ -16,9 +15,6 @@ version = "0.5a"
 
 # This should be set to the identity of the gateway
 id = "icq"
-
-# This should be set to the identity of the conference gateway, blank if none
-confid = ""
 
 # Set to True if spool directory entries need to be mangled @ -> %
 mangle = True
@@ -55,13 +51,6 @@ def getAttributes(base):
 
 	return username, password
 
-# This function should return true if the JID is a group JID, false otherwise
-def isGroupJID(jid):
-	if (0):
-		return True
-	else:
-		return False
-
 # This function translates an ICQ screen name to a JID
 def icq2jid(icqid):
 	if (icqid):
@@ -76,20 +65,6 @@ def jid2icq(jid):
 
 # This function is called to handle legacy id translation to a JID
 translateAccount = icq2jid
-
-# This class handles groupchats with the legacy protocol
-class LegacyGroupchat(groupchat.BaseGroupchat):
-	def __init__(self, session, resource, ID=None, existing=False, switchboardSession=None):
-		pass
-	
-	def removeMe(self):
-		pass
-
-	def sendLegacyMessage(self, message):
-		pass
-	
-	def sendContactInvite(self, contactJID):
-		pass
 
 # This class handles most interaction with the legacy protocol
 class LegacyConnection(icqt.ICQConnection):
@@ -119,17 +94,17 @@ class LegacyConnection(icqt.ICQConnection):
 		self.savedShow = show
 		self.savedFriendly = friendly
 
-		if (not self.session.ready):
-			return
-
-		if (show in ["online", "Online", None]):
-			icqt.ICQConnection.setICQStatus(self, show)
-			icqt.ICQConnection.setAway(self)
-			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None)
-		else:
-			icqt.ICQConnection.setICQStatus(self, show)
-			icqt.ICQConnection.setAway(self, friendly)
-			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=show, status=friendly)
+		try:
+			if (show in ["online", "Online", None]):
+				icqt.ICQConnection.setICQStatus(self, show)
+				icqt.ICQConnection.setAway(self)
+				self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None)
+			else:
+				icqt.ICQConnection.setICQStatus(self, show)
+				icqt.ICQConnection.setAway(self, friendly)
+				self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=show, status=friendly)
+		except AttributeError:
+			self.session.sendMessage(to=self.session.jabber.ID, fro=config.jid, body=lang.get(config.lang).sessionnotactive, mtype="error")
 
         def buildFriendly(self, status):
 		friendly = self.jabberID[:self.jabberID.find('@')]
