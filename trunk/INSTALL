@@ -7,6 +7,7 @@ to make sure you have the following installed:
 - Jabber ;D
 - Python
 - Twisted (www.twistedmatrix.com)
+- Optional: nevow (http://www.nevow.org/) for web interface
 
 Then, go into the src directory and copy config_example.py to config.py and
 edit config.py.  Change the jid to the Jabber ID you want this transport to

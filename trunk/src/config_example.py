@@ -25,8 +25,11 @@ secret = "password"
 # The authentication token to use when connection to the web interface
 websecret = "webpass"
 
-# The default language to use
+# The default language to use for informational and error messages
 lang = "en"
+
+# The default message encoding to use
+encoding = "windows-1251"
 
 # Send greeting on login
 sessionGreeting = True

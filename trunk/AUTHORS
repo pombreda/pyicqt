@@ -16,6 +16,8 @@ for more accurate user status.
 Magnus Henoch for discovering and fixing the problem with interaction
 with ejabberd.
 
+Serge Trylis for adding encoding configuration support.
+
 The Twisted Matrix development team who have put together this wonderful
 framework we are making use of.  =)  I'd like to especially thank
 Paul Swartz <z3p@twistedmatrix.com> for his work on the oscar.py piece and

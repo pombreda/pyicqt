@@ -71,12 +71,13 @@ class B(oscar.BOSConnection):
 		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
 		text = multiparts[0][0]
-		#encoding = "iso-8859-1"
-		#encoding = "iso-8859-15"
-		#encoding = "utf-8"
-		encoding = "iso-8859-1"
-		#if (multiparts[0][1] == "unicode"):
-		#	encoding = "utf-8"
+		if (len(multiparts[0]) > 1):
+			if (multiparts[0][1] in ['unicode','utf-8']):
+				encoding = "utf-8"
+			else:
+				encoding = config.encoding
+		else:
+			encoding = config.encoding
 		debug.log("B: using encoding %s" % (encoding))
 		text = text.decode(encoding, "replace")
 		text = text.strip()
@@ -200,14 +201,9 @@ class ICQConnection:
 		self.session.pytrans.stats['outmessages'] += 1
 		scrnname = jid2icq(target)
 		debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
-		#encoded = message.encode(sys.getdefaultencoding(), "replace")
-		encoded = message.encode("iso-8859-1", "replace")
-		#encoded = message.encode("utf-8", "replace")
-		#encoded = utils.latin1(message)
-		#encoded = message
+		encoded = message.encode(config.encoding, "replace")
 		debug.log("ICQConnection: sendMessage encoded %s" % (encoded))
 		if (self.session.ready and hasattr(self, "bos")):
-			#self.bos.sendMessage(scrnname, [encoded, 'unicode'])
 			self.bos.sendMessage(scrnname, encoded)
 		else:
 			debug.log("ICQConnection: not logged in yet")

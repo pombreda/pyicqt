@@ -1,13 +1,6 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-import sys
-#reload(sys)
-#sys.setdefaultencoding('iso-8859-1')
-#del sys.setdefaultencoding
-
-sys.path.insert(0, '.')
-		
 from twisted.internet import reactor
 from twisted.web import proxy, server
 from tlib.jabber import component, jid
