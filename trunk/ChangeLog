@@ -1,3 +1,12 @@
+2005-02-16  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/jabw.py:
+	Changed unicode handling some.
+
+	* src/disco.py:
+	* src/tlib/oscar.py:
+	Added test for readiness.
+
 2005-02-15  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:
