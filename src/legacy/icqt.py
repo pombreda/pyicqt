@@ -3,7 +3,8 @@
 
 from twisted.web.microdom import Element
 from twisted.internet import protocol, reactor, defer
-from twisted.protocols import oscar
+#from twisted.protocols import oscar
+from tlib import oscar
 from twisted.python import log
 import config
 import utils
@@ -129,7 +130,8 @@ class ICQConnection:
 		self.contacts = ICQContacts(self.session)
 		self.deferred = defer.Deferred()
 		self.deferred.addErrback(self.errorCallback)
-		hostport = ("login.icq.com", 5238)
+		#hostport = ("login.icq.com", 5238)
+		hostport = ("login.icq.com", 5190)
 		debug.log("ICQConnection: client creation for %s" % (self.session.jabberID))
 		self.oa = OA
 		self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
@@ -172,6 +174,35 @@ class ICQConnection:
 			status = self.contacts.ssicontacts[c]['status']
 			ptype = self.contacts.ssicontacts[c]['presence']
 			self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
+
+	def getvCard(self, vcard, user):
+		debug.log("ICQConnection: getvCard %s" % (user))
+		d = defer.Deferred()
+		self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
+		return d
+
+	def gotvCard(self, userinfo, uin, vcard, d):
+		debug.log("ICQConnection: gotvCard: %s" % (userinfo))
+
+		fn = vcard.addElement("FN")
+		fn.addContent(userinfo[1]+" "+userinfo[2])
+		n = vcard.addElement("N")
+		given = n.addElement("GIVEN")
+		given.addContent(userinfo[1])
+		family = n.addElement("FAMILY")
+		family.addContent(userinfo[2])
+		middle = n.addElement("MIDDLE")
+		nickname = vcard.addElement("NICKNAME")
+		nickname.addContent(userinfo[0])
+		email = vcard.addElement("EMAIL")
+		email.addElement("INTERNET")
+		email.addElement("PREF")
+		emailid = email.addElement("USERID")
+		emailid.addContent(userinfo[3])
+		jabberid = vcard.addElement("JABBERID")
+		jabberid.addContent(uin+"@"+config.jid)
+
+		d.callback(vcard)
 
 	def removeMe(self):
 		from glue import icq2jid

@@ -53,6 +53,7 @@ class Session(jabw.JabberConnection):
 		self.groupchats = []
 		
 		self.legacycon = legacy.LegacyConnection(self.username, self.password, self)
+		self.pytrans.legacycon = self.legacycon
 		
 		if(config.sessionGreeting):
 			self.sendMessage(to=self.jabberID, fro=config.jid, body=lang.get(self.lang).sessionGreeting)

@@ -1,4 +1,20 @@
+2004-11-27  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/tlib/oscar.py:
+	Many modifications to handle vcard support.
+
+2004-11-22  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/lang.py:
+	Added Russian translation.
+
 2004-10-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	Spelling fix.
 
 	* src/main.py:
 	Moved path setting, I think I put it in a stupid location.

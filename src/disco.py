@@ -12,6 +12,7 @@ DISCO = "http://jabber.org/protocol/disco"
 DISCO_ITEMS = DISCO + "#items"
 DISCO_INFO = DISCO + "#info"
 IQ_VERSION = "jabber:iq:version"
+VCARD = "vcard-temp"
 
 
 class Discovery:
@@ -25,7 +26,7 @@ class Discovery:
 		self.addFeature(IQ_VERSION, self.sendVersion)
 	
 	def addIdentity(self, category, ctype, name):
-		debug.log("Discovery: Adding identitity \"%s\" \"%s\" \"%s\"" % (category, ctype, name))
+		debug.log("Discovery: Adding identity \"%s\" \"%s\" \"%s\"" % (category, ctype, name))
 		self.identities.append((category, ctype, name))
 	
 	def addFeature(self, var, handler):
@@ -37,16 +38,42 @@ class Discovery:
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
 		debug.log("Discovery: Iq received \"%s\" \"%s\". Looking for handler" % (fro, ID))
-		debug.log("Discovery: Handling el: %s" % (el))
 		query = None
+		vcard = None
 		for child in el.elements():
+			debug.log("Discover: Child: %s" % (child.name))
+			if(child.name == "vCard"):
+				debug.log("Discover: Matched vCard")
+				vcard = child
+				break
 			if(child.name == "query"):
+				debug.log("Discover: Matched query")
 				query = child
 				break
+
+		if(vcard):
+			type = el.getAttribute("type")
+			xmlns = vcard.getAttribute("xmlns")
+			debug.log("Discover: %s %s" % (xmlns, vcard.toXml()))
+			if(type == "get"):
+				if(to.find('@') > 0): # Iq to a user
+					#if(xmlns == VCARD):
+						self.sendIqVCard(to=fro, target=to, ID=ID, xmlns=xmlns)
+					#else:
+					#	debug.log("VCard: no appropriate namespace \"%s\", \"%s\" \"%s\" \"%s\"" % (to, fro, ID, xmlns))
+					#	self.sendIqNotSupported(to=fro, ID=ID, xmlns=VCARD)
+				else:
+					debug.log("VCard: no reasonable to specified \"%s\", \"%s\" \"%s\"" % (to, fro, ID))
+					self.sendIqNotSupported(to=fro, ID=ID, xmlns=VCARD)
+			else:
+				debug.log("VCard: not a get request \"%s\", \"%s\" \"%s\"" % (to, fro, ID))
+				self.sendIqNotSupported(to=fro, ID=ID, xmlns=VCARD)
+
 		if(query):
 			xmlns = query.defaultUri
 			
 			if(to.find('@') > 0): # Iq to a user
+				debug.log("Discovery: Unknown Iq request \"%s\", \"%s\" \"%s\" \"%s\"" % (to, fro, ID, xmlns))
 				self.sendIqNotSupported(to=fro, ID=ID, xmlns=DISCO)
 			
 			else: # Iq to transport
@@ -157,3 +184,20 @@ class Discovery:
 		
 		self.pytrans.send(iq)
 
+	def sendIqVCard(self, to, target, ID, xmlns):
+		debug.log("Discovery: Replying to vcard request")
+		iq = Element((None, "iq"))
+		iq.attributes["type"] = "result"
+		iq.attributes["from"] = target
+		iq.attributes["to"] = to
+		if(ID):
+			iq.attributes["id"] = ID
+		vcard = iq.addElement("vCard")
+		vcard.attributes["xmlns"] = VCARD
+
+		user = target.split('@')[0]
+		self.pytrans.legacycon.jabberVCardRequest(vcard, user).addCallback(self.gotIqVCard, iq)
+
+	def gotIqVCard(self, vcard, iq):
+		debug.log("Discovery: gotIqVCard iq %s" % (iq.toXml()))
+		self.pytrans.send(iq)
