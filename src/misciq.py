@@ -39,7 +39,7 @@ class GatewayTranslator:
 		query = iq.addElement("query")
 		query.attributes["xmlns"] = IQ_GATEWAY
 		desc = query.addElement("desc")
-		desc.addContent(lang.get(ulang).gatewayTranslator)
+		desc.addContent(lang.get(ulang).gatewaytranslator)
 		prompt = query.addElement("prompt")
 		
 		self.pytrans.send(iq)

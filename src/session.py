@@ -61,7 +61,7 @@ class Session(jabw.JabberConnection):
 		self.pytrans.legacycon = self.legacycon
 		
 		if(config.sessionGreeting):
-			self.sendMessage(to=self.jabberID, fro=config.jid, body=lang.get(self.lang).sessionGreeting)
+			self.sendMessage(to=self.jabberID, fro=config.jid, body=lang.get(self.lang).sessiongreeting)
 		debug.log("Session: New session created \"%s\" \"%s\" \"%s\"" % (jabberID, username, password))
 
 		self.stats['totalsess'] += 1
@@ -110,7 +110,7 @@ class Session(jabw.JabberConnection):
 		self.legacycon.setStatus(show, status)
 	
 	def sendNotReadyError(self, source, resource, dest, body):
-		self.sendErrorMessage(source + '/' + resource, dest, "wait", "not-allowed", lang.get(self.lang).waitForLogin, body)
+		self.sendErrorMessage(source + '/' + resource, dest, "wait", "not-allowed", lang.get(self.lang).waitforlogin, body)
 	
 	def findGroupchat(self, to):
 		pos = to.find('@')
@@ -135,7 +135,7 @@ class Session(jabw.JabberConnection):
 		if(groupchat):
 			# It's for a groupchat
 			if(destr and len(destr) > 0):
-				self.sendMessage(to=(source + "/" + resource), fro=dest, body=lang.get(self.lang).groupchatPrivateError)
+				self.sendMessage(to=(source + "/" + resource), fro=dest, body=lang.get(self.lang).groupchatprivateerror)
 			else:
 				debug.log("Session: Message received for groupchat \"%s\" \"%s\"" % (self.jabberID, groupchat.ID))
 				groupchat.sendMessage(body)

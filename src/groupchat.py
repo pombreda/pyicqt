@@ -58,11 +58,11 @@ class BaseGroupchat:
 			debug.log("BaseGroupchat: \"%s\" User hasn't joined after two minutes. Removing them from the room.")
 			
 			text = []
-			text.append(lang.get(self.session.lang).groupchatFailJoin1 % (self.roomJID()))
+			text.append(lang.get(self.session.lang).groupchatfailjoin1 % (self.roomJID()))
 			for contact in self.contacts:
 				text.append("\t%s" % (contact))
 			text.append("")
-			text.append(lang.get(self.session.lang).groupchatFailJoin2)
+			text.append(lang.get(self.session.lang).groupchatfailjoin2)
 			text.append("")
 			for (source, message) in self.messageBuffer:
 				if(source):
@@ -82,7 +82,7 @@ class BaseGroupchat:
 		el.attributes["from"] = fro
 		el.attributes["to"] = self.user()
 		body = el.addElement("body")
-		text = lang.get(self.session.lang).groupchatInvite % (self.roomJID())
+		text = lang.get(self.session.lang).groupchatinvite % (self.roomJID())
 		body.addContent(text)
 		x = el.addElement("x")
 		x.attributes["jid"] = self.roomJID()

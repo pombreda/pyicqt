@@ -19,16 +19,16 @@ def get(lang=config.lang):
 class strings:
 	class en: # English - James Bunton <mailto:james@delx.cjb.net>/Daniel Henninger <mailto:jadestorm@nc.rr.com>
 		# Text that may get sent to the user. Useful for translations. Keep any %s symbols you see or you will have troubles later
-		sessionGreeting = u"This is an experimental gateway, PyICQ-t. If you experience problems please contact Daniel Henninger <jadestorm@nc.rr.com>"
-		registerText = u"Please type your ICQ user id number into the username field and your password."
-		notLoggedIn = u"Error. You must log into the transport before sending messages."
-		notRegistered = u"Sorry. You do not appear to be registered with this transport. Please register and try again. If you are having trouble registering please contact your Jabber administrator."
-		waitForLogin = u"Sorry, this message cannot be delivered yet. Please try again when the transport has finished logging in."
-		groupchatInvite = u"You have been invited into a groupchat on the legacy service. You must join this room to switch into groupchat mode %s.\nIf you do not join this room you will not be able to participate in the groupchat, but you will still appear to have joined it to contacts on the ICQ service."
-		groupchatFailJoin1 = u"You did not join the groupchat room %s.\nThe following users were in the groupchat:"
-		groupchatFailJoin2 = u"You have been removed from this room on the legacy service. The following was said before you were disconnected, while you appeared to be in the groupchat to the contacts on the legacy service."
-		groupchatPrivateError = u"Sorry. You cannot send private messages to users in this groupchat. Please instead add the user to your contact list and message them that way."
-		gatewayTranslator = u"Enter the user's ICQ user id number."
+		sessiongreeting = u"This is an experimental gateway, PyICQ-t. If you experience problems please contact Daniel Henninger <jadestorm@nc.rr.com>"
+		registertext = u"Please type your ICQ user id number into the username field and your password."
+		notloggedin = u"Error. You must log into the transport before sending messages."
+		notregistered = u"Sorry. You do not appear to be registered with this transport. Please register and try again. If you are having trouble registering please contact your Jabber administrator."
+		waitforlogin = u"Sorry, this message cannot be delivered yet. Please try again when the transport has finished logging in."
+		groupchatinvite = u"You have been invited into a groupchat on the legacy service. You must join this room to switch into groupchat mode %s.\nIf you do not join this room you will not be able to participate in the groupchat, but you will still appear to have joined it to contacts on the ICQ service."
+		groupchatfailjoin1 = u"You did not join the groupchat room %s.\nThe following users were in the groupchat:"
+		groupchatfailjoin2 = u"You have been removed from this room on the legacy service. The following was said before you were disconnected, while you appeared to be in the groupchat to the contacts on the legacy service."
+		groupchatprivateerror = u"Sorry. You cannot send private messages to users in this groupchat. Please instead add the user to your contact list and message them that way."
+		gatewaytranslator = u"Enter the user's ICQ user id number."
 	en_US = en # en-US is the same as en, so are the others
 	en_AU = en
 	en_GB = en

@@ -29,6 +29,9 @@
 	# The default language to use (for error/status messages)
 	<lang>en</lang>
 
+	* Message encoding to use
+	<encoding>iso-8859-1</encoding>
+
 	# Send greeting on login
 	# (uncomment to enable)
 	<!-- <sessionGreeting/> -->
