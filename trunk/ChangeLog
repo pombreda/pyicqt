@@ -9,6 +9,7 @@
 	Now we retrieve away messages properly.
 	Don't save if no changes.
 	Don't save immediately during initial import.
+	Fixed poor handling of received messages.
 
 2004-09-23  Daniel Henninger  <jadestorm@nc.rr.com>
 
