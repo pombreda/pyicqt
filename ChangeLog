@@ -1,5 +1,8 @@
 2004-12-13  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/tlib/oscar.py:
+	Fixed html translation issue with ".
+
 	* src/session.py:
 	* src/register.py:
 	* src/legacy/oscar/glue.py:
