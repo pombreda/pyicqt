@@ -1,5 +1,8 @@
 2005-02-20  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/tests:
+	Removed since I don't use it.
+
 	* src/main.py:
 	Switched to auto-restart with proper process name.
 

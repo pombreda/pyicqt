@@ -239,9 +239,6 @@ class App:
 
 
 if(__name__ == "__main__"):
-	#import tests.runtests
-	#debug.log("Twisted test cases passed successfully.")
-
 	app = App()
 	if (hasattr(config, "webport") and config.webport):
 		try:
