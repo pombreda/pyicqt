@@ -57,9 +57,7 @@ class B(oscar.BOSConnection):
 
 		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
-		text = str("")
-		for l in multiparts.pop(0):
-			text = "\n".join([text, l])
+		text = multiparts[0][0]
 		text = text.decode("utf-8")
 		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype="chat")
 
