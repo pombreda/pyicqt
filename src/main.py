@@ -153,8 +153,8 @@ class PyTransport(component.Service):
 		self.xmlstream.addObserver("/presence", self.onPresence)
 		self.xmlstream.addObserver("/message", self.onMessage)
 		#self.xmlstream.addObserver("/error[@xmlns='http://etherx.jabber.org/streams']", self.streamError)
-		self.xmlstream.addObserver(xmlstream.STREAM_ERROR_EVENT, self.streamError)
-		self.xmlstream.addObserver(xmlstream.STREAM_END_EVENT, self.streamEnd)
+		self.xmlstream.addObserver(STREAM_ERROR_EVENT, self.streamError)
+		self.xmlstream.addObserver(STREAM_END_EVENT, self.streamEnd)
 
 	def componentDisconnected(self):
 		debug.log("PyTransport: Disconnected from main Jabberd server")
