@@ -1,57 +1,60 @@
 <pyicqt>
-	# The JabberID of the transport.
+	<!-- The JabberID of the transport. -->
 	<jid>icq.example.org</jid>
 
-	# The location of the spool directory.. if relative, relative to this
-	# directory.  Do not include the jid of the transport.
+	<!-- The location of the spool directory.. if relative, relative to -->
+	<!-- this directory.  Do not include the jid of the transport. -->
 	<spooldir>.</spooldir>
 
-	# The location of the PID file.. if relative, relative to this dir.
+	<!-- The location of the PID file.. if relative, relative to this dir. -->
 	<pid>PyICQt.pid</pid>
 
-	# The IP address of the main Jabberd server
+	<!-- The IP address of the main Jabberd server -->
 	<mainServer>127.0.0.1</mainServer>
 
-	# The TCP port to connect to the Jabber server on
-	# (this is the default for Jabberd2)
+	<!-- The TCP port to connect to the Jabber server on -->
+	<!-- (this is the default for Jabberd2) -->
 	<port>5347</port>
 
-	# The TCP port that the web admin interface will answer on
-	# (uncomment to enable)
+	<!-- The TCP port that the web admin interface will answer on -->
+	<!-- (uncomment to enable) -->
 	<!-- <webport>12345</webport> -->
 
-	# The authentication token to use when connecting to the Jabber server
+	<!-- The authentication token to use when connecting to the Jabber server -->
 	<secret>secret</secret>
 
-	# The authentication token to use when connection to the web interface
+	<!-- The authentication token to use when connection to the web interface -->
 	<websecret>letmein</websecret>
 
-	# The default language to use (for error/status messages)
+	<!-- The default language to use (for error/status messages) -->
 	<lang>en</lang>
 
-	# Message encoding to use
+	<!-- Message encoding to use -->
 	<encoding>iso-8859-1</encoding>
 
-	# The hostname of the ICQ server you wish to connect to
+	<!-- The hostname of the ICQ server you wish to connect to -->
 	<icqServer>login.icq.com</icqServer>
 
-	# The port of the ICQ server you wish to connect to
+	<!-- The port of the ICQ server you wish to connect to -->
 	<icqPort>5238</icqPort>
 
-	# The name of Socks Proxy if connecting thru a proxy
+	<!-- The name of Socks Proxy if connecting thru a proxy -->
 	<!-- <socksProxyServer>im-proxy2</socksProxyServer> -->
 
-	# The Socks Proxy port to use when connecting thru a proxy
+	<!-- The Socks Proxy port to use when connecting thru a proxy -->
 	<!-- <socksProxyPort>1080</socksProxyPort> -->
 
-	# Send greeting on login (enter text to be sent to users here)
+	<!-- Send greeting on login (enter text to be sent to users here) -->
 	<!-- <sessionGreeting>enter message here</sessionGreeting> -->
 
-	# Allow users of ICQ gateway to chat with AIM users
-	# (uncomment to enable)
+	<!-- Send message on successful registration -->
+	<!-- <registerMessage>You have successfully registered with PyICQt</registerMessage> -->
+
+	<!-- Allow users of ICQ gateway to chat with AIM users -->
+	<!-- (uncomment to enable) -->
 	<!-- <crossChat/> -->
 
-	# Disable registration with the transport
-	# (uncomment to disable)
+	<!-- Disable registration with the transport -->
+	<!-- (uncomment to disable) -->
 	<!-- <disableRegister/> -->
 </pyicqt>

@@ -239,14 +239,16 @@ class ICQConnection:
 		try:
 			self.bos.setAway(awayMessage)
 		except AttributeError:
-			self.alertUser(lang.get(config.jid).sessionnotactive)
+			#self.alertUser(lang.get(config.jid).sessionnotactive)
+			pass
 
 	def setICQStatus(self, status):
 		debug.log("ICQConnection: setICQStatus %s" % (status))
 		try:
 			self.bos.setICQStatus(status)
 		except AttributeError:
-			self.alertUser(lang.get(config.jid).sessionnotactive)
+			#self.alertUser(lang.get(config.jid).sessionnotactive)
+			pass
 
 	def sendMessage(self, target, message):
 		from glue import jid2icq

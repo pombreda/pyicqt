@@ -1,3 +1,23 @@
+2005-03-05  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Killed unnecessary error report.
+
+	* src/main.py:
+	* src/session.py:
+	* src/register.py:
+	* src/legacy/aimt.py:
+	* src/legacy/glue.py:
+	* src/xmlconfig.py:
+	* src/config.py:
+	* src/jabw.py:
+	Applied some of James's PyMSNt 0.9.1 patches.
+
+2005-03-03  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Added observer for stream errors.
+
 2005-03-02  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
