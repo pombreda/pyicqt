@@ -141,3 +141,7 @@ class LegacyConnection(icqt.ICQConnection):
 	def jabberVCardRequest(self, vcard, user):
 		debug.log("LegacyConnection: jabberVCardRequest %s" % (user))
 		return icqt.ICQConnection.getvCard(self, vcard, user)
+
+	def resourceOffline(self, resource):
+		debug.log("LegacyConnection: resourceOffline %s" % (user))
+		pass

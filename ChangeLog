@@ -1,3 +1,8 @@
+2005-03-07  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	Altered utf8encode to use tests offered by Florian.
+
 2005-03-05  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:

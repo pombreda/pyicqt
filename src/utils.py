@@ -21,6 +21,27 @@ def egdufstr(text, num):
         newtext += chr(i)
     return newtext
 
+set_char = [
+	(0x000001, 0x00D7FF),
+	(0x00E000, 0x00FFFD),
+	(0x010000, 0x10FFFF)
+]
+
+set_restrictedchar = [
+	(0x01, 0x08),
+	(0x0B, 0x0C),
+	(0x0E, 0x1F),
+	(0x7F, 0x84),
+	(0x86, 0x9F)
+]
+
+def is_in(set_list, c):
+	for i in set_list:
+	from_char, to_char = i
+		if ((ord(c) >= from_char) and (ord(c) <= to_char)):
+			return True
+	return False
+
 # 
 # def utf8(text):
 # 	return text
@@ -33,8 +54,11 @@ def latin1(text):
 	return text
 
 def utf8encode(text):
-	encodedstring = text.encode('utf-8', 'replace')
-	encodedstring.replace('\x00','')
+	encodedstring = ""
+	for c in text.encode('utf-8', 'replace'):
+		if is_in(set_char, c): 
+			encodedstring = encodedstring + c
+	#encodedstring.replace('\x00','')
 	return encodedstring
 
 def copyDict(dic):
