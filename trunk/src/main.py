@@ -65,7 +65,7 @@ from twisted.internet import reactor
 from twisted.web import proxy, server
 from tlib.jabber import component, jid
 from tlib.domish import Element
-from tlib import xmlstream
+from tlib.xmlstream import STREAM_ERROR_EVENT,STREAM_END_EVENT
 from twisted.internet import task
 import twisted.python.log
 
