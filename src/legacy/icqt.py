@@ -141,6 +141,8 @@ class ICQConnection:
 			self.bos.sendMessage(scrnname, encoded)
 		else:
 			debug.log("ICQConnection: not logged in yet")
+			if (has_attr(self.session, "jabberID")):
+				self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body="You are not currently logged into this transport.  Please log in again.", mtype="chat")
 			return
 
 	def resendBuddies(self, resource):
@@ -196,6 +198,8 @@ class ICQConnection:
 
 				if (not hasattr(self, "bos")):
 					debug.log("Not properly logged in yet")
+					if (has_attr(self.session, "jabberID")):
+						self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body="You are not currently logged into this transport.  Please log in again.", mtype="chat")
 					return
 
 				savethisgroup = None
