@@ -1,5 +1,8 @@
 2005-03-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/tlib/oscar.py:
+	Added &quot; conversion to dehtml.
+
 	* src/legacy/icqt.py:
 	Added dehtml, which is necessary for receiving messages from AIM
 	users.
