@@ -59,7 +59,14 @@ class B(oscar.BOSConnection):
 		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
 		text = multiparts[0][0]
-		text = text.decode("utf-8", "replace")
+		# I don't know how to check for "does multiparts[0][1] exist"
+		# yet, so this is not a real check yet.
+		if (0):
+			encoding = multiparts[0][1]
+		else:
+			encoding = "iso-8859-1"
+		debug.log("B: using encoding %s" % (encoding))
+		text = text.decode(encoding, "replace")
 		text = text.strip()
 		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype="chat")
 
