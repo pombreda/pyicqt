@@ -58,3 +58,9 @@ def mutilateMe(me):
 
 def getLang(el):
 	return el.getAttribute((u'http://www.w3.org/XML/1998/namespace', u'lang'))
+
+def doPath(path):
+	if(path and path[0] == "/"):
+		return path
+	else:
+		return "../" + path

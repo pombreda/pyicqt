@@ -17,6 +17,7 @@ XMPP_STANZAS = 'urn:ietf:params:xml:ns:xmpp-stanzas'
 class RegisterManager:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
+		self.pytrans.discovery.addFeature("jabber:iq:register", self.incomingRegisterIq)
 		debug.log("RegisterManager: Created")
 	
 	def removeRegInfo(self, jabberID):
@@ -34,6 +35,9 @@ class RegisterManager:
 	
 	def setRegInfo(self, jabberID, username, password):
 		debug.log("RegisterManager: setRegInfo(\"%s\", \"%s\", \"%s\")" % (jabberID, username, password))
+		if (len(password) == 0):
+			(blah1, password, blah3) = self.getRegInfo(jabberID)
+
 		reginfo = legacy.formRegEntry(username, password)
 		self.pytrans.xdb.set(jabberID, legacy.namespace, reginfo)
 	

@@ -11,7 +11,6 @@ XMPP_STANZAS = 'urn:ietf:params:xml:ns:xmpp-stanzas'
 DISCO = "http://jabber.org/protocol/disco"
 DISCO_ITEMS = DISCO + "#items"
 DISCO_INFO = DISCO + "#info"
-IQ_VERSION = "jabber:iq:version"
 VCARD = "vcard-temp"
 
 class Discovery:
@@ -22,7 +21,6 @@ class Discovery:
 		self.features = []
 		
 		self.addFeature(DISCO, None)
-		self.addFeature(IQ_VERSION, self.sendVersion)
 	
 	def addIdentity(self, category, ctype, name):
 		debug.log("Discovery: Adding identity \"%s\" \"%s\" \"%s\"" % (category, ctype, name))
@@ -126,31 +124,6 @@ class Discovery:
 			iq.attributes["id"] = ID
 		query = iq.addElement("query")
 		query.attributes["xmlns"] = DISCO_ITEMS
-		
-		self.pytrans.send(iq)
-	
-	def sendVersion(self, el):
-		eltype = el.getAttribute("type")
-		if(eltype in ["error", "result"]):
-			return # Never answer error or result stanzas
-		#elif(eltype):
-		#	return self.sendIqNotValid(el.getAttribute("from"), el.getAttribute("id"), "jabber:iq:version")
-
-		debug.log("Discovery: Sending transport version information")
-		iq = Element((None, "iq"))
-		iq.attributes["type"] = "result"
-		iq.attributes["from"] = config.jid
-		iq.attributes["to"] = el.getAttribute("from")
-		if (el.getAttribute("id")):
-			iq.attributes["id"] = el.getAttribute("id")
-		query = iq.addElement("query")
-		query.attributes["xmlns"] = IQ_VERSION
-		name = query.addElement("name")
-		name.addContent(legacy.name)
-		version = query.addElement("version")
-		version.addContent(legacy.version)
-		os = query.addElement("os")
-		os.addContent("Python " + sys.version)
 		
 		self.pytrans.send(iq)
 	

@@ -69,23 +69,19 @@ import utils
 import legacy
 import lang
 
-#import gc
-#gc.set_debug(gc.DEBUG_COLLECTABLE | gc.DEBUG_UNCOLLECTABLE | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
-
-
-
 class PyTransport(component.Service):
 	def __init__(self):
 		debug.log("PyTransport: Service starting up")
-		self.xdb = xdb.XDB(config.jid, legacy.mangle)
-		self.registermanager = register.RegisterManager(self)
-		self.gatewayTranslator = misciq.GatewayTranslator(self)
 		
 		# Discovery, as well as some builtin features
 		self.discovery = disco.Discovery(self)
 		self.discovery.addIdentity("gateway", legacy.id, legacy.name)
-		self.discovery.addFeature("jabber:iq:register", self.registermanager.incomingRegisterIq)
-		self.discovery.addFeature("jabber:iq:gateway", self.gatewayTranslator.incomingIq)
+
+		self.xdb = xdb.XDB(config.jid, legacy.mangle)
+		if(not config.disableRegister):
+			self.registermanager = register.RegisterManager(self)
+		self.gatewayTranslator = misciq.GatewayTranslator(self)
+		self.versionTeller = misciq.VersionTeller(self)
 		
 		self.xmlstream = None
 		self.sessions = {}
@@ -219,22 +215,26 @@ class PyTransport(component.Service):
 
 class App:
 	def __init__(self):
+		# Check that there isn't already a PID file
+		if(os.path.isfile(utils.doPath(config.pid))):
+			print "PID file exists at that location. Please check for running PyICQt and try again."
+			sys.exit(1)
+
+		# Create a PID file
+		pid = str(os.getpid())
+		pf = file(utils.doPath(config.pid),'w')
+		pf.write("%s\n" % pid);
+		pf.close()
+
 		self.c = component.buildServiceManager(config.jid, config.secret, "tcp:%s:%s" % (config.mainServer, config.port))
 		self.transportSvc = PyTransport()
 		self.transportSvc.setServiceParent(self.c)
 		self.c.startService()
 		reactor.addSystemEventTrigger('before', 'shutdown', self.shuttingDown)
-
-		# Create a PID file
-		pid = str(os.getpid())
-		pf = file(config.pid,'w')
-		pf.write("%s\n" % pid);
-		pf.close()
-
 	
 	def shuttingDown(self):
 		self.transportSvc.removeMe()
-		os.remove(config.pid)
+		os.remove(utils.doPath(config.pid))
 
 
 

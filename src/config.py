@@ -17,3 +17,4 @@ crossChat = False
 debugOn = False
 debugLog = ""
 extendedDebugOn = False
+disableRegister = False
