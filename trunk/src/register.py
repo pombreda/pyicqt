@@ -107,7 +107,7 @@ class RegisterManager:
 				for child in queryFind.elements():
 					try:
 						if(child.name == "username"):
-							username = child.__str__()
+							username = child.__str__().lower()
 						elif(child.name == "password"):
 							password = child.__str__()
 						elif(child.name == "nick"):
