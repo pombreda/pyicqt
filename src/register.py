@@ -1,10 +1,8 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from twisted.xish.domish import Element
-from twisted.web import microdom
-#from twisted.protocols.jabber import jid
 from tlib.jabber import jid
+from tlib.domish import Element
 
 import session
 import config
@@ -126,11 +124,14 @@ class RegisterManager:
 			try:
 				self.setRegInfo(source, username, password)
 				debug.log("RegisterManager: Updated XDB successfully")
+
 				self.successReply(incoming)
 				debug.log("RegisterManager: Sent off a result Iq")
+
 				# If they're in a session right now, we do nothing
 				if(not self.pytrans.sessions.has_key(source)):
 					jabw.sendPresence(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, ptype="subscribe")
+					jabw.sendPresence(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, ptype="probe")
 			except:
 				self.xdbErrorReply(incoming)
 				raise
@@ -169,4 +170,3 @@ class RegisterManager:
 		reply.attributes["from"] = config.jid
 		reply.attributes["to"] = incoming.getAttribute("from")
 		self.pytrans.send(reply)
-

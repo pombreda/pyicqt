@@ -9,6 +9,9 @@ Also, thanks to:
 Paul Clegg for helping me figure out how to make use of some of the oscar
 functionality, and for his initial discussions with the Twisted Matrix team.
 
+Jonas Adahl for pointing out an endian issue and providing a patch.  Also
+for enhancing ICQ user information retrieval (vcard)!
+
 The Twisted Matrix development team who have put together this wonderful
 framework we are making use of.  =)  I'd like to especially thank
 Paul Swartz <z3p@twistedmatrix.com> for his work on the oscar.py piece and

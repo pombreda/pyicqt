@@ -1,7 +1,7 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from twisted.xish.domish import Element
+from tlib.domish import Element
 import sys
 import config
 import legacy
@@ -131,6 +131,12 @@ class Discovery:
 		self.pytrans.send(iq)
 	
 	def sendVersion(self, el):
+		eltype = el.getAttribute("type")
+		if(eltype in ["error", "result"]):
+			return # Never answer error or result stanzas
+		elif(eltype):
+			return self.sendIqNotValid(el.getAttribute("from"), el.getAttribute("id"), "jabber:iq:version")
+
 		debug.log("Discovery: Sending transport version information")
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "set"
@@ -200,4 +206,11 @@ class Discovery:
 
 	def gotIqVCard(self, vcard, iq):
 		debug.log("Discovery: gotIqVCard iq %s" % (iq.toXml()))
+		if not len(vcard.children):
+			iq.attributes["type"] = "error"
+			error = iq.addElement("error")
+			error.attributes["type"] = "cancel"
+			error.attributes["code"] = "502"
+			type = error.addElement("undefined-condition")
+			type.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
 		self.pytrans.send(iq)

@@ -1,7 +1,7 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from twisted.web.microdom import parseXMLString, Element
+from tlib.domish import parseText, Element
 import os
 import os.path
 import config
@@ -13,8 +13,6 @@ class XDB:
 	"""
 	Class for storage of data. Compatible with xdb_file from Jabberd1.4.x
 	Allows other transports to be compatible with this implementation
-	
-	All XML must be in the format of twisted.web.microdom
 	
 	Create one instance of the class for each XDB 'folder' you want.
 	Call request()/set() with the xdbns argument you wish to retrieve
@@ -38,9 +36,9 @@ class XDB:
 		for line in lines:
 			file += line
 		
-		document = parseXMLString(file)
+		document = parseText(file)
 		
-		return document.firstChild() # Strip the <?xml version = "1.0"?> tag
+		return document
 	
 	def __writeFile(self, file, text):
 		if(self.mangle):
@@ -57,8 +55,8 @@ class XDB:
 		""" Requests a specific xdb namespace from the XDB 'file' """
 		try:
 			document = self.__getFile(file)
-			for child in document.childNodes:
-				if(child.attributes["xdbns"]== xdbns):
+			for child in document.elements():
+				if(child.getAttribute("xdbns") == xdbns):
 					return child
 		except:
 			return None
@@ -70,16 +68,16 @@ class XDB:
 			try:
 				document = self.__getFile(file)
 			except IOError:
-				document = Element("xdb")
+				document = Element((None, "xdb"))
 			
 			# Remove the existing node (if any)
-			for child in document.childNodes:
-				if(child.attributes["xdbns"] == xdbns):
-					document.removeChild(child)
+			for child in document.elements():
+				if(child.getAttribute("xdbns") == xdbns):
+					document.children.remove(child)
 			# Add the new one
-			document.appendChild(element)
+			document.addChild(element)
 			
-			self.__writeFile(file, document.toprettyxml())
+			self.__writeFile(file, document.toXml())
 		except:
 			debug.log("XDB error writing entry %s to file %s" % (xdbns, file))
 			raise

@@ -2,7 +2,7 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 from twisted.internet import reactor
-from twisted.xish.domish import Element
+from tlib.domish import Element
 import jabw
 import config
 import debug
