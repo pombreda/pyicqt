@@ -293,8 +293,12 @@ class ICQConnection:
 		debug.log("ICQConnection: errorCallback %s" % (result.getErrorMessage()))
 		errmsg = result.getErrorMessage()
 		errmsgs = errmsg.split("'")
+		message = "Authentication Error!"
 		if (errmsgs[1]):
-			self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body=errmsgs[1], mtype="chat")
+			message = message+"\n"+errmsgs[1]
+		if (errmsgs[3]):
+			message = message+"\n"+errmsgs[3]
+		self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body=message, mtype="chat")
 
 		self.session.removeMe()
 
