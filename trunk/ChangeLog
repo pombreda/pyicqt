@@ -1,3 +1,20 @@
+2005-04-04  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	Fixed bug with xmlify not checking for string.
+
+	* src/legacy/icqt.py:
+	Fixed problem with variable being used that wasn't ever set.
+
+2005-03-22  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/webadmin/.cvsignore:
+	* src/tlib/jabber/.cvsignore:
+	* src/tlib/.cvsignore:
+	* src/legacy/.cvsignore:
+	* src/.cvsignore:
+	Removed legacy CVS files.
+
 2005-03-20  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:

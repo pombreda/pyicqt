@@ -55,6 +55,7 @@ excluded = {}
 for c in _excluded: excluded[c] = None
 
 def xmlify(s):
+	if(not (s.__class__ in [str, unicode])): return ""
 	return s.translate(excluded)
 
 # 
