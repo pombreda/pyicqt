@@ -1,5 +1,7 @@
 0.5:
 
+* Now works correctly with ejabberd thanks to Magnus Henoch.
+
 * No longer requires patched Twisted to be installed.
 
 * Enhanced vcard support thanks to Jonas Adahl.

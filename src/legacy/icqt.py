@@ -399,7 +399,8 @@ class ICQConnection:
 			elif(subtype == "subscribed"):
 				# The user has granted this contact subscription
 				debug.log("ICQConnection: Subscribed request received.")
-				pass
+				# Lets subscribe back
+				updatePresence("subscribe")
 
 			elif(subtype == "unsubscribe"):
 				# User wants to unsubscribe to this contact's presence. (User is removing the contact from their list)
