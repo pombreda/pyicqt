@@ -24,6 +24,8 @@ reload(sys)
 sys.setdefaultencoding('iso-8859-1')
 del sys.setdefaultencoding
 
+sys.path.insert(0, '.')
+
 
 
 class PyTransport(component.Service):
