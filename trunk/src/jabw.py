@@ -90,7 +90,7 @@ class JabberConnection:
 			if(typing):
 				composing = x.addElement("composing") 
 			id = x.addElement("id")
-			if(self.messageIDs[fro]):
+			if(self.messageIDs.has_key(fro) and self.messageIDs[fro]):
 				id.addContent(self.messageIDs[fro])
 			self.pytrans.send(el)
 	
