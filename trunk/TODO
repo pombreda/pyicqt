@@ -3,3 +3,4 @@
 - away message needs to be sent on away
 - retrieve descriptive icq away message and pass through jabber
 - handle specified groups on new users (not just Buddies)
+- vcard support
