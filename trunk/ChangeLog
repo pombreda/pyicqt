@@ -1,5 +1,8 @@
 2004-09-26  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/lang.py:
+	Added German and Polish translations.
+
 	* src/legacy/icqt.py:
 	Import all users from groups, regardless of whether I get a real
 	status notification back.  Also, notify user when connection isn't
