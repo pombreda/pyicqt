@@ -59,12 +59,7 @@ class B(oscar.BOSConnection):
 		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
 		text = multiparts[0][0]
-		# I don't know how to check for "does multiparts[0][1] exist"
-		# yet, so this is not a real check yet.
-		if (0):
-			encoding = multiparts[0][1]
-		else:
-			encoding = "iso-8859-1"
+		encoding = "iso-8859-1"
 		debug.log("B: using encoding %s" % (encoding))
 		text = text.decode(encoding, "replace")
 		text = text.strip()
@@ -103,7 +98,6 @@ class B(oscar.BOSConnection):
 		self.activateSSI()
 		self.setIdleTime(0)
 		self.clientReady()
-		self.requestOffline()
 		self.session.ready = True
 		tmpjid = config.jid
 		if (self.session.registeredmunge):
@@ -113,6 +107,7 @@ class B(oscar.BOSConnection):
 			self.icqcon.setAway(None)
 		else:
 			self.icqcon.setAway(self.icqcon.savedFriendly)
+		self.requestOffline()
 
 
 #############################################################################
