@@ -1,3 +1,10 @@
+2004-09-26  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Import all users from groups, regardless of whether I get a real
+	status notification back.  Also, notify user when connection isn't
+	active.
+
 2004-09-23  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* *:
