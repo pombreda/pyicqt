@@ -34,6 +34,12 @@ class Discovery:
 		fro = el.getAttribute("from")
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
+		type = el.getAttribute("type")
+		if(type == "error"):
+			# Never reply to an error IQ, nasty loops will result.
+			debug.log("Discovery: Error Iq received \"%s\" \"%s\". Looking for handler" % (fro, ID))
+			return
+			
 		debug.log("Discovery: Iq received \"%s\" \"%s\". Looking for handler" % (fro, ID))
 		query = None
 		vcard = None
@@ -49,7 +55,6 @@ class Discovery:
 				break
 
 		if(vcard):
-			type = el.getAttribute("type")
 			xmlns = vcard.getAttribute("xmlns")
 			debug.log("Discover: %s %s" % (xmlns, vcard.toXml()))
 			if(type == "get"):

@@ -1,5 +1,9 @@
 0.6:
 
+* SSI buddy list handling that actually works right.
+
+* Socks5 support.
+
 * Web admin interface.
 
 * Support for configurable encoding.

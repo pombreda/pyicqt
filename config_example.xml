@@ -38,6 +38,12 @@
 	# The port of the ICQ server you wish to connect to
 	<icqPort>5238</icqPort>
 
+	# The name of Socks Proxy if connecting thru a proxy
+	<!-- <socksProxyServer>im-proxy2</socksProxyServer> -->
+
+	# The Socks Proxy port to use when connecting thru a proxy
+	<!-- <socksProxyPort>1080</socksProxyPort> -->
+
 	# Send greeting on login (enter text to be sent to users here)
 	<!-- <sessionGreeting>enter message here</sessionGreeting> -->
 
