@@ -1,3 +1,38 @@
+2005-02-15  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/jabw.py:
+	Added unicode conversion.
+
+2005-02-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/debug.py:
+	* src/main.py:
+	* src/config.py:
+	Added extended debugging support.
+
+2005-02-04  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	Imported part of Florian's version patch.
+
+2005-02-03  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* PyICQt:
+	Changed to /bin/sh.
+	Then changed to /usr/bin/env.
+
+	* src/config.py:
+	* src/legacy/icqt.py:
+	* config_example.xml:
+	Added icqServer and icqPort config setting.
+
+2005-02-02  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/tlib/oscar.py:
+	Added Jonas's SSI patches.
+
 2005-01-18  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/config.py:

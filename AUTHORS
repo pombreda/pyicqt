@@ -11,7 +11,7 @@ functionality, and for his initial discussions with the Twisted Matrix team.
 
 Jonas Adahl for pointing out an endian issue and providing a patch.  Also
 for enhancing ICQ user information retrieval (vcard) and adding support
-for more accurate user status.
+for more accurate user status.  Also for repairing the SSI handling mechanisms!
 
 Magnus Henoch for discovering and fixing the problem with interaction
 with ejabberd.
