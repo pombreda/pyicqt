@@ -1,0 +1,29 @@
+0.5:
+
+* Now works correctly with ejabberd thanks to Magnus Henoch.
+
+* No longer requires patched Twisted to be installed.
+
+* Enhanced vcard support thanks to Jonas Adahl.
+
+0.4:
+
+* Offline messages are retrieved now.
+
+0.3:
+
+* Now handles /registered from older transports.
+
+* vCard support.
+
+0.2:
+
+* Fixes to bugs with roster imports and incoming messages.
+
+* Away messages are handled more properly now.
+
+* DB saves don't happen a ridiculous number of times anymore.
+
+0.1:
+
+* First release, base ICQ chat support
