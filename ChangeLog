@@ -1,3 +1,27 @@
+2005-02-20  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Switched to auto-restart with proper process name.
+
+	* config_example.xml:
+	Adjusted to change the way sessionGreeting is handled.
+
+	* src/lang.py:
+	Removed all sessiongreeting references.
+
+	* src/lang.py:
+	* src/jabw.py:
+	* src/session.py:
+	* src/groupchat.py:
+	* src/main.py:
+	Removed groupchat handling.  (no groupchat for ICQ)
+
+	* src/tlib/oscar.py:
+	Cleaned up stdout debug messages.
+
+	* src/lang.py:
+	Punt to english of all else fails.
+
 2005-02-19  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:

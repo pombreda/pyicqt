@@ -221,81 +221,72 @@ class ICQConnection:
 	
 	def setAway(self, awayMessage=None):
 		debug.log("ICQConnection: setAway %s" % (awayMessage))
-		if (not self.session.ready or not hasattr(self, "bos")):
-			return
-
-		self.bos.setAway(awayMessage)
+		try:
+			self.bos.setAway(awayMessage)
+		except AttributeError:
+			self.alertUser(lang.get(config.jid).sessionnotactive)
 
 	def setICQStatus(self, status):
 		debug.log("ICQConnection: setICQStatus %s" % (status))
-		if (not self.session.ready or not hasattr(self, "bos")):
-			return
-
-		self.bos.setICQStatus(status)
+		try:
+			self.bos.setICQStatus(status)
+		except AttributeError:
+			self.alertUser(lang.get(config.jid).sessionnotactive)
 
 	def sendMessage(self, target, message):
 		from glue import jid2icq
+		try:
+			stats.outmessages += 1
+			stats.sessionUpdate(self.session.jabberID, "outmessages", 1)
 
-		if (not self.session.ready or not hasattr(self, "bos")):
-			return
-
-		stats.outmessages += 1
-		stats.sessionUpdate(self.session.jabberID, "outmessages", 1)
-
-		scrnname = jid2icq(target)
-		debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
-		encoded = message.encode(config.encoding, "replace")
-		debug.log("ICQConnection: sendMessage encoded %s" % (encoded))
-		if (self.session.ready and hasattr(self, "bos")):
+			scrnname = jid2icq(target)
+			debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
+			encoded = message.encode(config.encoding, "replace")
+			debug.log("ICQConnection: sendMessage encoded %s" % (encoded))
 			self.bos.sendMessage(scrnname, encoded)
-		else:
-			debug.log("ICQConnection: not logged in yet")
-			if (hasattr(self.session, "jabberID")):
-				self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body="You are not currently logged into this transport.  Please log in again.", mtype="chat")
-			return
+		except AttributeError:
+			self.alertUser(lang.get(config.jid).sessionnotactive)
 
 	def resendBuddies(self, resource):
 		from glue import icq2jid
 		debug.log("ICQConnection: resendBuddies %s" % (resource))
-		if (not hasattr(self, "contacts")):
+		try:
+			for c in self.contacts.ssicontacts.keys( ):
+				debug.log("ICQConnection: resending buddy of %s" % (c))
+				jid = icq2jid(c)
+				show = self.contacts.ssicontacts[c]['show']
+				status = self.contacts.ssicontacts[c]['status']
+				ptype = self.contacts.ssicontacts[c]['presence']
+				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
+		except AttributeError:
 			return
-
-		for c in self.contacts.ssicontacts.keys( ):
-			debug.log("ICQConnection: resending buddy of %s" % (c))
-			jid = icq2jid(c)
-			show = self.contacts.ssicontacts[c]['show']
-			status = self.contacts.ssicontacts[c]['status']
-			ptype = self.contacts.ssicontacts[c]['presence']
-			self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
 
         def sendTypingNotify(self, type, dest):
 		from tlib.oscar import MTN_FINISH, MTN_IDLE, MTN_BEGIN
 		from glue import jid2icq
-
-		if (not hasattr(self, "bos")):
-			return
-
-		username = jid2icq(dest)
-		debug.log("ICQConnection: sendTypingNotify %s to %s" % (type,username))
-		if (type == "begin"):
-			self.bos.sendTypingNotification(username, MTN_BEGIN)
-		elif (type == "idle"):
-			self.bos.sendTypingNotification(username, MTN_IDLE)
-		elif (type == "finish"):
-			self.bos.sendTypingNotification(username, MTN_FINISH)
+		try:
+			username = jid2icq(dest)
+			debug.log("ICQConnection: sendTypingNotify %s to %s" % (type,username))
+			if (type == "begin"):
+				self.bos.sendTypingNotification(username, MTN_BEGIN)
+			elif (type == "idle"):
+				self.bos.sendTypingNotification(username, MTN_IDLE)
+			elif (type == "finish"):
+				self.bos.sendTypingNotification(username, MTN_FINISH)
+		except AttributeError:
+			self.alertUser(lang.get(config.jid).sessionnotactive)
 
 	def getvCard(self, vcard, user):
 		debug.log("ICQConnection: getvCard %s" % (user))
-
-		if (not hasattr(self, "bos")):
-			return
-
-		d = defer.Deferred()
-		#self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
-		self.userinfoID = (self.userinfoID+1)%256
-		self.userinfoCollection[self.userinfoID] = UserInfoCollector(self.userinfoID, d, vcard, user)
-		self.bos.getMetaInfo(user, self.userinfoID) #.addCallback(self.gotvCard, user, vcard, d)
-		return d
+		try:
+			d = defer.Deferred()
+			#self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
+			self.userinfoID = (self.userinfoID+1)%256
+			self.userinfoCollection[self.userinfoID] = UserInfoCollector(self.userinfoID, d, vcard, user)
+			self.bos.getMetaInfo(user, self.userinfoID) #.addCallback(self.gotvCard, user, vcard, d)
+			return d
+		except AttributeError:
+			self.alertUser(lang.get(config.jid).sessionnotactive)
 
 #	def gotvCard(self, userinfo, uin, vcard, d):
 #		debug.log("ICQConnection: gotvCard: %s" % (userinfo))
@@ -417,25 +408,21 @@ class ICQConnection:
 	def removeMe(self):
 		from glue import icq2jid
 		debug.log("ICQConnection: removeMe")
-		if (not hasattr(self, "bos")):
+		try:
+			self.bos.stopKeepAlive()
+			self.bos.disconnect()
+			for c in self.contacts.ssicontacts.keys( ):
+				if (self.contacts.ssicontacts[c]['presence'] == "unavailable"):
+					continue
+
+				debug.log("ICQConnection: sending offline for %s" % (c))
+				jid = icq2jid(c)
+				show = None
+				status = None
+				ptype = "unavailable"
+				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
+		except AttributeError:
 			return
-
-		self.bos.stopKeepAlive()
-		self.bos.disconnect()
-
-		if (not hasattr(self, "contacts")):
-			return
-
-		for c in self.contacts.ssicontacts.keys( ):
-			if (self.contacts.ssicontacts[c]['presence'] == "unavailable"):
-				continue
-
-			debug.log("ICQConnection: sending offline for %s" % (c))
-			jid = icq2jid(c)
-			show = None
-			status = None
-			ptype = "unavailable"
-			self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
 
 	def jabberSubscriptionReceived(self, to, subtype):
 		debug.log("ICQConnection: Session \"%s\" - jabberSubscriptionReceived(\"%s\", \"%s\")" % (self.session.jabberID, to, subtype))
@@ -454,108 +441,112 @@ class ICQConnection:
 				def cb(arg=None):
 					updatePresence("subscribed")
 
-				if (not hasattr(self, "bos") or not self.session.ready):
-					debug.log("Not properly logged in yet")
-					if (hasattr(self.session, "jabberID")):
-						self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body="You are not currently logged into this transport.  Please log in again.", mtype="chat")
-					return
+				try:
+					for g in self.bos.ssigroups:
+						for u in g.users:
+							if u.name == userHandle:
+								if (not u.authorizationRequestSent) and (not u.authorized):
+									self.bos.sendAuthorizationRequest(userHandle, "Please authorize me!")
+									u.authorizationRequestSent = True
+									return
+								else:
+									cb()
+									return
 
-				for g in self.bos.ssigroups:
-					for u in g.users:
-						if u.name == userHandle:
-							if (not u.authorizationRequestSent) and (not u.authorized):
-								self.bos.sendAuthorizationRequest(userHandle, "Please authorize me!")
-								u.authorizationRequestSent = True
-								return
-							else:
-								cb()
-								return
+					savethisgroup = None
+					groupName = "PyICQ-t Buddies"
+					for g in self.bos.ssigroups:
+						if (g.name == groupName):
+							debug.log("Located group %s" % (g.name))
+							savethisgroup = g
 
-				savethisgroup = None
-				groupName = "PyICQ-t Buddies"
-				for g in self.bos.ssigroups:
-					if (g.name == groupName):
-						debug.log("Located group %s" % (g.name))
-						savethisgroup = g
+					if (savethisgroup is None):
+						debug.log("Adding new group")
+						newGroupID = self.generateGroupID()
+						newGroup = oscar.SSIGroup(groupName, newGroupID, 0)
+						self.bos.startModifySSI()
+						self.bos.addItemSSI(newGroup)
+						self.bos.endModifySSI()
+						savethisgroup = newGroup
+						self.bos.ssigroups.append(newGroup)
 
-				if (savethisgroup is None):
-					debug.log("Adding new group")
-					newGroupID = self.generateGroupID()
-					newGroup = oscar.SSIGroup(groupName, newGroupID, 0)
+					group = self.findGroupByName(groupName)
+					newUserID = self.generateBuddyID(group.groupID)
+					newUser = oscar.SSIBuddy(userHandle, group.groupID, newUserID)
+					savethisgroup.addUser(newUserID, newUser)
+
+
+					debug.log("Adding item to SSI")
 					self.bos.startModifySSI()
-					self.bos.addItemSSI(newGroup)
+					self.bos.addItemSSI(newUser)
+					self.bos.modifyItemSSI(savethisgroup)
 					self.bos.endModifySSI()
-					savethisgroup = newGroup
-					self.bos.ssigroups.append(newGroup)
 
-				group = self.findGroupByName(groupName)
-				newUserID = self.generateBuddyID(group.groupID)
-				newUser = oscar.SSIBuddy(userHandle, group.groupID, newUserID)
-				savethisgroup.addUser(newUserID, newUser)
-
-
-				debug.log("Adding item to SSI")
-				self.bos.startModifySSI()
-				self.bos.addItemSSI(newUser)
-				self.bos.modifyItemSSI(savethisgroup)
-				self.bos.endModifySSI()
-
-				self.contacts.updateSSIContact(userHandle)
-				updatePresence("subscribe")
+					self.contacts.updateSSIContact(userHandle)
+					updatePresence("subscribe")
+				except AttributeError:
+					self.alertUser(lang.get(config.jid).sessionnotactive)
 
 			elif(subtype == "subscribed"):
 				# The user has granted this contact subscription
 				debug.log("ICQConnection: Subscribed request received.")
-				if userHandle in self.bos.authorizationRequests:
-					self.bos.sendAuthorizationRespons(userHandle, True, "OK")
-					self.bos.authorizationRequests.remove(userHandle)
-				pass
-				# Lets subscribe back, this causes loops...
-				#updatePresence("subscribe")
+				try:
+					if userHandle in self.bos.authorizationRequests:
+						self.bos.sendAuthorizationRespons(userHandle, True, "OK")
+						self.bos.authorizationRequests.remove(userHandle)
+				except AttributeError:
+					self.alertUser(lang.get(config.jid).sessionnotactive)
 
 			elif(subtype == "unsubscribe" or subtype == "unsubscribed"):
 				# User wants to unsubscribe to this contact's presence. (User is removing the contact from their list)
 				debug.log("ICQConnection: Unsubscribe(d) request received.")
 
-				if userHandle in self.bos.authorizationRequests:
-					self.bos.sendAuthorizationRespons(userHandle, False, "")
-					self.bos.authorizationRequests.remove(userHandle)
-
 				def cb(arg=None):
 					updatePresence("unsubscribed")
 
-				savethisuser = None
-				for g in self.bos.ssigroups:
-					for u in g.users:
-						debug.log("Comparing %s and %s" % (u.name.lower(), userHandle))
-						if (u.name.lower() == userHandle):
-							debug.log("Located user %s" % (u.name))
-							savethisuser = u
+				try:
 
-				if (savethisuser is None):
-					debug.log("Did not find user")
-					return
+					if userHandle in self.bos.authorizationRequests:
+						self.bos.sendAuthorizationRespons(userHandle, False, "")
+						self.bos.authorizationRequests.remove(userHandle)
 
-				self.bos.startModifySSI()
-				debug.log("ICQConnection: Removing %s (u:%d g:%d) from group %s"%(savethisuser.name, savethisuser.buddyID, savethisuser.groupID, savethisuser.group.name))
-				de = self.bos.delItemSSI(savethisuser)
-				de.addCallback(self.SSIItemDeleted, savethisuser)
-				de.addCallback(cb)
-				self.bos.endModifySSI()
+					savethisuser = None
+					for g in self.bos.ssigroups:
+						for u in g.users:
+							debug.log("Comparing %s and %s" % (u.name.lower(), userHandle))
+							if (u.name.lower() == userHandle):
+								debug.log("Located user %s" % (u.name))
+								savethisuser = u
+
+					if (savethisuser is None):
+						debug.log("Did not find user")
+						return
+
+					self.bos.startModifySSI()
+					debug.log("ICQConnection: Removing %s (u:%d g:%d) from group %s"%(savethisuser.name, savethisuser.buddyID, savethisuser.groupID, savethisuser.group.name))
+					de = self.bos.delItemSSI(savethisuser)
+					de.addCallback(self.SSIItemDeleted, savethisuser)
+					de.addCallback(cb)
+					self.bos.endModifySSI()
+				except AttributeError:
+					self.alertUser(lang.get(config.jid).sessionnotactive)
 
                 else: # The user wants to change subscription to the transport
-                        if(subtype == "subscribe"):
-                                updatePresence("subscribed")
+			try:
+	                        if(subtype == "subscribe"):
+					updatePresence("subscribed")
 
-                        elif(subtype == "subscribed"):
-                                return # Nothing to do
+	                        elif(subtype == "subscribed"):
+					return # Nothing to do
 
-                        elif(subtype == "unsubscribe" or subtype == "unsubscribed"):
-                                # They want to unregister. Ok, we can do that
-                                jid = self.session.jabberID
-				debug.log("Subscriptions: Session \"%s\" is about to be unregistered" % (jid))
-				self.session.pytrans.registermanager.removeRegInfo(jid)
-				debug.log("Subscriptions: Session \"%s\" has been unregistered" % (jid))
+				elif(subtype == "unsubscribe" or subtype == "unsubscribed"):
+	                                # They want to unregister. Ok, we can do that
+					jid = self.session.jabberID
+					debug.log("Subscriptions: Session \"%s\" is about to be unregistered" % (jid))
+					self.session.pytrans.registermanager.removeRegInfo(jid)
+					debug.log("Subscriptions: Session \"%s\" has been unregistered" % (jid))
+			except AttributeError:
+				self.alertUser(lang.get(config.jid).sessionnotactive)
 
 	def SSIItemDeleted(self, x, user):
 		c = 0
@@ -576,10 +567,11 @@ class ICQConnection:
 			message = message+"\n"+errmsgs[1]
 		if (errmsgs[3]):
 			message = message+"\n"+errmsgs[3]
-		tmpjid = config.jid
-		if (self.session.registeredmunge):
-			tmpjid = tmpjid + "/registered"
-		self.session.sendMessage(to=self.session.jabberID, fro=tmpjid, body=message, mtype="chat")
+		#tmpjid = config.jid
+		#if (self.session.registeredmunge):
+		#	tmpjid = tmpjid + "/registered"
+		#self.session.sendMessage(to=self.session.jabberID, fro=tmpjid, body=message, mtype="chat")
+		self.alertUser(message)
 
 		self.session.removeMe()
 
@@ -617,6 +609,12 @@ class ICQConnection:
 					break
 			if not found: break
 		return pBuddyID
+
+	def alertUser(self, message):
+		tmpjid = config.jid
+		if (self.session.registeredmunge):
+			tmpjid = tmpjid + "/registered"
+		self.session.sendMessage(to=self.session.jabberID, fro=tmpjid, body=message, mtype="error")
 
 
 #############################################################################

@@ -55,12 +55,11 @@ class Session(jabw.JabberConnection):
 		self.status = None
 		
 		self.resourceList = []
-		self.groupchats = []
 		
 		self.legacycon = legacy.LegacyConnection(self.username, self.password, self)
 		self.pytrans.legacycon = self.legacycon
 		
-		if(config.sessionGreeting):
+		if (config.sessionGreeting != ""):
 			self.sendMessage(to=self.jabberID, fro=config.jid, body=lang.get(self.lang).sessiongreeting)
 		debug.log("Session: New session created \"%s\" \"%s\" \"%s\"" % (jabberID, username, password))
 
@@ -93,10 +92,6 @@ class Session(jabw.JabberConnection):
 			self.legacycon.removeMe()
 			self.legacycon = None
 		
-		# Remove any groupchats we may be in
-		for groupchat in utils.copyList(self.groupchats):
-			groupchat.removeMe()
-		
 		if(self.pytrans):
 			# Remove us from the session list
 			del self.pytrans.sessions[self.jabberID]
@@ -113,47 +108,15 @@ class Session(jabw.JabberConnection):
 	def sendNotReadyError(self, source, resource, dest, body):
 		self.sendErrorMessage(source + '/' + resource, dest, "wait", "not-allowed", lang.get(self.lang).waitforlogin, body)
 	
-	def findGroupchat(self, to):
-		pos = to.find('@')
-		if(pos > 0):
-			roomID = to[:pos]
-		else:
-			roomID = to
-		
-		for groupchat in self.groupchats:
-			if(groupchat.ID == roomID):
-				return groupchat
-		
-		return None
-		
 	def messageReceived(self, source, resource, dest, destr, mtype, body):
 		if(not self.ready):
 			self.sendNotReadyError(source, resource, dest, body)
 			return
 		
 		# Sends the message to the legacy translator
-		groupchat = self.findGroupchat(dest)
-		if(groupchat):
-			# It's for a groupchat
-			if(destr and len(destr) > 0):
-				self.sendMessage(to=(source + "/" + resource), fro=dest, body=lang.get(self.lang).groupchatprivateerror)
-			else:
-				debug.log("Session: Message received for groupchat \"%s\" \"%s\"" % (self.jabberID, groupchat.ID))
-				groupchat.sendMessage(body)
-		else:
-			debug.log("Session: messageReceived(), passing onto legacycon.sendMessage()")
-			self.legacycon.sendMessage(dest, body)
+		debug.log("Session: messageReceived(), passing onto legacycon.sendMessage()")
+		self.legacycon.sendMessage(dest, body)
 	
-	def inviteReceived(self, source, resource, dest, destr, roomjid):
-		if(not self.ready):
-			self.sendNotReadyError(source, resource, dest, roomjid)
-			return
-		
-		groupchat = self.findGroupchat(roomjid)
-		if(groupchat):
-			debug.log("Session: inviteReceived(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (source, resource, dest, destr, roomjid))
-			groupchat.sendContactInvite(dest)
-
 	def typingNotificationReceived(self, dest, composing):
 		""" The user has sent typing notification to a contact on the legacy service """
 		self.legacycon.userTypingNotification(dest, composing)
@@ -161,35 +124,7 @@ class Session(jabw.JabberConnection):
 	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status):
 		# Checks resources and priorities so that the highest priority resource always appears as the
 		# legacy services status. If there are no more resources then the session is deleted
-		# Additionally checks if the presence is to a groupchat room
-		groupchat = self.findGroupchat(to)
-		if(groupchat):
-			# It's for a groupchat
-			if(ptype == "unavailable"):
-				# Kill the groupchat
-				debug.log("Session: Presence received to kill groupchat \"%s\" \"%s\"" % (self.jabberID, groupchat.ID))
-				groupchat.removeMe()
-			else:
-				if(source == self.jabberID):
-					debug.log("Session: Presence for groupchat \"%s\" \"%s\"" % (self.jabberID, groupchat.ID))
-					if(ptype == "error"):
-						groupchat.removeMe()
-					else:
-						groupchat.userJoined(tor)
-				else:
-					debug.log("Session: Sending error presence for groupchat (user not allowed) \"%s\" \"%s\"" % (self.jabberID, groupchat.ID))
-					self.sendPresence(to=(source + "/" + resource), fro=to, ptype="error")
-		
-		elif(legacy.isGroupJID(to) and to != config.jid and ptype != "error"):
-			# It's a new groupchat
-			gcID = to[:to.find('@')] # Grab the room name
-			debug.log("Session: Creating a new groupchat \"%s\" \"%s\"" % (self.jabberID, gcID))
-			groupchat = legacy.LegacyGroupchat(self, resource, gcID) # Creates an empty groupchat
-			groupchat.userJoined(tor)
-		
-		else:
-			# Not for groupchat
-			self.handleResourcePresence(source, resource, to, tor, priority, ptype, show, status)
+		self.handleResourcePresence(source, resource, to, tor, priority, ptype, show, status)
 
 		
 	def handleResourcePresence(self, source, resource, to, tor, priority, ptype, show, status):

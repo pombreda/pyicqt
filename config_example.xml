@@ -38,11 +38,10 @@
 	# The port of the ICQ server you wish to connect to
 	<icqPort>5238</icqPort>
 
-	# Send greeting on login
-	# (uncomment to enable)
-	<!-- <sessionGreeting/> -->
+	# Send greeting on login (enter text to be sent to users here)
+	<!-- <sessionGreeting>enter message here</sessionGreeting> -->
 
-	# Allow users of AIM gateway to chat with ICQ users
+	# Allow users of ICQ gateway to chat with AIM users
 	# (uncomment to enable)
 	<!-- <crossChat/> -->
 </pyicqt>
