@@ -13,7 +13,7 @@ else
 fi
 if test "$found" == ""; then
 	rm -f $pidfile
-	exec -a PyICQt python main.py
+	exec -a PyICQt python main.py $*
 else
 	echo "PyICQt is already running."
 fi

@@ -1,13 +1,19 @@
-2004-01-04  Daniel Henninger  <jadestorm@nc.rr.com>
+2005-01-09  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* PyICQt:
+	Altered to pass on args.
+
+2005-01-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
 	Removed unnecessary sys pieces.
+	Added back, might be necessary after all?
 
 	* src/legacy/icqt.py:
 	* src/config_example.py:
 	Added patches from Serge Trylis for proper encoding config.
 
-2004-01-02  Daniel Henninger  <jadestorm@nc.rr.com>
+2005-01-02  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/config_example.py:
 	* src/main.py:

@@ -1,6 +1,7 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+import getopt
 import sys
 reload(sys)
 sys.setdefaultencoding('iso-8859-1')
@@ -228,6 +229,8 @@ class App:
 if(__name__ == "__main__"):
 	#import tests.runtests
 	#debug.log("Twisted test cases passed successfully.")
+	opts, args = getopt.getopt(sys.argv[1:], "f:c:", ["file=", "config="])
+
 	app = App()
 
 	if (hasattr(config, "webport") and config.webport):
