@@ -21,7 +21,7 @@ debugFile = None
 if(config.debugOn):
 	if(len(config.debugLog) > 0):
 		try:
-			debugFile = open(config.debugLog, 'a')
+			debugFile = open(utils.doPath(config.debugLog), 'a')
 		except:
 			print "Error opening debug log file. Exiting..."
 			os.abort()

@@ -6,6 +6,7 @@ import os
 import os.path
 import config
 import debug
+import utils
 
 SPOOL_UMASK = 0177
 
@@ -19,7 +20,7 @@ class XDB:
 	"""
 	def __init__(self, name, mangle=False):
 		""" Creates an XDB object. If mangle is True then any '@' signs in filenames will be changed to '%' """
-		self.name = config.spooldir + '/' + name
+		self.name = utils.doPath(config.spooldir) + '/' + name
 		if not os.path.exists(self.name):
 			os.makedirs(self.name)
 		self.mangle = mangle

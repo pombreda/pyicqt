@@ -2,12 +2,12 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 from tlib.domish import Element
-from tlib.jabber.jid import JID
+from tlib.jabber import jid
 import utils
 import debug
 
 
-def sendMessage(pytrans, to, fro, body, mtype=None):
+def sendMessage(pytrans, to, fro, body, mtype=None, errorType=None, delay=None):
 	""" Sends a Jabber message """
 	debug.log("jabw: Sending a Jabber message \"%s\" \"%s\" \"%s\" \"%s\"" % (to, fro, utils.latin1(body), mtype))
 	el = Element((None, "message"))
@@ -15,7 +15,23 @@ def sendMessage(pytrans, to, fro, body, mtype=None):
 	el.attributes["from"] = fro
 	el.attributes["id"] = pytrans.makeMessageID()
 	if(mtype):
-		el.attributes["type"] = mtype
+		if(mtype == "error"):
+			err = el.addElement("error")
+			err.attributes["type"] = errorType[0]
+			condition = err.addElement(errorType[1])
+			condition.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+			text = el.addElement("text")
+			text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+			text.addContent(errorType[2])
+		else:
+			el.attributes["type"] = mtype
+
+	if(delay):
+		x = el.addElement("x")
+		x.attributes["xmlns"] = "jabber:x:delay"
+		x.attributes["from"] = fro
+		x.attributes["stamp"] = delay
+
 	b = el.addElement("body")
 	b.addContent(utils.utf8encode(body))
 	x = el.addElement("x")
@@ -96,14 +112,17 @@ class JabberConnection:
 	def checkFrom(self, el):
 		""" Checks to see that this packet was intended for this object """
 		fro = el.getAttribute("from")
-		froj = JID(fro)
+		froj = jid.JID(fro)
 		
 		return (froj.userhost() == self.jabberID) # Compare with the Jabber ID that we're looking at
 	
-	def sendMessage(self, to, fro, body, mtype=None):
-		""" Sends a Jabber message """
+	def sendMessage(self, to, fro, body, mtype=None, errorType=None, delay=None):
+		""" Sends a Jabber message
+		For this message to be an error, mtype="error", errorType=("modify", "bad-request", "Human readable descriptive text") - See XMPP Core (RFC3920) for more details
+		For this message to have a <x xmlns="jabber:x:delay"/> you must pass a correctly formatted timestamp (See JEP0091)
+		"""
 		debug.log("User: %s - JabberConnection sending message \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, to, fro, utils.latin1(body), mtype))
-		sendMessage(self.pytrans, to, fro, body, mtype)
+		sendMessage(self.pytrans, to, fro, body, mtype, errorType, delay)
 	
 	def sendErrorMessage(self, to, fro, etype, eelement, econtent, body=None):
 		debug.log("User: %s - JabberConnection sending error response." % (self.jabberID))
@@ -138,9 +157,9 @@ class JabberConnection:
 		if(not self.checkFrom(el)): return
 		debug.log("User: %s - JabberConnection received message packet" % (self.jabberID))
 		fro = el.getAttribute("from")
-		froj = JID(fro)
+		froj = jid.JID(fro)
 		to = el.getAttribute("to")
-		toj = JID(to)
+		toj = jid.JID(to)
 		mID = el.getAttribute("id")
 		
 		mtype = el.getAttribute("type")
@@ -186,9 +205,9 @@ class JabberConnection:
 		if(not self.checkFrom(el)): return
 		debug.log("User: %s - JabberConnection received presence packet" % (self.jabberID))
 		fro = el.getAttribute("from")
-		froj = JID(fro)
+		froj = jid.JID(fro)
 		to = el.getAttribute("to")
-		toj = JID(to)
+		toj = jid.JID(to)
 		
 		# Grab the contents of the <presence/> packet
 		ptype = el.getAttribute("type")

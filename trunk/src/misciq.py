@@ -9,13 +9,14 @@ import config
 import utils
 import lang
 import debug
+import sys
 
-
-IQ_GATEWAY = "jabber:iq:gateway"
 
 class GatewayTranslator:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
+		self.pytrans.discovery.addFeature("jabber:iq:gateway", self.incomingIq)
+
 	
 	def incomingIq(self, el):
 		fro = el.getAttribute("from")
@@ -37,7 +38,7 @@ class GatewayTranslator:
 		iq.attributes["to"] = to
 		iq.attributes["id"] = ID
 		query = iq.addElement("query")
-		query.attributes["xmlns"] = IQ_GATEWAY
+		query.attributes["xmlns"] = "jabber:iq:gateway"
 		desc = query.addElement("desc")
 		desc.addContent(lang.get(ulang).gatewaytranslator)
 		prompt = query.addElement("prompt")
@@ -66,12 +67,41 @@ class GatewayTranslator:
 			iq.attributes["to"] = to
 			iq.attributes["id"] = ID
 			query = iq.addElement("query")
-			query.attributes["xmlns"] = IQ_GATEWAY
+			query.attributes["xmlns"] = "jabber:iq:gateway"
 			prompt = query.addElement("prompt")
 			prompt.addContent(legacy.translateAccount(legacyaccount))
 			
 			self.pytrans.send(iq)
 		
 		else:
-			self.pytrans.discovery.sendIqNotValid(to, ID, IQ_GATEWAY)
+			self.pytrans.discovery.sendIqNotValid(to, ID, "jabber:iq:gateway")
 
+class VersionTeller:
+	def __init__(self, pytrans):
+		self.pytrans = pytrans
+		self.pytrans.discovery.addFeature("jabber:iq:version", self.incomingIq)
+
+	def incomingIq(self, el):
+		eltype = el.getAttribute("type")
+		if(eltype != "get"): return # Only answer "get" stanzas
+
+		self.sendVersion(el)
+
+	def sendVersion(self, el):
+		debug.log("Discovery: Sending transport version information")
+		iq = Element((None, "iq"))
+		iq.attributes["type"] = "result"
+		iq.attributes["from"] = config.jid
+		iq.attributes["to"] = el.getAttribute("from")
+		if(el.getAttribute("id")):
+			iq.attributes["id"] = el.getAttribute("id")
+		query = iq.addElement("query")
+		query.attributes["xmlns"] = "jabber:iq:version"
+		name = query.addElement("name")
+		name.addContent(legacy.name)
+		version = query.addElement("version")
+		version.addContent(legacy.version)
+		os = query.addElement("os")
+		os.addContent("Python" + sys.version)
+
+		self.pytrans.send(iq)

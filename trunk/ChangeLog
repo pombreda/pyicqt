@@ -1,5 +1,23 @@
 2005-02-20  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/jabw.py:
+	* src/debug.py:
+	* src/main.py:
+	* src/misciq.py:
+	* src/disco.py:
+	* src/register.py:
+	* src/config.py:
+	* config_example.xml:
+	* src/xdb.py:
+	Updated with PyMSN changes between 0.8 and 0.9.
+
+	* src/utils.py:
+	Added doPath function.
+
+	* PyICQt:
+	* src/main.py:
+	Removed most of wrapper script and added internal pid handling.
+
 	* src/tests:
 	Removed since I don't use it.
 

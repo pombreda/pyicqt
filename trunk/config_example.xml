@@ -2,12 +2,12 @@
 	# The JabberID of the transport.
 	<jid>icq.example.org</jid>
 
-	# The location of the spool directory.. if relative, relative to the
-	# src dir.  Do not include the jid of the transport.
-	<spooldir>..</spooldir>
+	# The location of the spool directory.. if relative, relative to this
+	# directory.  Do not include the jid of the transport.
+	<spooldir>.</spooldir>
 
-	# The location of the PID file.. if relative, relative to the src dir.
-	<pid>../PyICQt.pid</pid>
+	# The location of the PID file.. if relative, relative to this dir.
+	<pid>PyICQt.pid</pid>
 
 	# The IP address of the main Jabberd server
 	<mainServer>127.0.0.1</mainServer>
@@ -44,4 +44,8 @@
 	# Allow users of ICQ gateway to chat with AIM users
 	# (uncomment to enable)
 	<!-- <crossChat/> -->
+
+	# Disable registration with the transport
+	# (uncomment to disable)
+	<!-- <disableRegister/> -->
 </pyicqt>
