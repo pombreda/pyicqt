@@ -28,6 +28,9 @@ class B(oscar.BOSConnection):
 		if (config.crossChat):
 			debug.log("B: __init__ adding cross chat")
 			self.capabilities.append(oscar.CAP_CROSS_CHAT)
+		if (config.encoding in ['utf8','utf-8']):
+			debug.log("B: __init__ adding utf option")
+			self.capabilities.append(oscar.CAP_UTF)
 		if (config.socksProxyServer and config.socksProxyPort):
 			self.socksProxyServer = config.socksProxyServer
 			self.socksProxyPort = config.socksProxyPort
