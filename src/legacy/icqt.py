@@ -97,7 +97,10 @@ class B(oscar.BOSConnection):
 		self.clientReady()
 		self.session.ready = True
 		self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly)
-		self.icqcon.setAway(self.icqcon.savedFriendly)
+		if (self.icqcon.savedShow in ["online", None]):
+			self.icqcon.setAway(None)
+		else:
+			self.icqcon.setAway(self.icqcon.savedFriendly)
 
 
 #############################################################################
