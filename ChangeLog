@@ -1,3 +1,9 @@
+2004-10-05  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	* src/legacy/glue.py:
+	Handle away status more properly on login and such.
+
 2004-10-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:
