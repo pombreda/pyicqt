@@ -1,3 +1,9 @@
+2005-01-14  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/webadmin/handler.py:
+	Added authentication support thanks to one of the folk in twisted.web.
+	Switched shut down button to form-driven and to not generate errors.
+
 2005-01-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:

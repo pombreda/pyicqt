@@ -1,7 +1,9 @@
 #from twisted.web.woven import page
-from nevow import rend, loaders
+from nevow import rend, loaders, inevow
 from nevow import tags as T
+from twisted.protocols import http
 from twisted.web import microdom
+from twisted.internet import reactor
 import debug
 import config
 import legacy
@@ -164,6 +166,15 @@ but for now, enjoy the statistics and such!</P>
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
 
+	def renderHTTP(self, ctx):
+		request = inevow.IRequest(ctx)
+		password = request.getPassword()
+		if (password != config.websecret):
+			request.setHeader('WWW-Authenticate', 'Basic realm="PyICQ-t"')
+			request.setResponseCode(http.UNAUTHORIZED)
+			return "Authorization required."
+		return rend.Page.renderHTTP(self, ctx)
+
 	def childFactory(self, ctx, name):
 		debug.log("WebAdmin: getDynamicChild %s %s" % (ctx, name))
 		if (name == "status"):
@@ -264,13 +275,35 @@ class WebAdmin_controls(WebAdmin):
 	docFactory = loaders.htmlstr(admintmplhead + """
 <B>Controls</B>
 <HR />
-<A CLASS="control" HREF="shutdown">Shut Down</A>&nbsp;&nbsp;&nbsp;<B>Note:</B> this will cause a browser error due to broken connection.
+<SPAN nevow:render="message" />
+<SPAN nevow:render="controls" />
 """ + admintmplfoot)
 
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
 
-	def childFactory(self, ctx, name):
-		debug.log("WebAdmin_controls: getDynamicChild %s %s" % (ctx, name))
-		if (name == "shutdown"):
-			os.abort()
+	def renderHTTP(self, ctx):
+		request = inevow.IRequest(ctx)
+		password = request.getPassword()
+		if (password != config.websecret):
+			request.setHeader('WWW-Authenticate', 'Basic realm="PyICQ-t"')
+			request.setResponseCode(http.UNAUTHORIZED)
+			return "Authorization required."
+		if (request.args.get('shutdown')):
+			debug.log("WebAdmin: Received shutdown")
+			reactor.stop()
+		return rend.Page.renderHTTP(self, ctx)
+
+	def render_message(self, context, data):
+		request = inevow.IRequest(context)
+		if (request.args.get('shutdown')):
+			return T.b["Server is now shut down.  Attempts to reload this page will fail."]
+		return ""
+
+	def render_controls(self, context, data):
+		request = inevow.IRequest(context)
+		if (request.args.get('shutdown')):
+			return ""
+		return T.form(method="POST")[
+			T.input(type="submit", name="shutdown", value="Shut Down")
+		]
