@@ -31,7 +31,6 @@ _funcs = { "tcp"  : _parseTCPSSL,
            "unix" : _parseUNIX,
            "ssl"  : _parseTCPSSL }
 
-
 def parse(description, factory):
     args, kw = strports._parse(description)
     return (args[0].upper(),) + _funcs[args[0]](factory, *args[1:], **kw)

@@ -1,5 +1,11 @@
 2005-01-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/main.py:
+	* src/xmlconfig.py:
+	* src/config.py:
+	* src/config_example.py:
+	Updated to new config style.
+
 	* config_example.xml:
 	Added example new configuration file.
 

@@ -14,7 +14,6 @@ DISCO_INFO = DISCO + "#info"
 IQ_VERSION = "jabber:iq:version"
 VCARD = "vcard-temp"
 
-
 class Discovery:
 	def __init__ (self, pytrans):
 		debug.log("Discovery: Created discovery manager")
