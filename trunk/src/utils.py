@@ -44,7 +44,7 @@ set_restrictedchar = [
 
 def is_in(set_list, c):
 	for i in set_list:
-	from_char, to_char = i
+		from_char, to_char = i
 		if ((ord(c) >= from_char) and (ord(c) <= to_char)):
 			return True
 	return False

@@ -1,3 +1,8 @@
+2005-03-11  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	Fixed stupid typo.
+
 2005-03-08  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:
