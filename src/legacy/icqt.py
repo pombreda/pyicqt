@@ -135,7 +135,7 @@ class ICQConnection:
 	
 	def setAway(self, awayMessage=None):
 		debug.log("ICQConnection: setAway %s" % (awayMessage))
-		if (not hasattr(self, "bos")):
+		if (not self.session.ready or not hasattr(self, "bos")):
 			return
 
 		self.bos.setAway(awayMessage)
@@ -146,7 +146,7 @@ class ICQConnection:
 		scrnname = jid2icq(target)
 		debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
 		encoded = message.encode("iso-8859-1", "replace")
-		if (hasattr(self, "bos")):
+		if (self.session.ready and hasattr(self, "bos")):
 			self.bos.sendMessage(scrnname, encoded)
 		else:
 			debug.log("ICQConnection: not logged in yet")
