@@ -1,3 +1,8 @@
+2005-03-08  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	Repaired resourceOffline typo.
+
 2005-03-07  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:

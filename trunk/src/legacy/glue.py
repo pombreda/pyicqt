@@ -143,5 +143,5 @@ class LegacyConnection(icqt.ICQConnection):
 		return icqt.ICQConnection.getvCard(self, vcard, user)
 
 	def resourceOffline(self, resource):
-		debug.log("LegacyConnection: resourceOffline %s" % (user))
+		debug.log("LegacyConnection: resourceOffline %s" % (resource))
 		pass
