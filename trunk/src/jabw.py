@@ -15,7 +15,7 @@ def sendMessage(pytrans, to, fro, body, mtype=None, errorType=None, delay=None):
 	el.attributes["from"] = fro
 	el.attributes["id"] = pytrans.makeMessageID()
 	if(mtype):
-		if(mtype == "error"):
+		if(mtype == "error" and errorType is not None):
 			err = el.addElement("error")
 			err.attributes["type"] = errorType[0]
 			condition = err.addElement(errorType[1])
