@@ -134,8 +134,8 @@ class Discovery:
 		eltype = el.getAttribute("type")
 		if(eltype in ["error", "result"]):
 			return # Never answer error or result stanzas
-		elif(eltype):
-			return self.sendIqNotValid(el.getAttribute("from"), el.getAttribute("id"), "jabber:iq:version")
+		#elif(eltype):
+		#	return self.sendIqNotValid(el.getAttribute("from"), el.getAttribute("id"), "jabber:iq:version")
 
 		debug.log("Discovery: Sending transport version information")
 		iq = Element((None, "iq"))

@@ -1,4 +1,29 @@
+2004-01-02  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/config_example.py:
+	* src/main.py:
+	* src/session.py:
+	* src/legacy/icqt.py:
+	* src/webadmin:
+	Added web admin interface + statistics gathering.
+
+2004-12-30  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	Fixed 'not valid' response to version requests.
+
+2004-12-29  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/tlib/oscar.py:
+	Added necessary pieces for typing notification to work.
+
 2004-12-28  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	Added "Online" check just to be sure.
 
 	* src/legacy/icqt.py:
 	* src/tlib/oscar.py:

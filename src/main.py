@@ -2,17 +2,19 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import sys
-reload(sys)
-sys.setdefaultencoding('iso-8859-1')
-del sys.setdefaultencoding
+#reload(sys)
+#sys.setdefaultencoding('iso-8859-1')
+#del sys.setdefaultencoding
 
 sys.path.insert(0, '.')
-
+		
 from twisted.internet import reactor
+from twisted.web import proxy, server
 from tlib.jabber import component, jid
 from tlib.domish import Element
 from twisted.internet import task
 import twisted.python.log
+from nevow import appserver
 
 import os
 import types
@@ -27,6 +29,7 @@ import legacy
 import config
 import lang
 import debug
+import webadmin
 
 #import gc
 #gc.set_debug(gc.DEBUG_COLLECTABLE | gc.DEBUG_UNCOLLECTABLE | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
@@ -55,6 +58,13 @@ class PyTransport(component.Service):
 		# Groupchat ID handling
 		self.lastID = 0
 		self.reservedIDs = []
+
+		# Statistics
+		self.stats = { }
+		self.stats['incmessages'] = 0
+		self.stats['outmessages'] = 0
+		self.stats['totalsess'] = 0
+		self.stats['maxsess'] = 0
 
 		# Message IDs
 		self.messageID = 0
@@ -196,7 +206,6 @@ class PyTransport(component.Service):
 					# Send this subscription
 					s.onPresence(el)
 
-
 class App:
 	def __init__(self):
 		self.c = component.buildServiceManager(config.jid, config.secret, "tcp:%s:%s" % (config.mainServer, config.port))
@@ -222,5 +231,8 @@ if(__name__ == "__main__"):
 	#import tests.runtests
 	#debug.log("Twisted test cases passed successfully.")
 	app = App()
-	reactor.run()
 
+	if (hasattr(config, "webport") and config.webport):
+		site = appserver.NevowSite(webadmin.WebAdmin(pytrans=app.transportSvc))
+		reactor.listenTCP(int(config.webport), site)
+	reactor.run()
