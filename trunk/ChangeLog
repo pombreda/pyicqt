@@ -1,3 +1,17 @@
+2005-01-11  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	* src/tlib/oscar.py:
+	Added support for status indicators. (web aware, that sort of thing)
+
+2005-01-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Added check for existance of nevow.
+
+	* src/lang.py:
+	Added spanish and swedish.
+
 2005-01-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:

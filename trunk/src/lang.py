@@ -96,3 +96,27 @@ class strings:
 		groupchatfailjoin2 = u"Вы вышли из комнаты бесед. Следующее было сказано перед вашим выходом из комнаты."
 		groupchatprivateerror = u"Извините. Вы не можете посылать личные сообщения в групповой беседе. Добавьте пользователя в ваш список и и после этого отправьте ему сообщение."
 		gatewaytranslator = u"Введите номер ICQ пользователя."
+
+	class sv: # Swedish - Erik Ivarsson (erik.i@telia.com)
+		sessiongreeting = u"Detta är experimentiel programvara, PyICQ-t. Kontakta Daniel Henniger <jadestorm@nc.rr.com> vid problem."
+		registertext = u"Ange ICQ-användarid (uin) i fältet användarnamn samt lösenord."
+		notloggedin = u"Fel. Du måste logga in på transporten innan meddelanden kan skickas."
+		notregistered = u"Tyvärr. Du är inte registrerad på denna transport. Registrera dig och försök igen. Om du har problem med registreringen, kontakta din jabber-administratör."
+		waitforlogin = u"Tyvärr. Detta meddelande kan inte levereras än. Försök igen när transporten är klar med inloggningen."
+		groupchatinvite = u"Du är inbjuden till ett gruppsamtal på den underliggande tjänsten. Du måste ansluta dig till detta rum för att byta till gruppsamtalläge %s.\\nOm du inte ansluter dig till detta rum kommer du inte ha möjlighet att delta i gruppsamtalet men du kommer fortfarande uppfattas som ansluten för kontakter på ICQ-tjänsten."
+		groupchatfailjoin1 = u"Du anslöt dig inte till gruppsamtalsrummet %s.\\nFöljande användare var med i gruppsamtalet:"
+		groupchatfailjoin2 = u"Du har blivit borttagen från detta rum på den underliggande tjänsten. Medan du uppfattades som medverkande i gruppsamtalet med kontakter på den ärvda tjänsten sades följande."
+		groupchatprivateerror = u"Tyvärr. Du kan inte skicka privata meddelanden till användare i detta gruppsamtal. Lägg istället till användaren till din kontaktlista och meddela dem på det sättet."
+		gatewaytranslator = u"Ange användarens ICQ-användarid (uin)."
+
+	class es: # Spanish - alejandro david weil (tenuki@gmail.com)
+		sessiongreeting = u"Este es un gateway experimental, PyICQ-t.  Si experimenta algún problema por favor contacte a Daniel Henninger <jadestorm@nc.rr.com>"
+		registertext = u"Por favor tipee su número de identificacion de ICQ en el campo de usuario y su clave."
+		notloggedin = u"Error. Debe logearse en el transporte antes de enviar mensajes."
+		notregistered = u"Lo siento. Usted no parece estar registrado con este transporte. Por favor, regístrese e inténtelo nuevamente. Si usted está teniendo problemas para registrarse, por favor, contacte su administrador Jabber."
+		waitforlogin = u"Lo siento, este mensaje no puede ser enviado aún.  Por favor inténtelo nuevamente cuando el transporte haya terminado de conectarse."
+		groupchatinvite = u"Usted ha sido invitado a un grupo de conversación en el servicio heredado. Usted debe unirse a la sala para cambiar el modo del grupo de conversación a %s.\\nSi no lo hace, usted no estará habilitado para participar en el grupo de conversación, pero aún aparecera como conectado a sus contactos en el servicio de ICQ."
+		groupchatfailjoin1 = u"Usted no se unió a la sala del grupo de conversación %s.\\nLos siguientes usuarios estaban en dicho grupo:"
+		groupchatfailjoin2 = u"Usted a sido eliminado de la sala en el servicio heredado.  Lo que sigue, fue dicho antes de que fuera desconectado, mientras usted parecía estar en el grupo de conversación en el servicio heredado."
+		groupchatprivateerror = u"Lo siento. Usted no puede enviar mensajes privados a usuarios en el grupo de conversación. Por favor, en su lugar, agregue el usuario a su lista decontactos y envíele mensajes por esa via."
+		gatewaytranslator = u"Ingrese el número de ICQ del usuario."
