@@ -1,3 +1,14 @@
+2005-03-02  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	* src/tlib/socks5.py:
+	* src/tlib/sockserror.py:
+	* src/legacy/icqt.py:
+	* config_example.xml:
+	* src/config.py:
+	* AUTHORS:
+	Applied Daniel Chandran's socks patches.
+
 2005-02-27  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* AUTHORS:
@@ -5,6 +16,9 @@
 
 	* src/tlib/oscar.py:
 	Added Chris Carlin's threading patch.
+
+	* src/disco.py:
+	Applied Florian's error IQ patch.
 
 2005-02-23  Daniel Henninger  <jadestorm@nc.rr.com>
 

@@ -4,6 +4,7 @@
 from twisted.internet import protocol, reactor, defer
 from tlib import oscar
 from tlib.domish import Element
+from tlib import socks5, sockserror
 from twisted.python import log
 import config
 import utils
@@ -27,6 +28,9 @@ class B(oscar.BOSConnection):
 		if (config.crossChat):
 			debug.log("B: __init__ adding cross chat")
 			self.capabilities.append(oscar.CAP_CROSS_CHAT)
+		if (config.socksProxyServer and config.socksProxyPort):
+			self.socksProxyServer = config.socksProxyServer
+			self.socksProxyPort = config.socksProxyPort
 		oscar.BOSConnection.__init__(self,username,cookie)
 
 	def initDone(self):
@@ -193,8 +197,12 @@ class OA(oscar.OscarAuthenticator):
 		oscar.OscarAuthenticator.__init__(self,username,password,deferred,icq)
 
 	def connectToBOS(self, server, port):
-		c = protocol.ClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.icqcon)
-		return c.connectTCP(server, int(port))
+		if config.socksProxyServer:
+			c = socks5.ProxyClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.icqcon)
+			return c.connectSocks5Proxy(server, int(port), config.socksProxyServer, int(config.socksProxyPort), "OABOS")
+		else:
+			c = protocol.ClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.icqcon)
+			return c.connectTCP(server, int(port))
 
 
 
@@ -213,10 +221,16 @@ class ICQConnection:
 		self.deferred.addErrback(self.errorCallback)
 		hostport = (config.icqServer, int(config.icqPort))
 		debug.log("ICQConnection: client creation for %s" % (self.session.jabberID))
-		self.oa = OA
-		self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
-		debug.log("ICQConnection: connect tcp")
-		self.creator.connectTCP(*hostport)
+		if config.socksProxyServer and config.socksProxyPort:
+			self.oa = OA
+			self.creator = socks5.ProxyClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
+			debug.log("ICQConnection: connect via socks proxy")
+			self.creator.connectSocks5Proxy(config.icqServer, int(config.icqPort), config.socksProxyServer, int(config.socksProxyPort), "ICQCONN")
+		else:
+			self.oa = OA
+			self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
+			debug.log("ICQConnection: connect direct tcp")
+			self.creator.connectTCP(*hostport)
 
 		debug.log("ICQConnection: \"%s\" created" % (self.username))
 	

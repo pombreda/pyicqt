@@ -18,3 +18,5 @@ debugOn = False
 debugLog = ""
 extendedDebugOn = False
 disableRegister = False
+socksProxyServer = None
+socksProxyPort = None
