@@ -1,3 +1,7 @@
+0.6:
+
+* Enhanced user status support thanks to Jonas Adahl.
+
 0.5:
 
 * Now works correctly with ejabberd thanks to Magnus Henoch.

@@ -10,7 +10,8 @@ Paul Clegg for helping me figure out how to make use of some of the oscar
 functionality, and for his initial discussions with the Twisted Matrix team.
 
 Jonas Adahl for pointing out an endian issue and providing a patch.  Also
-for enhancing ICQ user information retrieval (vcard).
+for enhancing ICQ user information retrieval (vcard) and adding support
+for more accurate user status.
 
 Magnus Henoch for discovering and fixing the problem with interaction
 with ejabberd.

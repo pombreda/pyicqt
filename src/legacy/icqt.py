@@ -116,10 +116,11 @@ class B(oscar.BOSConnection):
 		if (self.session.registeredmunge):
 			tmpjid = tmpjid + "/registered"
 		self.session.sendPresence(to=self.session.jabberID, fro=tmpjid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly)
-		if (self.icqcon.savedShow in ["online", None]):
-			self.icqcon.setAway(None)
-		else:
-			self.icqcon.setAway(self.icqcon.savedFriendly)
+		#if (self.icqcon.savedShow in ["online", None]):
+		#	self.icqcon.setAway(None)
+		#else:
+		self.icqcon.setICQStatus(self.icqcon.savedShow)
+		self.icqcon.setAway(self.icqcon.savedFriendly)
 		self.requestOffline()
 
 
@@ -167,6 +168,13 @@ class ICQConnection:
 			return
 
 		self.bos.setAway(awayMessage)
+
+	def setICQStatus(self, status):
+		debug.log("ICQConnection: setICQStatus %s" % (status))
+		if (not self.session.ready or not hasattr(self, "bos")):
+			return
+
+		self.bos.setICQStatus(status)
 
 	def sendMessage(self, target, message):
 		from glue import jid2icq
