@@ -4,9 +4,11 @@
 	Added German and Polish translations.
 
 	* src/legacy/icqt.py:
-	Import all users from groups, regardless of whether I get a real
-	status notification back.  Also, notify user when connection isn't
-	active.
+	Import all users from groups.
+	Notify user when connection isn't active.
+	Now we retrieve away messages properly.
+	Don't save if no changes.
+	Don't save immediately during initial import.
 
 2004-09-23  Daniel Henninger  <jadestorm@nc.rr.com>
 

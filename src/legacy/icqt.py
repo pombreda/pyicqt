@@ -33,15 +33,14 @@ class B(oscar.BOSConnection):
 
 		debug.log("B: updateBuddy %s" % (user))
 		buddyjid = icq2jid(user.name)
-		if (user.flags.count("away")):
-			show = "away"
-		else:
-			show = None
-		#status = self.getAway(user.name)
-		status = None
 		ptype = None
-		self.session.sendPresence(to=self.session.jabberID, fro=buddyjid, show=show, status=status, ptype=ptype)
-		self.icqcon.contacts.addSSIContact(user.name)
+		show = None
+		status = None
+		if (user.flags.count("away")):
+			self.getAway(user.name).addCallback(self.sendAwayPresence, user)
+		else:
+			self.session.sendPresence(to=self.session.jabberID, fro=buddyjid, show=show, status=status, ptype=ptype)
+			self.icqcon.contacts.addSSIContact(user.name)
 
 	def offlineBuddy(self, user):
 		from glue import icq2jid
@@ -69,6 +68,16 @@ class B(oscar.BOSConnection):
 
 
 	# Callbacks
+	def sendAwayPresence(self, msg, user):
+		from glue import icq2jid
+
+		buddyjid = icq2jid(user.name)
+		ptype = None
+		show = "away"
+		status = msg
+		self.session.sendPresence(to=self.session.jabberID, fro=buddyjid, show=show, status=status, ptype=ptype)
+		self.icqcon.contacts.addSSIContact(user.name)
+
 	def gotSelfInfo(self, user):
 		debug.log("B: gotSelfInfo: %s" % (user.__dict__))
 		self.name = user.name
@@ -82,7 +91,8 @@ class B(oscar.BOSConnection):
 				self.ssigroups.append(g)
 				for u in g.users:
 					debug.log("B: got user %s from group %s" % (u.name, g.name))
-					self.icqcon.contacts.addSSIContact(u.name)
+					self.icqcon.contacts.addSSIContact(u.name, skipsave=True)
+		self.icqcon.contacts.saveXDBBuddies()
 		self.activateSSI()
 		self.setIdleTime(0)
 		self.clientReady()
@@ -141,7 +151,7 @@ class ICQConnection:
 			self.bos.sendMessage(scrnname, encoded)
 		else:
 			debug.log("ICQConnection: not logged in yet")
-			if (has_attr(self.session, "jabberID")):
+			if (hasattr(self.session, "jabberID")):
 				self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body="You are not currently logged into this transport.  Please log in again.", mtype="chat")
 			return
 
@@ -198,7 +208,7 @@ class ICQConnection:
 
 				if (not hasattr(self, "bos")):
 					debug.log("Not properly logged in yet")
-					if (has_attr(self.session, "jabberID")):
+					if (hasattr(self.session, "jabberID")):
 						self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body="You are not currently logged into this transport.  Please log in again.", mtype="chat")
 					return
 
@@ -291,8 +301,9 @@ class ICQContacts:
 		self.session = session
 		self.ssicontacts = list()
 		self.xdbcontacts = self.getXDBBuddies()
+		self.xdbchanged = False
 
-	def addSSIContact(self, contact):
+	def addSSIContact(self, contact, skipsave=False):
 		if (self.ssicontacts.count(contact.lower())):
 			return
 
@@ -303,7 +314,9 @@ class ICQContacts:
 			from glue import icq2jid
 			self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
 			self.xdbcontacts.append(contact.lower())
-			self.saveXDBBuddies()
+			self.xdbchanged = True
+			if (not skipsave):
+				self.saveXDBBuddies()
 
 	def getXDBBuddies(self):
 		debug.log("ICQContacts: getXDBBuddies %s %s" % (config.jid, self.session.jabberID))
@@ -323,12 +336,15 @@ class ICQContacts:
 
 	def saveXDBBuddies(self):
 		debug.log("ICQContacts: setXDBBuddies %s %s" % (config.jid, self.session.jabberID))
+		if (not self.xdbchanged):
+			debug.log("ICQContacts: nothing has changed, no need to save")
+			return
+
 		newXDB = Element("query")
 		newXDB.namespace = "jabber:iq:roster"
 
 		for c in self.xdbcontacts:
 			try:
-				debug.log("Adding contact %s" % (c))
 				item = Element("item")
 				item.setAttribute("jid", c)
 				newXDB.appendChild(item)
@@ -337,4 +353,5 @@ class ICQContacts:
 				pass
 
 		self.session.pytrans.xdb.set(self.session.jabberID, "aimtrans:roster", newXDB)
+		self.xdbchanged = False
 		debug.log("ICQContacts: contacts saved")
