@@ -1,6 +1,9 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+import debug
+import re
+
 def fudgestr(text, num):
 	if(not (text.__class__ in [str, unicode])): return ""
 	newtext = ""
@@ -20,6 +23,10 @@ def egdufstr(text, num):
             i = ord(' ')
         newtext += chr(i)
     return newtext
+
+_controlCharPat = re.compile(
+	r"[\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f"
+	r"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f]")
 
 set_char = [
 	(0x000001, 0x00D7FF),
@@ -56,7 +63,7 @@ def latin1(text):
 def utf8encode(text):
 	encodedstring = ""
 	for c in text.encode('utf-8', 'replace'):
-		if is_in(set_char, c): 
+		if is_in(set_char, c) and not _controlCharPat.search(c): 
 			encodedstring = encodedstring + c
 	#encodedstring.replace('\x00','')
 	return encodedstring
