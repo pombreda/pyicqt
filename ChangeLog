@@ -1,3 +1,8 @@
+2005-02-17  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/session.py:
+	Fixed poor stats reference.
+
 2005-02-16  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:

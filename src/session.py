@@ -64,7 +64,7 @@ class Session(jabw.JabberConnection):
 			self.sendMessage(to=self.jabberID, fro=config.jid, body=lang.get(self.lang).sessiongreeting)
 		debug.log("Session: New session created \"%s\" \"%s\" \"%s\"" % (jabberID, username, password))
 
-		self.totalsess += 1
+		stats.totalsess += 1
 		if(len(self.pytrans.sessions)+1 > stats.maxsess):
 			stats.maxsess = len(self.pytrans.sessions)+1
 		stats.sessionUpdate(self.jabberID, "connections", 1)
