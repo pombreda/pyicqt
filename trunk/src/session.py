@@ -125,7 +125,7 @@ class Session(jabw.JabberConnection):
 	
 	def typingNotificationReceived(self, dest, resource, composing):
 		""" The user has sent typing notification to a contact on the legacy service """
-		self.legacycon.userTypingNotification(dest, composing)
+		self.legacycon.userTypingNotification(dest, resource, composing)
 	
 	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status):
 		# Checks resources and priorities so that the highest priority resource always appears as the
