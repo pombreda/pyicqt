@@ -14,10 +14,14 @@ def sendMessage(pytrans, to, fro, body, mtype=None):
 	el = Element((None, "message"))
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
+	el.attributes["id"] = pytrans.makeMessageID()
 	if(mtype):
 		el.attributes["type"] = mtype
 	b = el.addElement("body")
 	b.addContent(body)
+	x = el.addElement("x")
+	x.attributes["xmlns"] = "jabber:x:event"
+	composing = x.addElement("composing")
 	pytrans.send(el)
 
 def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None):
@@ -66,11 +70,29 @@ class JabberConnection:
 	def __init__(self, pytrans, jabberID):
 		self.pytrans = pytrans
 		self.jabberID = jabberID
+		self.typingUser = False # Whether this user can accept typing notifications
+		self.messageIDs = dict() # The ID of the last message the user sent to a particular contact. Indexed by contact JID
 		debug.log("User: %s - JabberConnection constructed" % (self.jabberID))
 	
 	def removeMe(self):
 		""" Cleanly deletes the object """
 		debug.log("User: %s - JabberConnection removed" % (self.jabberID))
+
+	def sendTypingNotification(self, to, fro, typing):
+		""" Sends the user the contact's current typing notification status """
+		if(self.typingUser):
+			debug.log("jabw: Sending a Jabber typing notification message \"%s\" \"%s\" \"%s\"" % (to, fro, typing))
+			el = Element((None, "message"))
+			el.attributes["to"] = to
+			el.attributes["from"] = fro
+			x = el.addElement("x")
+			x.attributes["xmlns"] = "jabber:x:event"
+			if(typing):
+				composing = x.addElement("composing") 
+			id = x.addElement("id")
+			if(self.messageIDs[fro]):
+				id.addContent(self.messageIDs[fro])
+			self.pytrans.send(el)
 	
 	def checkFrom(self, el):
 		""" Checks to see that this packet was intended for this object """
@@ -120,22 +142,43 @@ class JabberConnection:
 		froj = JID(fro)
 		to = el.getAttribute("to")
 		toj = JID(to)
+		mID = el.getAttribute("id")
 		
 		mtype = el.getAttribute("type")
 		body = ""
 		invite = ""
+		messageEvent = False
+		composing = None
 		for child in el.elements():
 			if(child.name == "body"):
 				body = child.__str__()
 			if(child.name == "x"):
 				if(child.uri == "jabber:x:conference"):
 					invite = child.getAttribute("jid") # The room the contact is being invited to
-		
+				if(child.uri == "jabber:x:event"):
+					messageEvent = True
+					composing = False
+					for deepchild in child.elements():
+						if(deepchild.name == "composing"):
+							composing = True
+
 		if(invite):
 			debug.log("User: %s - JabberConnection parsed message groupchat invite packet \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, utils.latin1(invite)))
 			self.inviteReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, invite)
-		else:
+
+		# Check message event stuff
+		if(body and messageEvent):
+			self.typingUser = True
+		elif(body and not messageEvent):
+			self.typingUser = False
+		elif(not body and messageEvent):
+			debug.log("User: %s - JabberConnection parsed typing notification \"%s\" \"%s\"" % (self.jabberID, toj.userhost(), composing))
+			self.typingNotificationReceived(toj.userhost(), composing)
+
+		if(body):
 # 			body = utils.utf8(body)
+			# Save the message ID for later
+			self.messageIDs[to] = mID
 			debug.log("User: %s - JabberConnection parsed message packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, mtype, utils.latin1(body)))
 			self.messageReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, mtype, body)
 	

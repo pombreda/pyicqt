@@ -15,6 +15,7 @@ from twisted.internet import task
 import twisted.python.log
 
 import os
+import types
 import xdb
 import session
 import jabw
@@ -26,6 +27,9 @@ import legacy
 import config
 import lang
 import debug
+
+#import gc
+#gc.set_debug(gc.DEBUG_COLLECTABLE | gc.DEBUG_UNCOLLECTABLE | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
 
 
 
@@ -51,6 +55,9 @@ class PyTransport(component.Service):
 		# Groupchat ID handling
 		self.lastID = 0
 		self.reservedIDs = []
+
+		# Message IDs
+		self.messageID = 0
 		
 		self.loopCheckSessions = task.LoopingCall(self.loopCheckSessionsCall)
 		self.loopCheckSessions.start(60.0) # call every ten seconds
@@ -58,7 +65,7 @@ class PyTransport(component.Service):
 		# Display active sessions if debug mode is on
 		if(config.debugOn):
 			self.loop = task.LoopingCall(self.loopCall)
-			self.loop.start(60.0) # call every ten seconds
+			self.loop.start(60.0) # call every 60 seconds
 			twisted.python.log.addObserver(self.exceptionLogger)
 		
 	
@@ -76,6 +83,10 @@ class PyTransport(component.Service):
 				failure.printTraceback(debug) # Pass debug as a pretend file object because it implements the write method
 				if(config.debugLog):
 					print "Exception occured! Check the log!"
+
+	def makeMessageID(self):
+		self.messageID += 1
+		return str(self.messageID)
 	
 	def makeID(self):
 		newID = "r" + str(self.lastID)

@@ -1,4 +1,20 @@
 #!/bin/bash
 
 cd `dirname $0`/src
-exec -a PyICQt python main.py
+# Check if there's a copy already running
+pidfile=`grep pid config.py|sed 's/.* \"//g'|sed 's/\".*$//g'`
+touch $pidfile
+pid=`cat $pidfile`
+if test "$pid" == ""; then
+	found=""
+	rm -f $pidfile
+else
+	found=`ps --pid $pid|grep -v PID`
+fi
+if test "$found" == ""; then
+	rm -f $pidfile
+	exec -a PyICQt python main.py
+else
+	echo "PyICQt is already running."
+fi
+cd `dirname $0`

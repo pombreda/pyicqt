@@ -7,6 +7,7 @@ import jabw
 import config
 import debug
 import lang
+import utils
 import string
 
 
@@ -36,6 +37,7 @@ class BaseGroupchat:
 		if(self.ready):
 			self.session.sendPresence(to=self.user(), fro=self.roomJID() + "/" + self.nick, ptype="unavailable")
 		self.session = None
+		utils.mutilateMe(self)
 		
 		debug.log("BaseGroupchat: \"%s\" destroyed" % (self.roomJID()))
 	

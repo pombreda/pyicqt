@@ -28,7 +28,7 @@ mangle = True
 namespace = "jabber:iq:register"
 
 # This function should return an xml element as it should exist in the spool
-def formRegEntry(username, password, nickname):
+def formRegEntry(username, password):
 	reginfo = microdom.Element("query")
 	reginfo.namespace = "jabber:iq:register"
 
@@ -40,30 +40,23 @@ def formRegEntry(username, password, nickname):
 	passEl.appendChild(microdom.Text(password))
 	reginfo.appendChild(passEl)
 
-	nickEl = microdom.Element("nick")
-	nickEl.appendChild(microdom.Text(nickname))
-	reginfo.appendChild(nickEl)
-
 	return reginfo
 
-# This function should, given a spool xml entry, pull the username, password,
-# and nickname out of it and return them
+# This function should, given a spool xml entry, pull the username and password
+# out of it and return them
 def getAttributes(base):
 	username = ""
 	password = ""
-	nickname = ""
 	for child in base.childNodes:
 		try:
 			if(child.tagName == "username"):
 				username = child.firstChild().value
 			elif(child.tagName == "password"):
 				password = child.firstChild().value
-			elif(child.tagName == "nick"):
-				nickname = child.firstChild().value
 		except AttributeError:
 			continue
 
-	return username, password, nickname
+	return username, password
 
 # This function should return true if the JID is a group JID, false otherwise
 def isGroupJID(jid):
@@ -149,6 +142,9 @@ class LegacyConnection(icqt.ICQConnection):
 	def jabberSubscriptionReceived(self, source, subtype):
 		debug.log("LegacyConnection: jabberSubscriptionReceived %s %s" % (source, subtype))
 		icqt.ICQConnection.jabberSubscriptionReceived(self, source, subtype)
+
+	def userTypingNotification(self, dest, composing):
+		pass
 
 	def jabberVCardRequest(self, vcard, user):
 		debug.log("LegacyConnection: jabberVCardRequest %s" % (user))

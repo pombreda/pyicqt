@@ -3,8 +3,11 @@
 
 from twisted.web.microdom import parseXMLString, Element
 import os
+import os.path
 import config
 import debug
+
+SPOOL_UMASK = 0177
 
 class XDB:
 	"""
@@ -19,6 +22,8 @@ class XDB:
 	def __init__(self, name, mangle=False):
 		""" Creates an XDB object. If mangle is True then any '@' signs in filenames will be changed to '%' """
 		self.name = config.spooldir + '/' + name
+		if not os.path.exists(self.name):
+			os.makedirs(self.name)
 		self.mangle = mangle
 	
 	def __getFile(self, file):
@@ -41,9 +46,11 @@ class XDB:
 		if(self.mangle):
 			file = file.replace('@', '%')
 		
+		prev_umask = os.umask(SPOOL_UMASK)
 		f = open(self.name + "/" + file + ".xml", "w")
 		f.write(text)
 		f.close()
+		os.umask(prev_umask)
 	
 	
 	def request(self, file, xdbns):
