@@ -3,6 +3,9 @@
 	* src/register.py:
 	Changed username to be lowercased in registration.
 
+	* src/legacy/icqt.py:
+	Changed encoding type to iso-8859-1 for testing.
+
 2004-11-28  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/session.py:
