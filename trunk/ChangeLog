@@ -1,5 +1,8 @@
 2005-03-08  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/utils.py:
+	Added regex check for illegal control chars.
+
 	* src/session.py:
 	Fixed lack of calling SessionResource with all args.
 
