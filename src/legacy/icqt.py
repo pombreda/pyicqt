@@ -21,6 +21,9 @@ class B(oscar.BOSConnection):
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
 		self.capabilities = [oscar.CAP_CHAT]
+		if (config.crossChat):
+			debug.log("B: __init__ adding cross chat")
+			self.capabilities.append(oscar.CAP_CROSS_CHAT)
 		oscar.BOSConnection.__init__(self,username,cookie)
 
 	def initDone(self):
@@ -109,6 +112,7 @@ class B(oscar.BOSConnection):
 					self.icqcon.contacts.updateSSIContact(u.name, skipsave=True)
 		self.icqcon.contacts.saveXDBBuddies()
 		self.activateSSI()
+		self.setProfile(None)
 		self.setIdleTime(0)
 		self.clientReady()
 		self.session.ready = True
@@ -116,11 +120,11 @@ class B(oscar.BOSConnection):
 		if (self.session.registeredmunge):
 			tmpjid = tmpjid + "/registered"
 		self.session.sendPresence(to=self.session.jabberID, fro=tmpjid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly)
-		#if (self.icqcon.savedShow in ["online", None]):
-		#	self.icqcon.setAway(None)
-		#else:
+		if (self.icqcon.savedShow in ["online", "Online", None]):
+			self.icqcon.setAway(None)
+		else:
+			self.icqcon.setAway(self.icqcon.savedFriendly)
 		self.icqcon.setICQStatus(self.icqcon.savedShow)
-		self.icqcon.setAway(self.icqcon.savedFriendly)
 		self.requestOffline()
 
 
@@ -506,10 +510,10 @@ class ICQContacts:
 			debug.log("ICQContacts: getXDBBuddies unable to get list, or empty")
 			return bl
 
-		for child in result.childNodes:
+		for child in result.elements():
 			try:
-				if(child.tagName == "item"):
-					bl.append(child.attributes["jid"])
+				if(child.name == "item"):
+					bl.append(child.getAttribute("jid"))
 			except AttributeError:
 				continue
 		return bl

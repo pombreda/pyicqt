@@ -25,6 +25,9 @@ lang = "en"
 # Send greeting on login
 sessionGreeting = True
 
+# Allow users of ICQ gateway to chat with AIM users
+crossChat = True
+
 # Set this to True to get debugging output
 debugOn = False
 
