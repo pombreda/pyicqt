@@ -12,7 +12,7 @@ import lang
 name = "ICQ Transport"
 
 # The transport's version
-version = "0.5a"
+version = "0.6"
 
 # This should be set to the identity of the gateway
 id = "icq"

@@ -1,5 +1,14 @@
 2005-03-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/legacy/glue.py:
+	Upped version to 0.6 in preparation for release.
+
+	* src/lang.py:
+	Added french translation.
+
+	* src/main.py:
+	Added required python version check.
+
 	* src/tlib/oscar.py:
 	Added &quot; conversion to dehtml.
 
