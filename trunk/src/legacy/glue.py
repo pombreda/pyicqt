@@ -13,7 +13,7 @@ import debug
 name = "ICQ Transport"
 
 # The transport's version
-version = "0.3"
+version = "0.4"
 
 # This should be set to the identity of the gateway
 id = "icq"
