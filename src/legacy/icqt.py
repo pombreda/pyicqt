@@ -58,7 +58,7 @@ class B(oscar.BOSConnection):
 		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
 		text = multiparts[0][0]
-		text = text.decode("utf-8", errors='replace')
+		text = text.decode("utf-8", "replace")
 		text = text.strip()
 		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype="chat")
 
@@ -145,7 +145,7 @@ class ICQConnection:
 
 		scrnname = jid2icq(target)
 		debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
-		encoded = message.encode("iso-8859-1", errors='replace')
+		encoded = message.encode("iso-8859-1", "replace")
 		if (hasattr(self, "bos")):
 			self.bos.sendMessage(scrnname, encoded)
 		else:
