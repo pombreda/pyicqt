@@ -1,6 +1,3 @@
-- handle all py* group triggers (add group chat support)
 - add ability to update your real icq profile
-- away message needs to be sent on away
-- retrieve descriptive icq away message and pass through jabber
-- handle specified groups on new users (not just Buddies)
+- handle all py* group triggers (add group chat support)
 - vcard support
