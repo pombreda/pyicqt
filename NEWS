@@ -1,5 +1,9 @@
 0.6:
 
+* Web admin interface.
+
+* Support for configurable encoding.
+
 * Enhanced user status support thanks to Jonas Adahl.
 
 0.5:
