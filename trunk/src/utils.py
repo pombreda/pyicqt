@@ -3,6 +3,7 @@
 
 import debug
 import re
+import string
 
 def fudgestr(text, num):
 	if(not (text.__class__ in [str, unicode])): return ""
@@ -55,8 +56,14 @@ excluded = {}
 for c in _excluded: excluded[c] = None
 
 def xmlify(s):
-	if(not (s.__class__ in [str, unicode])): return ""
-	return s.translate(excluded)
+	debug.log("xmlify: class is %s: %s" % (s.__class__, s))
+	if (s.__class__ == str):
+		us = unicode(s)
+		return us.translate(excluded)
+	elif (s.__class__ == unicode):
+		return s.translate(excluded)
+	else:
+		return ""
 
 # 
 # def utf8(text):

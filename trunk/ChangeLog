@@ -1,3 +1,8 @@
+2005-04-05  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	Fixed another xmlify bug regarding unicode vs non-unicode.
+
 2005-04-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:
