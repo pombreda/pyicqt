@@ -160,22 +160,10 @@ class PyTransport(component.Service):
 			if(to.find('@') < 0):
 				# If the presence packet is to the transport (not a user) and there isn't already a session
 				if(ptype == "subscribe"):
-					debug.log("PyTransport: Answering subscription request, subscribe back")
+					debug.log("PyTransport: Answering subscription request")
 					el.swapAttributeValues("from", "to")
 					el.attributes["type"] = "subscribed"
 					self.send(el)
-				#elif(ptype == "subscribed"):
-				#	debug.log("PyTransport: Answering subscription request, subscribe back")
-				#	reply = Element((None, "iq"))
-				#	reply.attributes["type"] = "set"
-				#	reply.attributes["from"] = fro
-				#	reply.attributes["to"] = fro
-				#	query = reply.addElement("query")
-				#	query.attributes["xmlns"] = "jabber:iq:roster"
-				#	item = query.addElement("item")
-				#	item.attributes["jid"] = to
-				#	item.attributes["subscription"] = "both"
-				#	self.send(reply)
 				elif(ptype in [None, ""]): # Don't create a session unless they're sending available presence
 					debug.log("PyTransport: Attempting to create a new session \"%s\"" % (froj.userhost()))
 					s = session.makeSession(self, froj.userhost(), ulang, toj)

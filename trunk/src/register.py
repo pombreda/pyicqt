@@ -124,14 +124,13 @@ class RegisterManager:
 			try:
 				self.setRegInfo(source, username, password)
 				debug.log("RegisterManager: Updated XDB successfully")
-
 				self.successReply(incoming)
 				debug.log("RegisterManager: Sent off a result Iq")
-
 				# If they're in a session right now, we do nothing
 				if(not self.pytrans.sessions.has_key(source)):
-					jabw.sendPresence(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, ptype="subscribe")
-					jabw.sendPresence(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, ptype="probe")
+					(user,host,_) = jid.parse(incoming.getAttribute("from"))
+					debug.log("RegisterManager: Sending subscribe presence %s@%s %s" % (user, host, config.jid))
+					jabw.sendPresence(self.pytrans, to=("%s@%s" % (user,host)), fro=config.jid, ptype="subscribe")
 			except:
 				self.xdbErrorReply(incoming)
 				raise
