@@ -119,7 +119,7 @@ class LegacyConnection(icqt.ICQConnection):
 		if (not self.session.ready):
 			return
 
-		if (show in ["online", None]):
+		if (show in ["online", "Online", None]):
 			icqt.ICQConnection.setICQStatus(self, show)
 			icqt.ICQConnection.setAway(self)
 			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None)
