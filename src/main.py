@@ -149,7 +149,7 @@ class PyTransport(component.Service):
 				# If the presence packet is to the transport (not a user) and there isn't already a session
 				if(el.getAttribute("type") in [None, ""]): # Don't create a session unless they're sending available presence
 					debug.log("PyTransport: Attempting to create a new session \"%s\"" % (froj.userhost()))
-					s = session.makeSession(self, froj.userhost(), ulang)
+					s = session.makeSession(self, froj.userhost(), ulang, toj)
 					if(s):
 						self.sessions[froj.userhost()] = s
 						debug.log("PyTransport: New session created \"%s\"" % (froj.userhost()))
@@ -170,7 +170,7 @@ class PyTransport(component.Service):
 				# They haven't logged in, and are trying to change subscription to a user
 				# Lets log them in and then do it
 				debug.log("PyTransport: Attempting to create a session to do subscription stuff %s" % (froj.userhost()))
-				s = session.makeSession(self, froj.userhost(), ulang)
+				s = session.makeSession(self, froj.userhost(), ulang, toj)
 				if(s):
 					self.sessions[froj.userhost()] = s
 					debug.log("PyTransport: New session created \"%s\"" % (froj.userhost()))

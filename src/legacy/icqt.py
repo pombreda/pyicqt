@@ -97,7 +97,10 @@ class B(oscar.BOSConnection):
 		self.setIdleTime(0)
 		self.clientReady()
 		self.session.ready = True
-		self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly)
+		tmpjid = config.jid
+		if (self.session.registeredmunge):
+			tmpjid = tmpjid + "/registered"
+		self.session.sendPresence(to=self.session.jabberID, fro=tmpjid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly)
 		if (self.icqcon.savedShow in ["online", None]):
 			self.icqcon.setAway(None)
 		else:
@@ -329,7 +332,10 @@ class ICQConnection:
 			message = message+"\n"+errmsgs[1]
 		if (errmsgs[3]):
 			message = message+"\n"+errmsgs[3]
-		self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body=message, mtype="chat")
+		tmpjid = config.jid
+		if (self.session.registeredmunge):
+			tmpjid = tmpjid + "/registered"
+		self.session.sendMessage(to=self.session.jabberID, fro=tmpjid, body=message, mtype="chat")
 
 		self.session.removeMe()
 
