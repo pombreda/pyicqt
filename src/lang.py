@@ -56,3 +56,15 @@ class strings:
 		groupchatfailjoin2 = u"Zostałeś usunięty z tego pokoju na zewnętrznej usłudze. Następująca treść została przekazana zanim zostałeś rozłączony, ale nadal widoczny w rozmowie grupowej na zewnętrznej usłudze."
 		groupchatprivateerror = u"Wybacz, nie możesz wysłać prywatnej wiadomości do użytkowników rozmowy grupowej. Zamiast tego dodaj użytkownika do listy kontaktów i wyślij wiadomość w zwyczajny sposób."
 		gatewaytranslator = u"Podaj numer ICQ (UIN) użytkownika."
+
+	class cz: # Czech - Mešík (pihhan@cipis.net)
+		sessiongreeting = u"Toto je experimentální brána PyICQ-t. Pokud máš problémy prosím kontaktuj Daniela Henningera <jadestorm@nc.rr.com>"
+		registertext = u"Prosím zadej tvoje ICQ číslo do kolonky username a heslo do kolonky password."
+		notloggedin = u"Chyba. Musíš se před odesíláním zpráv nejprve přihlásit."
+		notregistered = u"Promiň. Zdá se že nejsi zaregistrován(a) na této službě. Prosím zaregistruj se a zkus znovu. Pokud máš problémy s registrací, kontaktuj prosím tvého správce Jabberu."
+		waitforlogin = u"Promiň, tato zpráva nemůže být ještě doručena. Prosím zkus to znovu až služba dokončí přihlašování."
+		groupchatinvite = u"Byl(a) jsi pozván(a) do místnosti ve službě ICQ. Musíš se připojit do místnosti, aby ses přepnul(a) do módu rozhovoru %s.\\nPokud se nepřipojíš, nebudeš se moci zůčastnit rozhovoru, ale stále budeš vypadat jako že jsi se připojil(a) pro kontakty ve službě ICQ."
+		groupchatfailjoin1 = u"Nepřipojil(a) ses do místnosti %s.\\nNásledující uživatelé byli v místnosti:"
+		groupchatfailjoin2 = u"Byl(a) jsi vyjmut(a) z místnosti ve službě ICQ. Následující bylo řečeno než jsi byl(a) odpojena, když se uživatelům ICQ zdálo že jsi připojena v rozhovoru."
+		groupchatprivateerror = u"Promiň. Nemůžeš poslad soukromé zprávy uživatelům v tomto rozhovoru. Namísto toho přidej uživatele do kontaktů a piš jim tou cestou."
+		gatewaytranslator = u"Zadej uživatelovo ICQ číslo."

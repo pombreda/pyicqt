@@ -1,3 +1,8 @@
+2004-09-27  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/lang.py:
+	Added Czech translation.
+
 2004-09-26  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/lang.py:
