@@ -1,0 +1,102 @@
+2004-12-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	* src/legacy/icqt.py:
+	Adding handling for retrieving offline messages.
+
+2004-11-30  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/register.py:
+	Changed username to be lowercased in registration.
+
+	* src/legacy/icqt.py:
+	Changed encoding type to iso-8859-1 for testing.
+
+2004-11-28  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/session.py:
+	* src/legacy/icqt.py:
+	Added handling for /registered.
+
+2004-11-27  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/tlib/oscar.py:
+	Many modifications to handle vcard support.
+
+2004-11-22  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/lang.py:
+	Added Russian translation.
+
+2004-10-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	Spelling fix.
+
+	* src/main.py:
+	Moved path setting, I think I put it in a stupid location.
+
+2004-10-06  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Added better error displaying.
+
+2004-10-05  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/lang.py:
+	Added Dutch language, fixed up locale defs for other languages.
+
+	* src/legacy/icqt.py:
+	* src/legacy/glue.py:
+	Handle away status more properly on login and such.
+
+2004-10-04  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Added test for session readiness to setAway and sendMessage.
+
+2004-10-03  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Prepend . to module path to catch patched twisted properly.
+
+2004-09-30  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Reworked contact list handling.  Fixes multi-login issues.
+
+2004-09-29  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Set encoding and decoding defaults to replace, not error.
+	Strip whitespace.
+
+2004-09-27  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	Updated to version 0.2.
+
+	* src/lang.py:
+	Added Czech translation.
+
+2004-09-26  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/lang.py:
+	Added German and Polish translations.
+
+	* src/legacy/icqt.py:
+	Import all users from groups.
+	Notify user when connection isn't active.
+	Now we retrieve away messages properly.
+	Don't save if no changes.
+	Don't save immediately during initial import.
+	Fixed poor handling of received messages.
+
+2004-09-23  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* *:
+	Initial setup of code and distribution.
+	I'm not doing real changelog stuff until I get to a certain point.

@@ -1,0 +1,15 @@
+Daniel Henninger:
+All plugin pieces to interact with ICQ.
+
+James Bunton:
+Created all of the base Jabber code and made it wonderfully pluggable enough
+to adopt to other protocols.  =)
+
+Also, thanks to:
+Paul Clegg for helping me figure out how to make use of some of the oscar
+functionality, and for his initial discussions with the Twisted Matrix team.
+
+The Twisted Matrix development team who have put together this wonderful
+framework we are making use of.  =)  I'd like to especially thank
+Paul Swartz <z3p@twistedmatrix.com> for his work on the oscar.py piece and
+for working with me to get various pieces working correctly!

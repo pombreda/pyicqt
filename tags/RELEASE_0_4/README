@@ -1,0 +1,35 @@
+    _/_/_/              _/_/_/    _/_/_/    _/_/                  _/      
+   _/    _/  _/    _/    _/    _/        _/    _/              _/_/_/_/   
+  _/_/_/    _/    _/    _/    _/        _/  _/_/  _/_/_/_/_/    _/        
+ _/        _/    _/    _/    _/        _/    _/                _/         
+_/          _/_/_/  _/_/_/    _/_/_/    _/_/  _/                _/_/      
+               _/                                                         
+          _/_/                                                            
+
+     ICQ Transport for Jabber, implemented with Python and Twisted
+
+
+ICQ portions written by Daniel Henninger
+Jabber portions written by James Bunton
+(ie: this is based on PyMSNt's code)
+
+See INSTALL for installation instructions.
+
+Current I have:
+- ability to register with the transport
+- ability to log in and out of icq via the transport
+- ability to send and receive messages
+  - no 'composing' events functionality yet
+  - no 'xhtml' components yet (ie, non-straight text messages)
+  (both of these need to be added to James's base code)
+- ability to set away status
+- ability to add to and remove from your server side buddy list
+- it actually can use the spool that JIT uses
+- support for roster import (adding ICQ buddies to your jabber roster)
+
+See TODO for things that aren't complete.
+
+Please be aware that, at this time, you are required to log in via a real
+ICQ client first.  Initial logins with an ICQ client create a base group
+that the transport uses.  I haven't worked out the logistics of creating
+the base group yet.
