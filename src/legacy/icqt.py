@@ -20,6 +20,7 @@ class B(oscar.BOSConnection):
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
 		self.capabilities = [oscar.CAP_CHAT]
+		self.statusindicators = oscar.STATUS_WEBAWARE
 		if (config.crossChat):
 			debug.log("B: __init__ adding cross chat")
 			self.capabilities.append(oscar.CAP_CROSS_CHAT)

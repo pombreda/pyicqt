@@ -41,7 +41,6 @@ from tlib.jabber import component, jid
 from tlib.domish import Element
 from twisted.internet import task
 import twisted.python.log
-from nevow import appserver
 
 import types
 import xdb
@@ -53,7 +52,6 @@ import misciq
 import utils
 import legacy
 import lang
-import webadmin
 
 #import gc
 #gc.set_debug(gc.DEBUG_COLLECTABLE | gc.DEBUG_UNCOLLECTABLE | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
@@ -257,6 +255,12 @@ if(__name__ == "__main__"):
 
 	app = App()
 	if (hasattr(config, "webport") and config.webport):
-		site = appserver.NevowSite(webadmin.WebAdmin(pytrans=app.transportSvc))
-		reactor.listenTCP(int(config.webport), site)
+		try:
+			from nevow import appserver
+			import webadmin
+			site = appserver.NevowSite(webadmin.WebAdmin(pytrans=app.transportSvc))
+			reactor.listenTCP(int(config.webport), site)
+			debug.log("Web admin interface activated.")
+		except:
+			debug.log("Unable to start web admin interface.  No Nevow package found.")
 	reactor.run()
