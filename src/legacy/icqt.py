@@ -40,7 +40,7 @@ class B(oscar.BOSConnection):
 			self.getAway(user.name).addCallback(self.sendAwayPresence, user)
 		else:
 			self.session.sendPresence(to=self.session.jabberID, fro=buddyjid, show=show, status=status, ptype=ptype)
-			self.icqcon.contacts.addSSIContact(user.name)
+			self.icqcon.contacts.updateSSIContact(user.name, presence=ptype, show=show, status=status)
 
 	def offlineBuddy(self, user):
 		from glue import icq2jid
@@ -75,7 +75,7 @@ class B(oscar.BOSConnection):
 		show = "away"
 		status = msg
 		self.session.sendPresence(to=self.session.jabberID, fro=buddyjid, show=show, status=status, ptype=ptype)
-		self.icqcon.contacts.addSSIContact(user.name)
+		self.icqcon.contacts.updateSSIContact(user.name, presence=ptype, show=show, status=status)
 
 	def gotSelfInfo(self, user):
 		debug.log("B: gotSelfInfo: %s" % (user.__dict__))
@@ -90,7 +90,7 @@ class B(oscar.BOSConnection):
 				self.ssigroups.append(g)
 				for u in g.users:
 					debug.log("B: got user %s from group %s" % (u.name, g.name))
-					self.icqcon.contacts.addSSIContact(u.name, skipsave=True)
+					self.icqcon.contacts.updateSSIContact(u.name, skipsave=True)
 		self.icqcon.contacts.saveXDBBuddies()
 		self.activateSSI()
 		self.setIdleTime(0)
@@ -160,12 +160,12 @@ class ICQConnection:
 		if (not hasattr(self, "contacts")):
 			return
 
-		for c in self.contacts.ssicontacts:
+		for c in self.contacts.ssicontacts.keys( ):
 			debug.log("ICQConnection: resending buddy of %s" % (c))
 			jid = icq2jid(c)
-			show = None
-			status = None
-			ptype = "available"
+			show = self.contacts.ssicontacts[c]['show']
+			status = self.contacts.ssicontacts[c]['status']
+			ptype = self.contacts.ssicontacts[c]['presence']
 			self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
 
 	def removeMe(self):
@@ -180,7 +180,10 @@ class ICQConnection:
 		if (not hasattr(self, "contacts")):
 			return
 
-		for c in self.contacts.ssicontacts:
+		for c in self.contacts.ssicontacts.keys( ):
+			if (self.contacts.ssicontacts[c]['presence'] == "unavailable"):
+				continue
+
 			debug.log("ICQConnection: sending offline for %s" % (c))
 			jid = icq2jid(c)
 			show = None
@@ -231,7 +234,7 @@ class ICQConnection:
 				self.bos.modifyItemSSI(savethisgroup)
 				self.bos.endModifySSI()
 
-				self.contacts.addSSIContact(userHandle)
+				self.contacts.updateSSIContact(userHandle)
 
 			elif(subtype == "subscribed"):
 				# The user has granted this contact subscription
@@ -298,16 +301,17 @@ class ICQConnection:
 class ICQContacts:
 	def __init__(self, session):
 		self.session = session
-		self.ssicontacts = list()
+		self.ssicontacts = { }
 		self.xdbcontacts = self.getXDBBuddies()
 		self.xdbchanged = False
 
-	def addSSIContact(self, contact, skipsave=False):
-		if (self.ssicontacts.count(contact.lower())):
-			return
-
-		debug.log("ICQContacts: adding contact %s to ssicontacts" % (contact.lower()))
-		self.ssicontacts.append(contact.lower())
+	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, skipsave=False):
+		debug.log("ICQContacts: updating contact %s" % (contact.lower()))
+		self.ssicontacts[contact.lower()] = {
+			'presence': presence,
+			'show': show,
+			'status': status
+		}
 
 		if (not self.xdbcontacts.count(contact.lower())):
 			from glue import icq2jid

@@ -1,3 +1,8 @@
+2004-09-30  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Reworked contact list handling.  Fixes multi-login issues.
+
 2004-09-29  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:
