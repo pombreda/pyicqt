@@ -1,10 +1,11 @@
+The better install/configuration documents are available at:
+http://pyicq-t.jabberstudio.org/
+
 There's really not much to the install at the moment.  It's important
 to make sure you have the following installed:
 
 - Jabber ;D
 - Python
-- PyCrypto
-- PyOpenSSL
 X Twisted (www.twistedmatrix.com) (see next)
 - Modified Twisted until real dist is fixed.  You can get it at:
     http://pyicq-t.jabberstudio.org/tarballs/twisted-patched-3.tar.bz2
@@ -12,8 +13,7 @@ X Twisted (www.twistedmatrix.com) (see next)
 
 Then, go into the src directory and copy config_example.py to config.py and
 edit config.py.  Change the jid to the Jabber ID you want this transport to
-answer as.  Change name to the full name you want users to see for this
-transport.  Change mainServer to the IP address or DNS name of your Jabber
+answer as.  Change mainServer to the IP address or DNS name of your Jabber
 server.  Change secret to the shared secret between transports and your
 Jabber server (should be in router.xml for Jabberd2).  Change port to the
 port this transport is to connect to (also found in router.xml for Jabberd2).
