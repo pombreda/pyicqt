@@ -6,6 +6,10 @@
 
 * Enhanced user status support thanks to Jonas Adahl.
 
+* Brand new configuration file format. (XML based)
+
+* Now handles command line args. (-h to see list)
+
 0.5:
 
 * Now works correctly with ejabberd thanks to Magnus Henoch.
