@@ -60,24 +60,9 @@ class B(oscar.BOSConnection):
 		sourcejid = icq2jid(user.name)
 		text = str("")
 		for l in multiparts.pop(0):
-			text = "\n".join([text, oscar.dehtml(l)])
+			text = "\n".join([text, l])
 		text = text.decode("utf-8")
 		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype="chat")
-
-	def receiveWarning(self, newLevel, user):
-		debug.log("B: receiveWarning [%s] from %s" % (newLevel,hasattr(user,'name') and user.name or None))
-
-	def receiveChatInvite(self, user, message, exchange, fullName, instance, shortName, inviteTime):
-		debug.log("B: receiveChatInvite from % for room % with message: %s" % (user.name,shortName,message))
-
-	def chatReceiveMessage(self, chat, user, message):
-		debug.log("B: chatReceiveMessage to %s from %s:%s" % (chat.name,user.name,message))
-
-	def chatMemberJoined(self, chat, member):
-		debug.log("B: chatMemberJoined %s joined %s" % (member.name,chat.name))
-
-	def chatMemberLeft(self, chat, member):
-		debug.log("B: chatMemberLeft %s left %s (members: %s)" % (member.name,chat.name,map(lambda x:x.name,chat.members)))
 
 	def receiveSendFileRequest(self, user, file, description, cookie):
 		debug.log("B: receiveSendFileRequest")
@@ -99,16 +84,6 @@ class B(oscar.BOSConnection):
 		self.setIdleTime(0)
 		self.clientReady()
 		self.session.sendPresence(to=self.session.jabberID, fro=config.jid)
-
-	def warnedUser(self, oldLevel, newLevel, username):
-		debug.log("B: warnedUser");
-
-	def createdRoom(self, (exchange, fullName, instance)):
-		debug.log("B: createdRoom: %s, %s, %s" % (exchange, fullName, instance))
-
-	def chatJoined(self, chat):
-		debug.log("B: chatJoined room %s (members: %s)" % (chat.name,map(lambda x:x.name,chat.members)))
-
 
 
 #############################################################################
@@ -158,9 +133,9 @@ class ICQConnection:
 
 		scrnname = jid2icq(target)
 		debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
-		htmlized = oscar.html(message.encode("iso-8859-1"))
+		encoded = message.encode("iso-8859-1")
 		if (hasattr(self, "bos")):
-			self.bos.sendMessage(scrnname, htmlized)
+			self.bos.sendMessage(scrnname, encoded)
 		else:
 			debug.log("ICQConnection: not logged in yet")
 			return
@@ -222,7 +197,7 @@ class ICQConnection:
 
 				savethisgroup = None
 				for g in self.bos.ssigroups:
-					if (g.name == "Buddies"):
+					if (g.name == "General"):
 						debug.log("Located group %s" % (g.name))
 						savethisgroup = g
 
@@ -333,8 +308,8 @@ class ICQContacts:
 
 		for child in result.childNodes:
 			try:
-				if(item.tagName == "item"):
-					bl.append(item.attributes["jid"])
+				if(child.tagName == "item"):
+					bl.append(child.attributes["jid"])
 			except AttributeError:
 				continue
 		return bl
