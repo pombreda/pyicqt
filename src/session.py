@@ -149,7 +149,7 @@ class Session(jabw.JabberConnection):
 				debug.log("Session %s - resource \"%s\" has come online" % (self.jabberID, resource))
 				self.legacycon.newResourceOnline(resource)
 			debug.log("Session %s - resource \"%s\" setting \"%s\" \"%s\" \"%s\"" % (self.jabberID, resource, show, status, priority)) 
-			self.resourceList[resource] = SessionResource(show, status, priority)
+			self.resourceList[resource] = SessionResource(resource, show, status, priority)
 
 		highestActive = self.highestResource()
 
