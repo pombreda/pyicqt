@@ -1,5 +1,12 @@
 2004-12-23  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/disco.py:
+	* src/utils.py:
+	* src/tlib/oscar.py:
+	* src/tlib/countrycodes.py:
+	* src/legacy/icqt.py:
+	Jonas Adahl's patches for better vcards support.
+
 	* src/tlib:
 	Many updates to clean up and add new requirements.
 
