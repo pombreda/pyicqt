@@ -11,7 +11,7 @@ import lang
 
 
 
-def makeSession(pytrans, jabberID, ulang):
+def makeSession(pytrans, jabberID, ulang, rosterID):
 	""" Tries to create a session object for the corresponding JabberID. Retrieves information
 	from XDB to create the session. If it fails, then the user is most likely not registered with
 	the transport """
@@ -22,7 +22,7 @@ def makeSession(pytrans, jabberID, ulang):
 	result = pytrans.registermanager.getRegInfo(jabberID)
 	if(result):
 		username, password, nickname = result
-		return Session(pytrans, jabberID, username, password, nickname, ulang)
+		return Session(pytrans, jabberID, username, password, nickname, ulang, rosterID)
 	else:
 		return None
 
@@ -32,7 +32,7 @@ class Session(jabw.JabberConnection):
 	""" A class to represent each registered user's session with the legacy network. Exists as long as there
 	is a Jabber resource for the user available """
 	
-	def __init__(self, pytrans, jabberID, username, password, nickname, ulang):
+	def __init__(self, pytrans, jabberID, username, password, nickname, ulang, rosterID):
 		""" Initialises the session object and connects to the legacy network """
 		jabw.JabberConnection.__init__(self, pytrans, jabberID)
 		debug.log("Session: Creating new session \"%s\"" % (jabberID))
@@ -45,6 +45,11 @@ class Session(jabw.JabberConnection):
 		self.password = password
 		self.nickname = nickname
 		self.lang = ulang
+
+		if (rosterID.resource == "registered"):
+			self.registeredmunge = True
+		else:
+			self.registeredmunge = False
 		
 		self.show = None
 		self.status = None
@@ -74,7 +79,10 @@ class Session(jabw.JabberConnection):
 		
 		# Send offline presence to the user
 		if(self.pytrans):
-			self.sendPresence(to=self.jabberID, fro=config.jid, ptype="unavailable")
+			tmpjid = config.jid
+			if (self.registeredmunge):
+				tmpjid = tmpjid + "/registered"
+			self.sendPresence(to=self.jabberID, fro=tmpjid, ptype="unavailable")
 		
 		# Clean up stuff on the legacy service end (including sending offline presences for all contacts)
 		if(self.legacycon):

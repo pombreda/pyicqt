@@ -1,3 +1,9 @@
+2004-11-28  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/session.py:
+	* src/legacy/icqt.py:
+	Added handling for /registered.
+
 2004-11-27  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/disco.py:
