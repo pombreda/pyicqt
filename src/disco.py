@@ -202,7 +202,8 @@ class Discovery:
 		vcard.attributes["xmlns"] = VCARD
 
 		user = target.split('@')[0]
-		self.pytrans.legacycon.jabberVCardRequest(vcard, user).addCallback(self.gotIqVCard, iq)
+		if (hasattr(self.pytrans, "legacycon")):
+			self.pytrans.legacycon.jabberVCardRequest(vcard, user).addCallback(self.gotIqVCard, iq)
 
 	def gotIqVCard(self, vcard, iq):
 		debug.log("Discovery: gotIqVCard iq %s" % (iq.toXml()))
