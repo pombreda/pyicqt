@@ -12,7 +12,7 @@ import debug
 name = "ICQ Transport"
 
 # The transport's version
-version = "0.5"
+version = "0.5a"
 
 # This should be set to the identity of the gateway
 id = "icq"
@@ -120,9 +120,11 @@ class LegacyConnection(icqt.ICQConnection):
 			return
 
 		if (show in ["online", None]):
+			icqt.ICQConnection.setICQStatus(self, show)
 			icqt.ICQConnection.setAway(self)
 			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None)
 		else:
+			icqt.ICQConnection.setICQStatus(self, show)
 			icqt.ICQConnection.setAway(self, friendly)
 			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=show, status=friendly)
 
