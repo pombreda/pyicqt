@@ -27,7 +27,8 @@ in the jid field.  Note that you can set the actual location of the spool
 directory if you want, instead of having to put it in this directory.
 
 With Jabberd2, there's little else you need to do than run PyICQt in this
-directory.
+directory.  It's important to know that you should -not- have an alias
+line in your router.xml for PyICQ-t.
 
 Note: the following instructions are provided almost word for word from
 James Bunton, just modified for ICQ.  ;)

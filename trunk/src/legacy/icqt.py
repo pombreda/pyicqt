@@ -1,6 +1,7 @@
 # Copyright 2004 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+from twisted.web.microdom import Element
 from twisted.internet import protocol, reactor, defer
 from twisted.protocols import oscar
 from twisted.python import log
@@ -90,9 +91,10 @@ class B(oscar.BOSConnection):
 	def gotBuddyList(self, l):
 		debug.log("B: gotBuddyList: %s" % (str(l)))
 		self.ssigroups = list()
-		for g in l[0]:
-			debug.log("B: gotBuddyList found group %s" % (g.name))
-			self.ssigroups.append(g)
+		if (l is not None):
+			for g in l[0]:
+				debug.log("B: gotBuddyList found group %s" % (g.name))
+				self.ssigroups.append(g)
 		self.activateSSI()
 		self.setIdleTime(0)
 		self.clientReady()
@@ -135,7 +137,7 @@ class ICQConnection:
 		self.contacts = ICQContacts(self.session)
 		self.deferred = defer.Deferred()
 		self.deferred.addErrback(self.errorCallback)
-		hostport = ("login.oscar.aol.com", 5109)
+		hostport = ("login.icq.com", 5238)
 		debug.log("ICQConnection: client creation for %s" % (self.session.jabberID))
 		self.oa = OA
 		self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
@@ -238,6 +240,8 @@ class ICQConnection:
 				self.bos.modifyItemSSI(savethisgroup)
 				self.bos.endModifySSI()
 
+				self.contacts.addSSIContact(userHandle)
+
 			elif(subtype == "subscribed"):
 				# The user has granted this contact subscription
 				debug.log("ICQConnection: Subscribed request received.")
@@ -316,24 +320,39 @@ class ICQContacts:
 		if (not self.xdbcontacts.count(contact.lower())):
 			from glue import icq2jid
 			self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
+			self.xdbcontacts.append(contact.lower())
+			self.saveXDBBuddies()
 
 	def getXDBBuddies(self):
 		debug.log("ICQContacts: getXDBBuddies %s %s" % (config.jid, self.session.jabberID))
 		bl = list()
-		result = self.session.pytrans.xdb.request(self.session.jabberID, "icqtrans:roster")
+		result = self.session.pytrans.xdb.request(self.session.jabberID, "jabber:iq:roster")
 		if (result == None):
 			debug.log("ICQContacts: getXDBBuddies unable to get list, or empty")
 			return bl
 
 		for child in result.childNodes:
 			try:
-				if(child.tagName == "buddies"):
-					for item in child.childNodes:
-						try:
-							if(item.tagName == "item"):
-								bl.append(item.attributes["name"])
-						except AttributeError:
-							continue
+				if(item.tagName == "item"):
+					bl.append(item.attributes["jid"])
 			except AttributeError:
 				continue
 		return bl
+
+	def saveXDBBuddies(self):
+		debug.log("ICQContacts: setXDBBuddies %s %s" % (config.jid, self.session.jabberID))
+		newXDB = Element("query")
+		newXDB.namespace = "jabber:iq:roster"
+
+		for c in self.xdbcontacts:
+			try:
+				debug.log("Adding contact %s" % (c))
+				item = Element("item")
+				item.setAttribute("jid", c)
+				newXDB.appendChild(item)
+
+			except:
+				pass
+
+		self.session.pytrans.xdb.set(self.session.jabberID, "aimtrans:roster", newXDB)
+		debug.log("ICQContacts: contacts saved")

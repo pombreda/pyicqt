@@ -23,10 +23,10 @@ secret = "password"
 lang = "en"
 
 # Send greeting on login
-sessionGreeting = False
+sessionGreeting = True
 
 # Set this to True to get debugging output
-debugOn = True
+debugOn = False
 
 # Set the debug log file location here, (leave blank to output to the screen)
 debugLog = ""
