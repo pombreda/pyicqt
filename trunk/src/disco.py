@@ -37,6 +37,7 @@ class Discovery:
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
 		debug.log("Discovery: Iq received \"%s\" \"%s\". Looking for handler" % (fro, ID))
+		debug.log("Discovery: Handling el: %s" % (el))
 		query = None
 		for child in el.elements():
 			if(child.name == "query"):
