@@ -176,7 +176,7 @@ class PyTransport(component.Service):
 			self.sessions[froj.userhost()].onMessage(el)
 		elif(mtype != "error"):
 			debug.log("PyTrans: Sending error response to a message outside of session.")
-			jabw.sendErrorMessage(self, fro, to, "auth", "forbidden", lang.get(ulang).notLoggedIn, body)
+			jabw.sendErrorMessage(self, fro, to, "auth", "forbidden", lang.get(ulang).notloggedin, body)
 	
 	def onPresence(self, el):
 		fro = el.getAttribute("from")
@@ -206,7 +206,7 @@ class PyTransport(component.Service):
 						s.onPresence(el)
 					else:
 						debug.log("PyTransport: Failed to create session \"%s\"" % (froj.userhost()))
-						jabw.sendMessage(self, to=froj.userhost(), fro=config.jid, body=lang.get(ulang).notRegistered)
+						jabw.sendMessage(self, to=froj.userhost(), fro=config.jid, body=lang.get(ulang).notregistered)
 				
 				elif(ptype != "error"):
 					debug.log("PyTransport: Sending unavailable presence to non-logged in user \"%s\"" % (froj.userhost()))

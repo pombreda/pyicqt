@@ -1,3 +1,25 @@
+2005-01-18  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/config.py:
+	* config_example.xml:
+	Added encoding which vanished on me for some reason.
+
+	* src/tlib/oscar.py:
+	Check for seqnum existance.
+
+	* src/legacy/icqt.py:
+	Added more checks for "bos".
+	Fixed lack of readiness check.
+
+	* src/lang.py:
+	* src/session.py:
+	* src/register.py:
+	* src/utils.py:
+	* src/misciq.py:
+	* src/main.py:
+	* src/groupchat.py:
+	Changed case of lang strings.
+
 2005-01-14  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/webadmin/handler.py:

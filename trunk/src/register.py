@@ -74,7 +74,7 @@ class RegisterManager:
 		query.attributes["xmlns"] = "jabber:iq:register"
 		instructions = query.addElement("instructions")
 		ulang = utils.getLang(incoming)
-		instructions.addContent(lang.get(ulang).registerText)
+		instructions.addContent(lang.get(ulang).registertext)
 		userEl = query.addElement("username")
 		passEl = query.addElement("password")
 		

@@ -198,6 +198,9 @@ class ICQConnection:
 	def sendMessage(self, target, message):
 		from glue import jid2icq
 
+		if (not self.session.ready or not hasattr(self, "bos")):
+			return
+
 		self.session.pytrans.stats['outmessages'] += 1
 		scrnname = jid2icq(target)
 		debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
@@ -229,6 +232,9 @@ class ICQConnection:
 		from tlib.oscar import MTN_FINISH, MTN_IDLE, MTN_BEGIN
 		from glue import jid2icq
 
+		if (not hasattr(self, "bos")):
+			return
+
 		username = jid2icq(dest)
 		debug.log("ICQConnection: sendTypingNotify %s to %s" % (type,username))
 		if (type == "begin"):
@@ -240,6 +246,10 @@ class ICQConnection:
 
 	def getvCard(self, vcard, user):
 		debug.log("ICQConnection: getvCard %s" % (user))
+
+		if (not hasattr(self, "bos")):
+			return
+
 		d = defer.Deferred()
 		#self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
 		self.userinfoID = (self.userinfoID+1)%256
@@ -404,7 +414,7 @@ class ICQConnection:
 				def cb(arg=None):
 					updatePresence("subscribed")
 
-				if (not hasattr(self, "bos")):
+				if (not hasattr(self, "bos") or not self.session.ready):
 					debug.log("Not properly logged in yet")
 					if (hasattr(self.session, "jabberID")):
 						self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body="You are not currently logged into this transport.  Please log in again.", mtype="chat")

@@ -9,6 +9,7 @@ mainServer = "127.0.0.1"
 port = "5347"
 secret = "secret"
 lang = "en"
+encoding = "iso-8859-1"
 sessionGreeting = False
 crossChat = False
 debugOn = False
