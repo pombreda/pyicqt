@@ -1,0 +1,64 @@
+The better install/configuration documents are available at:
+http://pyicq-t.jabberstudio.org/
+
+There's really not much to the install at the moment.  It's important
+to make sure you have the following installed:
+
+- Jabber ;D
+- Python
+X Twisted (www.twistedmatrix.com) (see next)
+- Modified Twisted until real dist is fixed.  You can get it at:
+    http://pyicq-t.jabberstudio.org/tarballs/twisted-patched-3.tar.bz2
+  Simply untar this into this transport's src directory.
+
+Then, go into the src directory and copy config_example.py to config.py and
+edit config.py.  Change the jid to the Jabber ID you want this transport to
+answer as.  Change mainServer to the IP address or DNS name of your Jabber
+server.  Change secret to the shared secret between transports and your
+Jabber server (should be in router.xml for Jabberd2).  Change port to the
+port this transport is to connect to (also found in router.xml for Jabberd2).
+Edit other options at your leisure, they are fairly self-documented.
+
+If you are migrating from JIT, you can copy over your spool directory into
+the same directory that this INSTALL file is.  (make the jid field is set to
+the same name as this spool directory)  If you are starting a fresh spool
+directory, simply mkdir the same name you used in the jid field.  Note that
+you can set the actual location of the spool directory if you want, instead
+of having to put it in this directory.
+
+With Jabberd2, there's little else you need to do than run PyICQt in this
+directory.  It's important to know that you should -not- have an alias
+line in your router.xml for PyICQ-t.
+
+Note: the following instructions are provided almost word for word from
+James Bunton, just modified for ICQ.  ;)
+
+With Jabberd1, you need to add something like the following to jabber.xml:
+<service id="icq.host.com">
+	<host>icq.host.com</host>
+	<accept>
+		<ip>127.0.0.1</ip>
+		<port>XXXX</port>
+		<secret>secret</secret>
+	</accept>
+</service>
+
+Check that icq.host.com is the same as the 'jid' setting from config.py
+and that XXXX is the same as the 'port' setting. Also 'secret' must
+correspond, and the 'mainServer' setting should be pointing to the same
+interface as the <ip/> tag is (in this example the loopback interface is
+used. So 'mainServer' would be '127.0.0.1').
+
+You must also add this to the browse section of your jabber.xml file
+
+<service type="icq" jid="icq.host.com" name="ICQ Transport">
+	<ns>jabber:iq:register</ns>
+</service>
+
+Once again, icq.host.com must correspond to the 'jid' setting in config.py
+
+Once you have made all these changes, restart your Jabberd1.4.x server,
+then start PyICQt and it should all work.
+
+I'll have better instructions and such at some point when we're further
+along.

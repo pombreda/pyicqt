@@ -1,0 +1,17 @@
+0.3:
+
+* Now handles /registered from older transports.
+
+* vCard support.
+
+0.2:
+
+* Fixes to bugs with roster imports and incoming messages.
+
+* Away messages are handled more properly now.
+
+* DB saves don't happen a ridiculous number of times anymore.
+
+0.1:
+
+* First release, base ICQ chat support
