@@ -157,7 +157,7 @@ class B(oscar.BOSConnection):
 	def gotBuddyList(self, l):
 		debug.log("B: gotBuddyList: %s" % (str(l)))
 		self.ssigroups = list()
-		if (l is not None):
+		if (l is not None and l[0] is not None):
 			for g in l[0]:
 				debug.log("B: gotBuddyList found group %s" % (g.name))
 				self.ssigroups.append(g)

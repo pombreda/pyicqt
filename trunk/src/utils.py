@@ -32,6 +32,11 @@ def egdufstr(text, num):
 def latin1(text):
 	return text
 
+def utf8encode(text):
+	encodedstring = text.encode('utf-8', 'replace')
+	encodedstring.replace('\x00','')
+	return encodedstring
+
 def copyDict(dic):
 	""" Does a deep copy of a dictionary """
 	out = {}
