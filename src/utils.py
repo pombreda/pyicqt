@@ -34,6 +34,10 @@ def copyList(lst):
 		out.append(i)
 	return out
 
+def mutilateMe(me):
+	""" Mutilates a class :) """
+#	for key in dir(me):
+#		exec "me." + key + " = None"
 
 def getLang(el):
 	return el.getAttribute((u'http://www.w3.org/XML/1998/namespace', u'lang'))

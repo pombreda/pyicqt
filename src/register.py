@@ -34,9 +34,9 @@ class RegisterManager:
 		debug.log("RegisterManager: removeRegInfo(\"%s\") - done" % (jabberID))
 	
 	
-	def setRegInfo(self, jabberID, username, password, nickname):
-		debug.log("RegisterManager: setRegInfo(\"%s\", \"%s\", \"%s\", \"%s\")" % (jabberID, username, password, nickname))
-		reginfo = legacy.formRegEntry(username, password, nickname)
+	def setRegInfo(self, jabberID, username, password):
+		debug.log("RegisterManager: setRegInfo(\"%s\", \"%s\", \"%s\")" % (jabberID, username, password))
+		reginfo = legacy.formRegEntry(username, password)
 		self.pytrans.xdb.set(jabberID, legacy.namespace, reginfo)
 	
 	def getRegInfo(self, jabberID):
@@ -46,13 +46,13 @@ class RegisterManager:
 			debug.log("RegisterManager: getRegInfo(\"%s\") - not registered!" % (jabberID))
 			return None
 		
-		username, password, nickname = legacy.getAttributes(result)
+		username, password = legacy.getAttributes(result)
 		
 		if(username and password and len(username) > 0 and len(password) > 0):
-			debug.log("RegisterManager: getRegInfo(\"%s\") - returning reg info \"%s\" \"%s\" \"%s\"!" % (jabberID, username, password, utils.latin1(nickname)))
-			return (username, password, nickname)
+			debug.log("RegisterManager: getRegInfo(\"%s\") - returning reg info \"%s\" \"%s\"!" % (jabberID, username, password))
+			return (username, password)
 		else:
-			debug.log("RegisterManager: getRegInfo(\"%s\") - invalid registration data! %s %s %s" % (jabberID, username, password, utils.latin1(nickname)))
+			debug.log("RegisterManager: getRegInfo(\"%s\") - invalid registration data! %s %s" % (jabberID, username, password))
 			return None
 	
 	def incomingRegisterIq(self, incoming):
@@ -79,28 +79,24 @@ class RegisterManager:
 		instructions.addContent(lang.get(ulang).registerText)
 		userEl = query.addElement("username")
 		passEl = query.addElement("password")
-		nickEl = query.addElement("nick")
 		
 		# Check to see if they're registered
 		barefrom = jid.JID(incoming.getAttribute("from")).userhost()
 		result = self.getRegInfo(barefrom)
 		if(result):
-			username, password, nickname = result
+			username, password = result
 			userEl.addContent(username)
-			if(nickname and len(nickname) > 0):
-				nickEl.addContent(nickname)
 			query.addElement("registered")
 		
 		self.pytrans.send(reply)
 	
 	def updateRegistration(self, incoming):
-		# Grab the username, password and nickname
+		# Grab the username and password
 		debug.log("RegisterManager: updateRegistration() for \"%s\" \"%s\"" % (incoming.getAttribute("from"), incoming.getAttribute("id")))
 		source = jid.JID(incoming.getAttribute("from")).userhost()
 		ulang = utils.getLang(incoming)
 		username = None
 		password = None
-		nickname = None
 		
 		for queryFind in incoming.elements():
 			if(queryFind.name == "query"):
@@ -110,8 +106,6 @@ class RegisterManager:
 							username = child.__str__().lower()
 						elif(child.name == "password"):
 							password = child.__str__()
-						elif(child.name == "nick"):
-							nickname = child.__str__()
 						elif(child.name == "remove"):
 							# The user wants to unregister the transport! Gasp!
 							debug.log("RegisterManager: Session \"%s\" is about to be unregistered" % (source))
@@ -130,22 +124,13 @@ class RegisterManager:
 			# Valid registration data
 			debug.log("RegisterManager: Valid registration data was received. Attempting to update XDB")
 			try:
-				self.setRegInfo(source, username, password, nickname)
+				self.setRegInfo(source, username, password)
 				debug.log("RegisterManager: Updated XDB successfully")
 				self.successReply(incoming)
 				debug.log("RegisterManager: Sent off a result Iq")
-				# If they're in a session right now we update their nick, otherwise request their auth
-				if(self.pytrans.sessions.has_key(source)):
-					s = self.pytrans.sessions[source]
-					s.updateNickname(nickname)
-				else:
+				# If they're in a session right now, we do nothing
+				if(not self.pytrans.sessions.has_key(source)):
 					jabw.sendPresence(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, ptype="subscribe")
-				# Don't create a session automatically. We wait until they respond to the presence subscribe
-#				s = session.makeSession(self.pytrans, source, ulang)
-#				assert(s != None) # It's just been registered
-#				self.pytrans.sessions[source] = s
-#				debug.log("RegisterManager: Created a session")
-#				s.sendPresence(to=source, fro=config.jid, ptype="subscribe")
 			except:
 				self.xdbErrorReply(incoming)
 				raise

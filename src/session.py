@@ -21,8 +21,8 @@ def makeSession(pytrans, jabberID, ulang, rosterID):
 		pytrans.sessions[jabberID].removeMe()
 	result = pytrans.registermanager.getRegInfo(jabberID)
 	if(result):
-		username, password, nickname = result
-		return Session(pytrans, jabberID, username, password, nickname, ulang, rosterID)
+		username, password = result
+		return Session(pytrans, jabberID, username, password, ulang, rosterID)
 	else:
 		return None
 
@@ -32,7 +32,7 @@ class Session(jabw.JabberConnection):
 	""" A class to represent each registered user's session with the legacy network. Exists as long as there
 	is a Jabber resource for the user available """
 	
-	def __init__(self, pytrans, jabberID, username, password, nickname, ulang, rosterID):
+	def __init__(self, pytrans, jabberID, username, password, ulang, rosterID):
 		""" Initialises the session object and connects to the legacy network """
 		jabw.JabberConnection.__init__(self, pytrans, jabberID)
 		debug.log("Session: Creating new session \"%s\"" % (jabberID))
@@ -43,7 +43,6 @@ class Session(jabw.JabberConnection):
 		self.jabberID = jabberID # the JabberID of the Session's user
 		self.username = username # the legacy network ID of the Session's user
 		self.password = password
-		self.nickname = nickname
 		self.lang = ulang
 
 		if (rosterID.resource == "registered"):
@@ -62,7 +61,7 @@ class Session(jabw.JabberConnection):
 		
 		if(config.sessionGreeting):
 			self.sendMessage(to=self.jabberID, fro=config.jid, body=lang.get(self.lang).sessionGreeting)
-		debug.log("Session: New session created \"%s\" \"%s\" \"%s\" \"%s\"" % (jabberID, username, password, nickname))
+		debug.log("Session: New session created \"%s\" \"%s\" \"%s\"" % (jabberID, username, password))
 	
 	
 	def removeMe(self):
@@ -100,10 +99,6 @@ class Session(jabw.JabberConnection):
 			self.pytrans = None
 		
 		debug.log("Session: Completed removal \"%s\"" % (self.jabberID))
-	
-	def updateNickname(self, nickname):
-		self.nickname = nickname
-		self.setStatus(self.show, self.status)
 	
 	def setStatus(self, show, status):
 		self.show = show
@@ -153,6 +148,10 @@ class Session(jabw.JabberConnection):
 		if(groupchat):
 			debug.log("Session: inviteReceived(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (source, resource, dest, destr, roomjid))
 			groupchat.sendContactInvite(dest)
+
+	def typingNotificationReceived(self, dest, composing):
+		""" The user has sent typing notification to a contact on the legacy service """
+		self.legacycon.userTypingNotification(dest, composing)
 	
 	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status):
 		# Checks resources and priorities so that the highest priority resource always appears as the

@@ -1,3 +1,24 @@
+2004-12-13  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/session.py:
+	* src/register.py:
+	* src/legacy/oscar/glue.py:
+	* src/legacy/toc/glue.py:
+	Removed references to unused nicknames.
+
+2004-12-05  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* PyAIMt:
+	* src/groupchat.py:
+	* src/jabw.py:
+	* src/utils.py:
+	* src/session.py:
+	* src/legacy/oscar/glue.py:
+	* src/legacy/toc/glue.py:
+	* src/xdb.py:
+	Ported PyMSNt changes to check for pid file, add typing notifications,
+	memory leak fixes, etc.  Based around PyMSN-t 0.8 upgrades.
+
 2004-12-01  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
