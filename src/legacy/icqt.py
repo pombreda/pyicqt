@@ -10,6 +10,7 @@ import utils
 import debug
 import sys, warnings, pprint
 import stats
+import lang
 
 
 #############################################################################
@@ -567,10 +568,6 @@ class ICQConnection:
 			message = message+"\n"+errmsgs[1]
 		if (errmsgs[3]):
 			message = message+"\n"+errmsgs[3]
-		#tmpjid = config.jid
-		#if (self.session.registeredmunge):
-		#	tmpjid = tmpjid + "/registered"
-		#self.session.sendMessage(to=self.session.jabberID, fro=tmpjid, body=message, mtype="chat")
 		self.alertUser(message)
 
 		self.session.removeMe()

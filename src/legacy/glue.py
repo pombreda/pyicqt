@@ -6,6 +6,7 @@ from tlib.domish import Element
 import icqt
 import config
 import debug
+import lang
 
 # The name of the transport
 name = "ICQ Transport"
