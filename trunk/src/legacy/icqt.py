@@ -95,7 +95,9 @@ class B(oscar.BOSConnection):
 		self.activateSSI()
 		self.setIdleTime(0)
 		self.clientReady()
-		self.session.sendPresence(to=self.session.jabberID, fro=config.jid)
+		self.session.ready = True
+		self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly)
+		self.icqcon.setAway(self.icqcon.savedFriendly)
 
 
 #############################################################################

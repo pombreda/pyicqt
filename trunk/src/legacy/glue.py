@@ -101,10 +101,11 @@ class LegacyGroupchat(groupchat.BaseGroupchat):
 class LegacyConnection(icqt.ICQConnection):
 	""" A glue class that connects to the legacy network """
 	def __init__(self, username, password, session):
-		self.session = session
-		icqt.ICQConnection.__init__(self, username, password)
-		self.session.ready = True
 		debug.log("LegacyConnection: __init__")
+		self.session = session
+		self.savedShow = None
+		self.savedFriendly = None
+		icqt.ICQConnection.__init__(self, username, password)
 	
 	def removeMe(self):
 		debug.log("LegacyConnection: removeMe")
@@ -120,10 +121,19 @@ class LegacyConnection(icqt.ICQConnection):
 	
  	def setStatus(self, show, friendly):
 		debug.log("LegacyConnection: setStatus %s %s" % (show, friendly))
+
+		self.savedShow = show
+		self.savedFriendly = friendly
+
+		if (not self.session.ready):
+			return
+
 		if (show in ["online", None]):
 			icqt.ICQConnection.setAway(self)
+			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None)
 		else:
 			icqt.ICQConnection.setAway(self, friendly)
+			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=show, status=friendly)
 
         def buildFriendly(self, status):
 		friendly = self.jabberID[:self.jabberID.find('@')]
