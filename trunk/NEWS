@@ -1,8 +1,10 @@
-0.4:
+0.5:
 
 * No longer requires patched Twisted to be installed.
 
 * Enhanced vcard support thanks to Jonas Adahl.
+
+0.4:
 
 * Offline messages are retrieved now.
 
