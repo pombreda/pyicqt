@@ -17,7 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from twisted.internet import reactor, protocol, defer
-from twisted.xish import domish, utility
+from tlib import domish
+from twisted.xish import utility
 import string
 
 class InvalidFormat(Exception):
