@@ -1,0 +1,6 @@
+- handle all py* group triggers (add group chat support)
+- finish toc support
+- make transport actually sync buddies into icq spool
+- add ability to update your real icq profile
+- away message needs to be sent on away
+- retrieve descriptive icq away message and pass through jabber
