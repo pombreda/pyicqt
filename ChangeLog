@@ -1,3 +1,8 @@
+2005-04-06  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/oscar/tlib.py:
+	Fixed lack of handling for channel 4 (old style) messages.
+
 2005-04-05  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:
