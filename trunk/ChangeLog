@@ -1,5 +1,8 @@
 2005-03-08  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/session.py:
+	Fixed lack of calling SessionResource with all args.
+
 	* src/legacy/glue.py:
 	Repaired resourceOffline typo.
 
