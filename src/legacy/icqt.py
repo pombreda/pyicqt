@@ -80,6 +80,9 @@ class B(oscar.BOSConnection):
 			for g in l[0]:
 				debug.log("B: gotBuddyList found group %s" % (g.name))
 				self.ssigroups.append(g)
+				for u in g.users:
+					debug.log("B: got user %s from group %s" % (u.name, g.name))
+					self.icqcon.contacts.addSSIContact(u.name)
 		self.activateSSI()
 		self.setIdleTime(0)
 		self.clientReady()
