@@ -49,6 +49,14 @@ def is_in(set_list, c):
 			return True
 	return False
 
+_excluded = range(0,9)+range(11,13)+range(14,32)+range(0xD800,0xE000)+range(0xFFFE,0x10000)
+
+excluded = {}
+for c in _excluded: excluded[c] = None
+
+def xmlify(s):
+	return s.translate(excluded)
+
 # 
 # def utf8(text):
 # 	return text

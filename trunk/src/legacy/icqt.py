@@ -298,6 +298,9 @@ class ICQConnection:
 
 	def getvCard(self, vcard, user):
 		debug.log("ICQConnection: getvCard %s" % (user))
+		if (not user.isdigit()):
+			debug.log("ICQConnection: getvCard uin is not a number")
+			return
 		try:
 			d = defer.Deferred()
 			#self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)

@@ -157,19 +157,21 @@ class PyTransport(component.Service):
 		self.xmlstream.addObserver("/iq", self.discovery.onIq)
 		self.xmlstream.addObserver("/presence", self.onPresence)
 		self.xmlstream.addObserver("/message", self.onMessage)
-		#self.xmlstream.addObserver("/error[@xmlns='http://etherx.jabber.org/streams']", self.streamError)
-		self.xmlstream.addObserver(STREAM_ERROR_EVENT, self.streamError)
-		self.xmlstream.addObserver(STREAM_END_EVENT, self.streamEnd)
+		self.xmlstream.addObserver("/error[@xmlns='http://etherx.jabber.org/streams']", self.streamError)
+		#self.xmlstream.addObserver(STREAM_ERROR_EVENT, self.streamError)
+		#self.xmlstream.addObserver(STREAM_END_EVENT, self.streamEnd)
 
 	def componentDisconnected(self):
 		debug.log("PyTransport: Disconnected from main Jabberd server")
 		# Is this proper?  I mean we were disconnected but we're
 		# sending this anyway?  Hrm..  it does work, which is a
 		# little odd.
-		if (self.sessions):
-			sessionkeys = self.sessions.keys()
-			for s in sessionkeys:
-				self.sessions[s].removeMe()
+		# Ok, this appears to have the potential to cause an
+		# infinite stream error loop, so shut this up for now.
+		#if (self.sessions):
+		#	sessionkeys = self.sessions.keys()
+		#	for s in sessionkeys:
+		#		self.sessions[s].removeMe()
 		self.xmlstream = None
 
 	def streamError(self, errelem):

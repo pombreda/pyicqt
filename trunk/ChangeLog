@@ -1,3 +1,17 @@
+2005-03-20  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	Added Martin von Loewis's xmlify function.
+
+	* src/main.py:
+	Fixed what is probably the cause of the infinite loop stream error.
+	Bug id 45.
+
+2005-03-13  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Added check to make sure we're being passed an int.
+
 2005-03-12  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/exception.py:

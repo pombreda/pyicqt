@@ -33,7 +33,7 @@ def sendMessage(pytrans, to, fro, body, mtype=None, errorType=None, delay=None):
 		x.attributes["stamp"] = delay
 
 	b = el.addElement("body")
-	b.addContent(utils.utf8encode(body))
+	b.addContent(utils.xmlify(body))
 	x = el.addElement("x")
 	x.attributes["xmlns"] = "jabber:x:event"
 	composing = x.addElement("composing")
@@ -47,10 +47,10 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 		el.attributes["type"] = ptype
 	if(show):
 		s = el.addElement("show")
-		s.addContent(utils.utf8encode(show))
+		s.addContent(utils.xmlify(show))
 	if(status):
 		s = el.addElement("status")
-		s.addContent(utils.utf8encode(status))
+		s.addContent(utils.xmlify(status))
 	if(priority):
 		s = el.addElement("priority")
 		s.addContent(priority)
