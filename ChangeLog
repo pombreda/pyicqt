@@ -1,3 +1,12 @@
+2005-03-12  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/exception.py:
+	* src/main.py:
+	Added new exception handler.
+
+	* src/debug.py:
+	Changed logging format slightly.
+
 2005-03-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

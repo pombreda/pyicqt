@@ -83,6 +83,7 @@ import misciq
 import utils
 import legacy
 import lang
+import exception
 
 class PyTransport(component.Service):
 	def __init__(self):
