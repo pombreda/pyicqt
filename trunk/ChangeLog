@@ -1,3 +1,8 @@
+2004-10-04  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Added test for session readiness to setAway and sendMessage.
+
 2004-10-03  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
