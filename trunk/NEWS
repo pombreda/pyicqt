@@ -1,3 +1,11 @@
+0.4:
+
+* No longer requires patched Twisted to be installed.
+
+* Enhanced vcard support thanks to Jonas Adahl.
+
+* Offline messages are retrieved now.
+
 0.3:
 
 * Now handles /registered from older transports.

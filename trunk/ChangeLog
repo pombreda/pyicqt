@@ -1,3 +1,24 @@
+2004-12-23  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib:
+	Many updates to clean up and add new requirements.
+
+	* src/disco.py:
+	* src/groupchat.py:
+	* src/jabw.py:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/main.py:
+	* src/misciq.py:
+	* src/register.py:
+	* src/xdb.py:
+	Updated to match recent MSN code more accurately.
+
+2004-12-20  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Applied endian patch from Jonas Adahl.
+
 2004-12-14  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:

@@ -9,8 +9,8 @@ del sys.setdefaultencoding
 sys.path.insert(0, '.')
 
 from twisted.internet import reactor
-#from twisted.protocols.jabber import component, jid
 from tlib.jabber import component, jid
+from tlib.domish import Element
 from twisted.internet import task
 import twisted.python.log
 
@@ -153,12 +153,30 @@ class PyTransport(component.Service):
 		to = el.getAttribute("to")
 		toj = jid.JID(to.lower())
 		ulang = utils.getLang(el)
+		debug.log("PyTransport: onPresence type %s from %s to %s" % (ptype, fro, to))
 		if(self.sessions.has_key(froj.userhost())):
 			self.sessions[froj.userhost()].onPresence(el)
 		else:
 			if(to.find('@') < 0):
 				# If the presence packet is to the transport (not a user) and there isn't already a session
-				if(el.getAttribute("type") in [None, ""]): # Don't create a session unless they're sending available presence
+				if(ptype == "subscribe"):
+					debug.log("PyTransport: Answering subscription request, subscribe back")
+					el.swapAttributeValues("from", "to")
+					el.attributes["type"] = "subscribed"
+					self.send(el)
+				#elif(ptype == "subscribed"):
+				#	debug.log("PyTransport: Answering subscription request, subscribe back")
+				#	reply = Element((None, "iq"))
+				#	reply.attributes["type"] = "set"
+				#	reply.attributes["from"] = fro
+				#	reply.attributes["to"] = fro
+				#	query = reply.addElement("query")
+				#	query.attributes["xmlns"] = "jabber:iq:roster"
+				#	item = query.addElement("item")
+				#	item.attributes["jid"] = to
+				#	item.attributes["subscription"] = "both"
+				#	self.send(reply)
+				elif(ptype in [None, ""]): # Don't create a session unless they're sending available presence
 					debug.log("PyTransport: Attempting to create a new session \"%s\"" % (froj.userhost()))
 					s = session.makeSession(self, froj.userhost(), ulang, toj)
 					if(s):
@@ -170,7 +188,7 @@ class PyTransport(component.Service):
 						debug.log("PyTransport: Failed to create session \"%s\"" % (froj.userhost()))
 						jabw.sendMessage(self, to=froj.userhost(), fro=config.jid, body=lang.get(ulang).notRegistered)
 				
-				elif(el.getAttribute("type") != "error"):
+				elif(ptype != "error"):
 					debug.log("PyTransport: Sending unavailable presence to non-logged in user \"%s\"" % (froj.userhost()))
 					el.swapAttributeValues("from", "to")
 					el.attributes["type"] = "unavailable"
@@ -213,8 +231,8 @@ class App:
 
 
 if(__name__ == "__main__"):
-	import tests.runtests
-	debug.log("Twisted test cases passed successfully.")
+	#import tests.runtests
+	#debug.log("Twisted test cases passed successfully.")
 	app = App()
 	reactor.run()
 

@@ -1,9 +1,8 @@
 # Copyright 2004 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from twisted.web import microdom
-#from twisted.protocols import oscar
 from tlib import oscar
+from tlib.domish import Element
 import groupchat
 import icqt
 import config
@@ -29,16 +28,14 @@ namespace = "jabber:iq:register"
 
 # This function should return an xml element as it should exist in the spool
 def formRegEntry(username, password):
-	reginfo = microdom.Element("query")
-	reginfo.namespace = "jabber:iq:register"
+	reginfo = Element((None,"query"))
+	reginfo.attributes["xmlns"] = "jabber:iq:register"
 
-	userEl = microdom.Element("username")
-	userEl.appendChild(microdom.Text(username))
-	reginfo.appendChild(userEl)
+	userEl = reginfo.addElement("username")
+	userEl.addContent(username)
 
-	passEl = microdom.Element("password")
-	passEl.appendChild(microdom.Text(password))
-	reginfo.appendChild(passEl)
+	passEl = reginfo.addElement("password")
+	passEl.addContent(password)
 
 	return reginfo
 
@@ -47,12 +44,12 @@ def formRegEntry(username, password):
 def getAttributes(base):
 	username = ""
 	password = ""
-	for child in base.childNodes:
+	for child in base.elements():
 		try:
-			if(child.tagName == "username"):
-				username = child.firstChild().value
-			elif(child.tagName == "password"):
-				password = child.firstChild().value
+			if(child.name == "username"):
+				username = child.__str__()
+			elif(child.name == "password"):
+				password = child.__str__()
 		except AttributeError:
 			continue
 

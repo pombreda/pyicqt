@@ -10,6 +10,17 @@ def fudgestr(text, num):
 			i = ord(' ')
 		newtext += chr(i)
 	return newtext
+
+def egdufstr(text, num):
+    if(not (text.__class__ in [str, unicode])): return ""
+    newtext = ""
+    for c in text:
+        i = ord(c)
+        if(i <= num):
+            i = ord(' ')
+        newtext += chr(i)
+    return newtext
+
 # 
 # def utf8(text):
 # 	return text
@@ -18,7 +29,6 @@ def fudgestr(text, num):
 # 
 def latin1(text):
 	return fudgestr(text, 128)
-
 
 def copyDict(dic):
 	""" Does a deep copy of a dictionary """

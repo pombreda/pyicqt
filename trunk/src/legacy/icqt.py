@@ -1,10 +1,9 @@
 # Copyright 2004 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from twisted.web.microdom import Element
 from twisted.internet import protocol, reactor, defer
-#from twisted.protocols import oscar
 from tlib import oscar
+from tlib.domish import Element
 from twisted.python import log
 import config
 import utils
@@ -28,6 +27,16 @@ class B(oscar.BOSConnection):
 		self.requestSelfInfo().addCallback(self.gotSelfInfo)
 		self.requestSSI().addCallback(self.gotBuddyList)
 		debug.log("B: initDone %s for %s" % (self.username,self.session.jabberID))
+
+	def gotUserInfo(self, id, type, userinfo):
+		# Only characters over 16 is allowed
+		if userinfo:
+			for i in range(len(userinfo)):
+				userinfo[i] = utils.egdufstr(userinfo[i], 16)
+		if self.icqcon.userinfoCollection[id].gotUserInfo(id, type, userinfo):
+			# True when all info packages has been received
+			self.icqcon.gotvCard(self.icqcon.userinfoCollection[id])
+			del self.icqcon.userinfoCollection[id]
 
 	def updateBuddy(self, user):
 		from glue import icq2jid
@@ -59,7 +68,11 @@ class B(oscar.BOSConnection):
 		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
 		text = multiparts[0][0]
-		encoding = "iso-8859-1"
+		#encoding = "iso-8859-1"
+		#encoding = "iso-8859-15"
+		encoding = "utf-8"
+		#if (multiparts[0][1] == "unicode"):
+		#	encoding = "utf-8"
 		debug.log("B: using encoding %s" % (encoding))
 		text = text.decode(encoding, "replace")
 		text = text.strip()
@@ -134,6 +147,8 @@ class ICQConnection:
 		self.password = password
 		self.reactor = reactor
 		self.contacts = ICQContacts(self.session)
+		self.userinfoCollection = {}
+		self.userinfoID = 0
 		self.deferred = defer.Deferred()
 		self.deferred.addErrback(self.errorCallback)
 		#hostport = ("login.icq.com", 5238)
@@ -184,31 +199,128 @@ class ICQConnection:
 	def getvCard(self, vcard, user):
 		debug.log("ICQConnection: getvCard %s" % (user))
 		d = defer.Deferred()
-		self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
+		#self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
+		self.userinfoID = (self.userinfoID+1)%256
+		self.userinfoCollection[self.userinfoID] = UserInfoCollector(self.userinfoID, d, vcard, user)
+		self.bos.getMetaInfo(user, self.userinfoID) #.addCallback(self.gotvCard, user, vcard, d)
 		return d
 
-	def gotvCard(self, userinfo, uin, vcard, d):
-		debug.log("ICQConnection: gotvCard: %s" % (userinfo))
+#	def gotvCard(self, userinfo, uin, vcard, d):
+#		debug.log("ICQConnection: gotvCard: %s" % (userinfo))
+#
+#		fn = vcard.addElement("FN")
+#		fn.addContent(userinfo[1]+" "+userinfo[2])
+#		n = vcard.addElement("N")
+#		given = n.addElement("GIVEN")
+#		given.addContent(userinfo[1])
+#		family = n.addElement("FAMILY")
+#		family.addContent(userinfo[2])
+#		middle = n.addElement("MIDDLE")
+#		nickname = vcard.addElement("NICKNAME")
+#		nickname.addContent(userinfo[0])
+#		email = vcard.addElement("EMAIL")
+#		email.addElement("INTERNET")
+#		email.addElement("PREF")
+#		emailid = email.addElement("USERID")
+#		emailid.addContent(userinfo[3])
+#		jabberid = vcard.addElement("JABBERID")
+#		jabberid.addContent(uin+"@"+config.jid)
+#
+#		d.callback(vcard)
 
-		fn = vcard.addElement("FN")
-		fn.addContent(userinfo[1]+" "+userinfo[2])
-		n = vcard.addElement("N")
-		given = n.addElement("GIVEN")
-		given.addContent(userinfo[1])
-		family = n.addElement("FAMILY")
-		family.addContent(userinfo[2])
-		middle = n.addElement("MIDDLE")
-		nickname = vcard.addElement("NICKNAME")
-		nickname.addContent(userinfo[0])
-		email = vcard.addElement("EMAIL")
-		email.addElement("INTERNET")
-		email.addElement("PREF")
-		emailid = email.addElement("USERID")
-		emailid.addContent(userinfo[3])
-		jabberid = vcard.addElement("JABBERID")
-		jabberid.addContent(uin+"@"+config.jid)
+	def gotvCard(self, usercol):
+		debug.log("ICQConnection: gotvCard: %s" % (usercol.userinfo))
+ 
+		if usercol != None and usercol.valid:
+			vcard = usercol.vcard
+			fn = vcard.addElement("FN")
+			fn.addContent(usercol.first + " " + usercol.last)
+			n = vcard.addElement("N")
+			given = n.addElement("GIVEN")
+			given.addContent(usercol.first)
+			family = n.addElement("FAMILY")
+			family.addContent(usercol.last)
+			middle = n.addElement("MIDDLE")
+			nickname = vcard.addElement("NICKNAME")
+			nickname.addContent(usercol.nick)
+			bday = vcard.addElement("BDAY")
+			bday.addContent(usercol.birthday)
+			desc = vcard.addElement("DESC")
+			desc.addContent(usercol.about)
+			url = vcard.addElement("URL")
+			url.addContent(usercol.homepage)
 
-		d.callback(vcard)
+			# Home address
+			adr = vcard.addElement("ADR")
+			adr.addElement("HOME")
+			street = adr.addElement("STREET")
+			street.addContent(usercol.homeAddress)
+			locality = adr.addElement("LOCALITY")
+			locality.addContent(usercol.homeCity)
+			region = adr.addElement("REGION")
+			region.addContent(usercol.homeState)
+			pcode = adr.addElement("PCODE")
+			pcode.addContent(usercol.homeZIP)
+			ctry = adr.addElement("CTRY")
+			ctry.addContent(usercol.homeCountry)
+			# home number
+			tel = vcard.addElement("TEL")
+			tel.addElement("VOICE")
+			tel.addElement("HOME")
+			telNumber = tel.addElement("NUMBER")
+			telNumber.addContent(usercol.homePhone)
+			tel = vcard.addElement("TEL")
+			tel.addElement("FAX")
+			tel.addElement("HOME")
+			telNumber = tel.addElement("NUMBER")
+			telNumber.addContent(usercol.homeFax)
+			tel = vcard.addElement("TEL")
+			tel.addElement("CELL")
+			tel.addElement("HOME")
+			number = tel.addElement("NUMBER")
+			number.addContent(usercol.cellPhone)
+			# email
+			email = vcard.addElement("EMAIL")
+			email.addElement("INTERNET")
+			email.addElement("PREF")
+			emailid = email.addElement("USERID")
+			emailid.addContent(usercol.email)
+
+			# work
+			adr = vcard.addElement("ADR")
+			adr.addElement("WORK")
+			street = adr.addElement("STREET")
+			street.addContent(usercol.workAddress)
+			locality = adr.addElement("LOCALITY")
+			locality.addContent(usercol.workCity)
+			region = adr.addElement("REGION")
+
+			region.addContent(usercol.workState)
+			pcode = adr.addElement("PCODE")
+			pcode.addContent(usercol.workZIP)
+			ctry = adr.addElement("CTRY")
+			ctry.addContent(usercol.workCountry)
+
+			tel = vcard.addElement("TEL")
+			tel.addElement("WORK")
+			tel.addElement("VOICE")
+			number = tel.addElement("NUMBER")
+			number.addContent(usercol.workPhone)
+			tel = vcard.addElement("TEL")
+			tel.addElement("WORK")
+			tel.addElement("FAX")
+			number = tel.addElement("NUMBER")
+			number.addContent(usercol.workFax)
+
+			jabberid = vcard.addElement("JABBERID")
+			jabberid.addContent(usercol.userinfo+"@"+config.jid)
+
+			usercol.d.callback(vcard)
+		elif usercol:
+			usercol.d.callback(usercol.vcard)
+		else:
+			self.session.sendErrorMessage(self.session.jabberID, uin+"@"+config.jid, "cancel", "undefined-condition", "", "Unable to retrieve user information")
+			# error of some kind
 
 	def removeMe(self):
 		from glue import icq2jid
@@ -263,8 +375,14 @@ class ICQConnection:
 						savethisgroup = g
 
 				if (savethisgroup is None):
-					debug.log("Need to add a new group")
-					return
+					debug.log("Adding new group")
+					newGroup = oscar.SSIGroup("General")
+					newGroupID = len(self.bos.ssigroups)+1
+					self.bos.startModifySSI()
+					self.bos.addItemSSI(newGroup, groupID = newGroupID, buddyID = 0)
+					self.bos.endModifySSI()
+					savethisgroup = newGroup
+					self.bos.ssigroups.append(newGroup)
 
 				newUser = oscar.SSIBuddy(userHandle)
 				newUserID = len(savethisgroup.users)+1
@@ -392,12 +510,12 @@ class ICQContacts:
 			debug.log("ICQContacts: nothing has changed, no need to save")
 			return
 
-		newXDB = Element("query")
+		newXDB = Element((None, "query"))
 		newXDB.namespace = "jabber:iq:roster"
 
 		for c in self.xdbcontacts:
 			try:
-				item = Element("item")
+				item = Element((None, "item"))
 				item.setAttribute("jid", c)
 				newXDB.appendChild(item)
 
@@ -407,3 +525,79 @@ class ICQContacts:
 		self.session.pytrans.xdb.set(self.session.jabberID, "aimtrans:roster", newXDB)
 		self.xdbchanged = False
 		debug.log("ICQContacts: contacts saved")
+
+class UserInfoCollector:
+	def __init__(self, id, d, vcard, userinfo):
+		self.packetCounter = 0
+		self.vcard = vcard
+		self.d = d
+		self.id = id
+		self.userinfo = userinfo
+		self.nick = None
+		self.first = None
+		self.last = None
+		self.email = None
+		self.homeCity = None
+		self.homeState = None
+		self.homePhone = None
+		self.homeFax = None
+		self.homeAddress = None
+		self.cellPhone = None
+		self.homeZIP = None
+		self.homeCountry = None
+		self.workCity = None
+		self.workState = None
+		self.workPhone = None
+		self.workFax = None
+		self.workAddress = None
+		self.workZIP = None
+		self.workCountry = None
+		self.workCompany = None
+		self.workDepartment = None
+		self.workPosition = None
+		self.workRole = None
+		self.homepage = None
+		self.about = None
+		self.birthday = None
+		self.valid = True
+
+	def gotUserInfo(self, id, type, userinfo):
+		self.packetCounter += 1
+		if type == 0xffff:
+			self.valid = False
+			self.packetCounter = 8 # we'll get no more packages
+		if type == 0xc8:
+			# basic user info
+			self.nick = userinfo[0]
+			self.first = userinfo[1]
+			self.last = userinfo[2]
+			self.email = userinfo[3]
+			self.homeCity = userinfo[4]
+			self.homeState = userinfo[5]
+			self.homePhone = userinfo[6]
+			self.homeFax = userinfo[7]
+			self.homeAddress = userinfo[8]
+			self.cellPhone = userinfo[9]
+			self.homeZIP = userinfo[10]
+			self.homeCountry = userinfo[11]
+		elif type == 0xdc:
+			self.homepage = userinfo[0]
+			self.birthday = userinfo[1]
+		elif type == 0xd2:
+			self.workCity = userinfo[0]
+			self.workState = userinfo[1]
+			self.workPhone = userinfo[2]
+			self.workFax = userinfo[3]
+			self.workAddress = userinfo[4]
+			self.workZIP = userinfo[5]
+			self.workCountry = userinfo[6]
+			self.workCompany = userinfo[7]
+			self.workDepartment = userinfo[8]
+			self.workPosition = userinfo[9]
+		elif type == 0xe6:
+			self.about = userinfo[0]
+
+		if self.packetCounter >= 8:
+			return True
+		else:
+			return False

@@ -1,8 +1,7 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from twisted.xish.domish import Element
-#from twisted.protocols.jabber.jid import JID
+from tlib.domish import Element
 from tlib.jabber.jid import JID
 import utils
 import debug
@@ -18,7 +17,7 @@ def sendMessage(pytrans, to, fro, body, mtype=None):
 	if(mtype):
 		el.attributes["type"] = mtype
 	b = el.addElement("body")
-	b.addContent(body)
+	b.addContent(unicode(body))
 	x = el.addElement("x")
 	x.attributes["xmlns"] = "jabber:x:event"
 	composing = x.addElement("composing")
@@ -165,6 +164,7 @@ class JabberConnection:
 		if(invite):
 			debug.log("User: %s - JabberConnection parsed message groupchat invite packet \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, utils.latin1(invite)))
 			self.inviteReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, invite)
+			return
 
 		# Check message event stuff
 		if(body and messageEvent):
