@@ -9,6 +9,10 @@ reload(sys)
 sys.setdefaultencoding('iso-8859-1')
 del sys.setdefaultencoding
 
+if (float(sys.version[:3]) < 2.3):
+	print("You are using version %s of Python, at least 2.3 is required." % (sys.version[:3]))
+	os._exit(0)
+
 name = "PyICQt"
 exe = os.path.realpath(sys.executable)
 if (exe.find("python") >= 0):
