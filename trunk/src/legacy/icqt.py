@@ -116,7 +116,7 @@ class B(oscar.BOSConnection):
 
 		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
-		text = multiparts[0][0]
+		text = oscar.dehtml(multiparts[0][0])
 		if (len(multiparts[0]) > 1):
 			if (multiparts[0][1] in ['unicode','utf-8']):
 				encoding = "utf-8"
