@@ -27,8 +27,10 @@ def egdufstr(text, num):
 #	return fudgestr(text, 128)
 # 	return fudgestr(text, 256)
 # 
+#def latin1(text):
+#	return fudgestr(text, 128)
 def latin1(text):
-	return fudgestr(text, 128)
+	return text
 
 def copyDict(dic):
 	""" Does a deep copy of a dictionary """

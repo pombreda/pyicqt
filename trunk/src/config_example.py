@@ -16,8 +16,14 @@ mainServer = "127.0.0.1"
 # The TCP port to connect to the Jabber server on (this is the default for Jabberd2)
 port = "5347"
 
+# The TCP port that the web admin interface will answer on (leave empty to disable)
+webport = "12345"
+
 # The authentication token to use when connecting to the Jabber server
 secret = "password"
+
+# The authentication token to use when connection to the web interface
+websecret = "webpass"
 
 # The default language to use
 lang = "en"

@@ -143,7 +143,11 @@ class LegacyConnection(icqt.ICQConnection):
 		icqt.ICQConnection.jabberSubscriptionReceived(self, source, subtype)
 
 	def userTypingNotification(self, dest, composing):
-		pass
+		debug.log("LegacyConnection: userTypingNotification %s %s" % (dest,composing))
+		if (composing):
+			icqt.ICQConnection.sendTypingNotify(self, "begin", dest)
+		else:
+			icqt.ICQConnection.sendTypingNotify(self, "finish", dest)
 
 	def jabberVCardRequest(self, vcard, user):
 		debug.log("LegacyConnection: jabberVCardRequest %s" % (user))

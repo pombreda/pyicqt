@@ -73,13 +73,27 @@ class B(oscar.BOSConnection):
 		text = multiparts[0][0]
 		#encoding = "iso-8859-1"
 		#encoding = "iso-8859-15"
-		encoding = "utf-8"
+		#encoding = "utf-8"
+		encoding = "iso-8859-1"
 		#if (multiparts[0][1] == "unicode"):
 		#	encoding = "utf-8"
 		debug.log("B: using encoding %s" % (encoding))
 		text = text.decode(encoding, "replace")
 		text = text.strip()
 		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype="chat")
+		self.session.pytrans.stats['incmessages'] += 1
+
+        def receiveTypingNotify(self, type, user):
+		from glue import icq2jid
+
+		debug.log("B: receiveTypingNotify %s from %s" % (type,hasattr(user,'name') and user.name or None))
+		sourcejid = icq2jid(user.name)
+		if (type == "begin"):
+			self.session.sendTypingNotification(to=self.session.jabberID, fro=sourcejid, typing=True)
+		elif (type == "idle"):
+			self.session.sendTypingNotification(to=self.session.jabberID, fro=sourcejid, typing=False)
+		elif (type == "finish"):
+			self.session.sendTypingNotification(to=self.session.jabberID, fro=sourcejid, typing=False)
 
 	def receiveSendFileRequest(self, user, file, description, cookie):
 		debug.log("B: receiveSendFileRequest")
@@ -183,10 +197,17 @@ class ICQConnection:
 	def sendMessage(self, target, message):
 		from glue import jid2icq
 
+		self.session.pytrans.stats['outmessages'] += 1
 		scrnname = jid2icq(target)
 		debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
+		#encoded = message.encode(sys.getdefaultencoding(), "replace")
 		encoded = message.encode("iso-8859-1", "replace")
+		#encoded = message.encode("utf-8", "replace")
+		#encoded = utils.latin1(message)
+		#encoded = message
+		debug.log("ICQConnection: sendMessage encoded %s" % (encoded))
 		if (self.session.ready and hasattr(self, "bos")):
+			#self.bos.sendMessage(scrnname, [encoded, 'unicode'])
 			self.bos.sendMessage(scrnname, encoded)
 		else:
 			debug.log("ICQConnection: not logged in yet")
@@ -207,6 +228,19 @@ class ICQConnection:
 			status = self.contacts.ssicontacts[c]['status']
 			ptype = self.contacts.ssicontacts[c]['presence']
 			self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
+
+        def sendTypingNotify(self, type, dest):
+		from tlib.oscar import MTN_FINISH, MTN_IDLE, MTN_BEGIN
+		from glue import jid2icq
+
+		username = jid2icq(dest)
+		debug.log("ICQConnection: sendTypingNotify %s to %s" % (type,username))
+		if (type == "begin"):
+			self.bos.sendTypingNotification(username, MTN_BEGIN)
+		elif (type == "idle"):
+			self.bos.sendTypingNotification(username, MTN_IDLE)
+		elif (type == "finish"):
+			self.bos.sendTypingNotification(username, MTN_FINISH)
 
 	def getvCard(self, vcard, user):
 		debug.log("ICQConnection: getvCard %s" % (user))
@@ -382,13 +416,13 @@ class ICQConnection:
 
 				savethisgroup = None
 				for g in self.bos.ssigroups:
-					if (g.name == "General"):
+					if (g.name == "Individuals"):
 						debug.log("Located group %s" % (g.name))
 						savethisgroup = g
 
 				if (savethisgroup is None):
 					debug.log("Adding new group")
-					newGroup = oscar.SSIGroup("General")
+					newGroup = oscar.SSIGroup("Individuals")
 					newGroupID = len(self.bos.ssigroups)+1
 					self.bos.startModifySSI()
 					self.bos.addItemSSI(newGroup, groupID = newGroupID, buddyID = 0)
