@@ -29,8 +29,14 @@
 	# The default language to use (for error/status messages)
 	<lang>en</lang>
 
-	* Message encoding to use
+	# Message encoding to use
 	<encoding>iso-8859-1</encoding>
+
+	# The hostname of the ICQ server you wish to connect to
+	<icqServer>login.icq.com</icqServer>
+
+	# The port of the ICQ server you wish to connect to
+	<icqPort>5238</icqPort>
 
 	# Send greeting on login
 	# (uncomment to enable)

@@ -13,12 +13,15 @@ import config
 import xmlconfig
 conffile = "config.xml"
 options = {}
-opts, args = getopt.getopt(sys.argv[1:], "c:o:dl:h", ["config=", "option=", "debug", "log=", "help"])
+opts, args = getopt.getopt(sys.argv[1:], "c:o:dDl:h", ["config=", "option=", "debug", "Debug", "log=", "help"])
 for o, v in opts:
 	if o in ("-c", "--config"):
 		conffile = v
 	elif o in ("-d", "--debug"):
 		config.debugOn = True
+	elif o in ("-D", "--Debug"):
+		config.debugOn = True
+		config.extendedDebugOn = True
 	elif o in ("-l", "--log"):
 		config.debugLog = v
 	elif o in ("-o", "--option"):
@@ -33,6 +36,12 @@ for o, v in opts:
 		print "   -o <var>=<setting>  set config var to setting"
 		os._exit(0)
 reload(debug)
+if (config.extendedDebugOn):
+	from twisted.python import log
+	if (debug.debugFile):
+		log.startLogging(debug.debugFile, 0)
+	else:
+		log.startLogging(sys.stdout, 0)
 xmlconfig.Import(conffile,options)
 
 from twisted.internet import reactor

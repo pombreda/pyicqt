@@ -31,10 +31,10 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 		el.attributes["type"] = ptype
 	if(show):
 		s = el.addElement("show")
-		s.addContent(show)
+		s.addContent(unicode(show))
 	if(status):
 		s = el.addElement("status")
-		s.addContent(status)
+		s.addContent(unicode(status))
 	if(priority):
 		s = el.addElement("priority")
 		s.addContent(priority)

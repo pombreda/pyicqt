@@ -64,8 +64,11 @@ def isGroupJID(jid):
 
 # This function translates an ICQ screen name to a JID
 def icq2jid(icqid):
-	retstr = icqid.replace(' ', '')
-	return retstr.replace('@', '%') + "@" + config.jid
+	if (icqid):
+		retstr = icqid.replace(' ', '')
+		return retstr.replace('@', '%') + "@" + config.jid
+	else:
+		return config.jid
 
 # This function translates a JID to an ICQ screen name
 def jid2icq(jid):

@@ -17,6 +17,7 @@ import sys, warnings, pprint
 class B(oscar.BOSConnection):
 	def __init__(self,username,cookie,icqcon):
 		self.icqcon = icqcon
+		self.authorizationRequests = [] # buddies that need authorization
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
 		self.capabilities = [oscar.CAP_CHAT]
@@ -40,6 +41,42 @@ class B(oscar.BOSConnection):
 			# True when all info packages has been received
 			self.icqcon.gotvCard(self.icqcon.userinfoCollection[id])
 			del self.icqcon.userinfoCollection[id]
+
+	def buddyAdded(self, uin):
+		from glue import icq2jid
+		for g in self.ssigroups:
+			for u in g.users:
+				if u.name == uin:
+					if u.authorized:
+						self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), show=None, ptype="subscribed")
+						return
+
+	def gotAuthorizationRespons(self, uin, success):
+		from glue import icq2jid
+		debug.log("B: Authorization Respons: %s, %s"%(uin, success))
+		if success:
+			for g in self.ssigroups:
+				for u in g.users:
+					if u.name == uin:
+						u.authorized = True
+						u.authorizationRequestSent = False
+						self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), show=None, ptype="subscribed")
+						return
+		else:
+			u.authorizationRequestSent = False
+			self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), show=None, status=None, ptype="unsubscribed")
+ 
+	def gotAuthorizationRequest(self, uin):
+		from glue import icq2jid
+		debug.log("B: Authorization Request: %s"%uin)
+		if not uin in self.authorizationRequests:
+			self.authorizationRequests.append(uin)
+			self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), ptype="subscribe")
+
+	def youWereAdded(self, uin):
+		from glue import icq2jid
+		debug.log("B: %s added you to her/his contact list"%uin)
+		self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), ptype="subscribe")
 
 	def updateBuddy(self, user):
 		from glue import icq2jid
@@ -171,8 +208,7 @@ class ICQConnection:
 		self.userinfoID = 0
 		self.deferred = defer.Deferred()
 		self.deferred.addErrback(self.errorCallback)
-		#hostport = ("login.icq.com", 5238)
-		hostport = ("login.icq.com", 5190)
+		hostport = (config.icqServer, int(config.icqPort))
 		debug.log("ICQConnection: client creation for %s" % (self.session.jabberID))
 		self.oa = OA
 		self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
@@ -420,44 +456,67 @@ class ICQConnection:
 						self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body="You are not currently logged into this transport.  Please log in again.", mtype="chat")
 					return
 
-				savethisgroup = None
 				for g in self.bos.ssigroups:
-					if (g.name == "Individuals"):
+					for u in g.users:
+						if u.name == userHandle:
+							if (not u.authorizationRequestSent) and (not u.authorized):
+								self.bos.sendAuthorizationRequest(userHandle, "Please authorize me!")
+								u.authorizationRequestSent = True
+								return
+							else:
+								cb()
+								return
+
+				savethisgroup = None
+				groupName = "PyICQ-t Buddies"
+				for g in self.bos.ssigroups:
+					if (g.name == groupName):
 						debug.log("Located group %s" % (g.name))
 						savethisgroup = g
 
 				if (savethisgroup is None):
 					debug.log("Adding new group")
-					newGroup = oscar.SSIGroup("Individuals")
-					newGroupID = len(self.bos.ssigroups)+1
+					newGroupID = self.generateGroupID()
+					newGroup = oscar.SSIGroup(groupName, newGroupID, 0)
 					self.bos.startModifySSI()
-					self.bos.addItemSSI(newGroup, groupID = newGroupID, buddyID = 0)
+					self.bos.addItemSSI(newGroup)
 					self.bos.endModifySSI()
 					savethisgroup = newGroup
 					self.bos.ssigroups.append(newGroup)
 
-				newUser = oscar.SSIBuddy(userHandle)
-				newUserID = len(savethisgroup.users)+1
+				group = self.findGroupByName(groupName)
+				newUserID = self.generateBuddyID(group.groupID)
+				newUser = oscar.SSIBuddy(userHandle, group.groupID, newUserID)
 				savethisgroup.addUser(newUserID, newUser)
+
 
 				debug.log("Adding item to SSI")
 				self.bos.startModifySSI()
-				self.bos.addItemSSI(newUser).addCallback(cb)
+				self.bos.addItemSSI(newUser)
 				self.bos.modifyItemSSI(savethisgroup)
 				self.bos.endModifySSI()
 
 				self.contacts.updateSSIContact(userHandle)
+				updatePresence("subscribe")
 
 			elif(subtype == "subscribed"):
 				# The user has granted this contact subscription
 				debug.log("ICQConnection: Subscribed request received.")
+				if userHandle in self.bos.authorizationRequests:
+					self.bos.sendAuthorizationRespons(userHandle, True, "OK")
+					self.bos.authorizationRequests.remove(userHandle)
 				pass
 				# Lets subscribe back, this causes loops...
 				#updatePresence("subscribe")
 
-			elif(subtype == "unsubscribe"):
+			elif(subtype == "unsubscribe" or subtype == "unsubscribed"):
 				# User wants to unsubscribe to this contact's presence. (User is removing the contact from their list)
-				debug.log("ICQConnection: Unsubscribe request received.")
+				debug.log("ICQConnection: Unsubscribe(d) request received.")
+
+				if userHandle in self.bos.authorizationRequests:
+					self.bos.sendAuthorizationRespons(userHandle, False, "")
+					self.bos.authorizationRequests.remove(userHandle)
+
 				def cb(arg=None):
 					updatePresence("unsubscribed")
 
@@ -474,13 +533,11 @@ class ICQConnection:
 					return
 
 				self.bos.startModifySSI()
-				self.bos.delItemSSI(savethisuser).addCallback(cb)
+				debug.log("ICQConnection: Removing %s (u:%d g:%d) from group %s"%(savethisuser.name, savethisuser.buddyID, savethisuser.groupID, savethisuser.group.name))
+				de = self.bos.delItemSSI(savethisuser)
+				de.addCallback(self.SSIItemDeleted, savethisuser)
+				de.addCallback(cb)
 				self.bos.endModifySSI()
-
-                        elif(subtype == "unsubscribed"):
-                                # The user wants to remove this contact's authorisation. Contact will no longer be able to see user
-				debug.log("ICQConnection: Unsubscribed request received.")
-				pass
 
                 else: # The user wants to change subscription to the transport
                         if(subtype == "subscribe"):
@@ -496,6 +553,14 @@ class ICQConnection:
 				self.session.pytrans.registermanager.removeRegInfo(jid)
 				debug.log("Subscriptions: Session \"%s\" has been unregistered" % (jid))
 
+	def SSIItemDeleted(self, x, user):
+		c = 0
+		for g in self.bos.ssigroups:
+			c += 1
+			for u in g.users:
+				if u.name == user.name:
+					g.users.remove(u)
+					del g.usersToID[u]
 
 	# Callbacks
 	def errorCallback(self, result):
@@ -514,6 +579,40 @@ class ICQConnection:
 
 		self.session.removeMe()
 
+	def findGroupByID(self, groupID):
+		for x in self.bos.ssigroups:
+			if x.groupID == groupID:
+				return x
+
+	def findGroupByName(self, groupName):
+		for x in self.bos.ssigroups:
+			if x.name == groupName:
+				return x
+
+	def generateGroupID(self):
+		pGroupID = len(self.bos.ssigroups)
+		while True:
+			pGroupID += 1
+			found = False
+			for x in self.bos.ssigroups:
+				if pGroupID == x.groupID:
+					found = True
+					break
+			if not found: break
+		return pGroupID
+
+	def generateBuddyID(self, groupID):
+		group = self.findGroupByID(groupID)
+		pBuddyID = len(group.users)
+		while True: # If all integers are taken we got a bigger problems 
+			pBuddyID += 1
+			found = False
+			for x in group.users:
+				if pBuddyID == x.buddyID:
+					found = True
+					break
+			if not found: break
+		return pBuddyID
 
 
 #############################################################################

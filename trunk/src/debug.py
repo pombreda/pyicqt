@@ -17,19 +17,20 @@ or the screen (whichever the user chose)
 
 
 
+debugFile = None
 if(config.debugOn):
 	if(len(config.debugLog) > 0):
 		try:
-			file = open(config.debugLog, 'a')
+			debugFile = open(config.debugLog, 'a')
 		except:
 			print "Error opening debug log file. Exiting..."
 			os.abort()
 		def log(data, wtime=True):
 			if(wtime):
-				file.write(time.strftime("%D - %H:%M:%S - "))
-			#file.write(utils.latin1(data) + "\n")
-			file.write(data + "\n")
-			file.flush()
+				debugFile.write(time.strftime("%D - %H:%M:%S - "))
+			#debugFile.write(utils.latin1(data) + "\n")
+			debugFile.write(data + "\n")
+			debugFile.flush()
 	else:
 		def log(data, wtime=True):
 			if(wtime):

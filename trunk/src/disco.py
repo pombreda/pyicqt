@@ -138,10 +138,11 @@ class Discovery:
 
 		debug.log("Discovery: Sending transport version information")
 		iq = Element((None, "iq"))
-		iq.attributes["type"] = "set"
+		iq.attributes["type"] = "result"
 		iq.attributes["from"] = config.jid
 		iq.attributes["to"] = el.getAttribute("from")
-		iq.attributes["id"] = el.getAttribute("id")
+		if (el.getAttribute("id")):
+			iq.attributes["id"] = el.getAttribute("id")
 		query = iq.addElement("query")
 		query.attributes["xmlns"] = IQ_VERSION
 		name = query.addElement("name")
