@@ -7,6 +7,16 @@
 	* src/tlib/oscar.py:
 	Added test for readiness.
 
+	* src/stats.py:
+	* src/main.py:
+	* src/session.py:
+	* src/legacy/icqt.py:
+	* src/webadmin/handler.py:
+	Switched to new stats handler.
+
+	* src/webadmin/handler.py:
+	Passwords are now hidden.
+
 2005-02-15  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:

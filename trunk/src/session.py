@@ -7,6 +7,7 @@ import jabw
 import debug
 import config
 import lang
+import stats
 
 
 
@@ -38,7 +39,6 @@ class Session(jabw.JabberConnection):
 		debug.log("Session: Creating new session \"%s\"" % (jabberID))
 		
 		self.pytrans = pytrans
-		self.stats = pytrans.stats
 		self.alive = True
 		self.ready = False # Only ready when we're logged into the legacy service
 		self.jabberID = jabberID # the JabberID of the Session's user
@@ -64,9 +64,10 @@ class Session(jabw.JabberConnection):
 			self.sendMessage(to=self.jabberID, fro=config.jid, body=lang.get(self.lang).sessiongreeting)
 		debug.log("Session: New session created \"%s\" \"%s\" \"%s\"" % (jabberID, username, password))
 
-		self.stats['totalsess'] += 1
-		if(len(self.pytrans.sessions)+1 > self.pytrans.stats['maxsess']):
-			self.pytrans.stats['maxsess'] = len(self.pytrans.sessions)+1
+		self.totalsess += 1
+		if(len(self.pytrans.sessions)+1 > stats.maxsess):
+			stats.maxsess = len(self.pytrans.sessions)+1
+		stats.sessionUpdate(self.jabberID, "connections", 1)
 	
 	def removeMe(self):
 		""" Safely removes the session object, including sending <presence type="unavailable"/> messages for each legacy related item on the user's contact list """
