@@ -3,6 +3,9 @@
 	* src/utils.py:
 	Fixed stupid typo.
 
+	* src/main.py:
+	Forgot to import properly.
+
 2005-03-08  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:
