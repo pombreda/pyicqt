@@ -1,3 +1,8 @@
+2004-10-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Moved path setting, I think I put it in a stupid location.
+
 2004-10-06  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:
