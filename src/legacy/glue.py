@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 from twisted.web import microdom
-from twisted.protocols import oscar
+#from twisted.protocols import oscar
+from tlib import oscar
 import groupchat
 import icqt
 import config

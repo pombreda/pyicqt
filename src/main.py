@@ -9,7 +9,8 @@ del sys.setdefaultencoding
 sys.path.insert(0, '.')
 
 from twisted.internet import reactor
-from twisted.protocols.jabber import component, jid
+#from twisted.protocols.jabber import component, jid
+from tlib.jabber import component, jid
 from twisted.internet import task
 import twisted.python.log
 
