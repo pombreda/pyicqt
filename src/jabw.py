@@ -191,7 +191,7 @@ class JabberConnection:
 			self.typingUser = False
 		elif(not body and messageEvent):
 			debug.log("User: %s - JabberConnection parsed typing notification \"%s\" \"%s\"" % (self.jabberID, toj.userhost(), composing))
-			self.typingNotificationReceived(toj.userhost(), composing)
+			self.typingNotificationReceived(toj.userhost(), toj.resource, composing)
 
 		if(body):
 # 			body = utils.utf8(body)

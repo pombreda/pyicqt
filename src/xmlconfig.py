@@ -4,6 +4,12 @@
 from tlib.domish import parseText, Element
 import debug
 import config
+import sys
+
+def invalidError(text):
+	print text
+	print "Exiting..."
+	sys.exit(1)
 
 def importFile(conffile):
 	if (conffile[0] != "/"):
@@ -17,8 +23,25 @@ def importFile(conffile):
 
 	document = parseText(file)
 	for child in document.elements():
-		debug.log("Reading config option %s = %s" % (child.name, child.__str__()))
-		setattr(config, child.name, child.__str__())
+		tag = child.name
+		cdata = child.__str__()
+		debug.log("Reading config option %s = %s" % (tag, cdata))
+		if (cdata):
+			# For config options like <ip>127.0.0.1</ip>
+			try:
+				if(type(getattr(config, tag)) != str):
+					invalidError("Tag %s in your configuration file should be a string (ie, must have cdata)." % (tag))
+				setattr(config, tag, cdata)
+			except AttributeError:
+				debug.log("Ignoring configuration option %s" % (tag))
+		else:
+			# For config options like <crossChat/>
+			try:
+				if(type(getattr(config, tag)) != bool):
+					invalidError("Tag %s in your configuration file should be a boolean (ie, no cdata)." % (tag))
+				setattr(config, tag, True)
+			except AttributeError:
+				debug.log("Ignoring configuration option %s" % (tag))
 
 def importOptions(options):
 	for o in options:

@@ -49,7 +49,17 @@ if (config.extendedDebugOn):
 		log.startLogging(debug.debugFile, 0)
 	else:
 		log.startLogging(sys.stdout, 0)
-xmlconfig.Import(conffile,options)
+xmlconfig.Import(conffile, options)
+ 
+def reloadConfig(a, b):
+	# Reload default config and then process conf file
+	reload(config)
+	xmlconfig.Import(conffile, None)
+
+# Set SIGHUP to reload the config file
+if (os.name == "posix"):
+	import signal
+	signal.signal(signal.SIGHUP, reloadConfig)
 
 from twisted.internet import reactor
 from twisted.web import proxy, server
@@ -141,16 +151,28 @@ class PyTransport(component.Service):
 		self.xmlstream.addObserver("/iq", self.discovery.onIq)
 		self.xmlstream.addObserver("/presence", self.onPresence)
 		self.xmlstream.addObserver("/message", self.onMessage)
-	
+                self.xmlstream.addObserver("/error[@xmlns='http://etherx.jabber.org/streams']", self.streamError)
+
 	def componentDisconnected(self):
 		debug.log("PyTransport: Disconnected from main Jabberd server")
+		# Is this proper?  I mean we were disconnected but we're
+		# sending this anyway?  Hrm..  it does work, which is a
+		# little odd.
+		if (self.sessions):
+			sessionkeys = self.sessions.keys()
+			for s in sessionkeys:
+				self.sessions[s].removeMe()
 		self.xmlstream = None
+
+	def streamError(self, errelem):
+		debug.log("PyTransport: Received stream error")
+		self.xmlstream.streamError(errelem)
 	
 	def onMessage(self, el):
 		fro = el.getAttribute("from")
 		froj = jid.JID(fro.lower())
 		to = el.getAttribute("to")
-		if(to.find('@') < 0): return
+		#if(to.find('@') < 0): return
 		mtype = el.getAttribute("type")
 		ulang = utils.getLang(el)
 		body = None
@@ -195,9 +217,14 @@ class PyTransport(component.Service):
 				
 				elif(ptype != "error"):
 					debug.log("PyTransport: Sending unavailable presence to non-logged in user \"%s\"" % (froj.userhost()))
-					el.swapAttributeValues("from", "to")
-					el.attributes["type"] = "unavailable"
-					self.send(el)
+					#el.swapAttributeValues("from", "to")
+					#el.attributes["type"] = "unavailable"
+					#self.send(el)
+					pres = Element((None, "presence"))
+					pres.attributes["from"] = to
+					pres.attributes["to"] = fro
+					pres.attributes["type"] = "unavailable"
+					self.send(pres)
 					return
 			
 			elif(ptype in ["subscribe", "subscribed", "unsubscribe", "unsubscribed"]):

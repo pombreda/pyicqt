@@ -54,13 +54,13 @@ class Session(jabw.JabberConnection):
 		self.show = None
 		self.status = None
 		
-		self.resourceList = []
+		self.resourceList = {}
 		
 		self.legacycon = legacy.LegacyConnection(self.username, self.password, self)
 		self.pytrans.legacycon = self.legacycon
 		
 		if (config.sessionGreeting != ""):
-			self.sendMessage(to=self.jabberID, fro=config.jid, body=lang.get(self.lang).sessiongreeting)
+			self.sendMessage(to=self.jabberID, fro=config.jid, body=config.sessiongreeting)
 		debug.log("Session: New session created \"%s\" \"%s\" \"%s\"" % (jabberID, username, password))
 
 		stats.totalsess += 1
@@ -109,15 +109,21 @@ class Session(jabw.JabberConnection):
 		self.sendErrorMessage(source + '/' + resource, dest, "wait", "not-allowed", lang.get(self.lang).waitforlogin, body)
 	
 	def messageReceived(self, source, resource, dest, destr, mtype, body):
+		if(dest == config.jid):
+			if(body.lower().startswith("end")):
+				debug.log("Session: Received 'end' request. Killing session %s" % (self.jabberID))
+				self.removeMe()
+			return
+
 		if(not self.ready):
 			self.sendNotReadyError(source, resource, dest, body)
 			return
 		
 		# Sends the message to the legacy translator
 		debug.log("Session: messageReceived(), passing onto legacycon.sendMessage()")
-		self.legacycon.sendMessage(dest, body)
+		self.legacycon.sendMessage(dest, resource, body)
 	
-	def typingNotificationReceived(self, dest, composing):
+	def typingNotificationReceived(self, dest, resource, composing):
 		""" The user has sent typing notification to a contact on the legacy service """
 		self.legacycon.userTypingNotification(dest, composing)
 	
@@ -128,58 +134,49 @@ class Session(jabw.JabberConnection):
 
 		
 	def handleResourcePresence(self, source, resource, to, tor, priority, ptype, show, status):
+		if(not ptype in [None, "unavailable"]): return # Ignore presence errors, probes, etc
 		if(to.find('@') > 0): return # Ignore presence packets sent to users
-		r = SessionResource(resource, show, status, priority)
-		if(ptype == None):
-			# Check to see if this is a new resource, if so, send out the contact list
-			debug.log("Session: Presence change received \"%s\"" % (self.jabberID))
-			if(self.resourceList.count(r) == 0):
-				debug.log("Session: New resource online \"%s\" \"%s\" \"%s\"" % (self.jabberID, resource, priority))
-				self.legacycon.newResourceOnline(resource)
-			
-			# We must check the resource and priority, only interested in the highest priority
-			higher = False
-			oldList = utils.copyList(self.resourceList)
-			self.resourceList = []
-			for checkR in oldList:
-				if(checkR > r):
-					higher = True
-				if(checkR == r):
-					self.resourceList.append(r)
-				else:
-					self.resourceList.append(checkR)
-			if(self.resourceList.count(r) == 0):
-				self.resourceList.append(r) # Make sure it's in there
-			
-			if(not higher):
-				# No higher resource was found. So we must be the highest!
-				# This means we must update the presence on the legacy network
-				debug.log("Session: \"%s\" Updating status on legacy network \"%s\" \"%s\"" % (self.jabberID, show, status))
-				self.setStatus(show, status)
-		
-		elif(ptype == "unavailable"):
-			# This resource has gone offline, so we need to remove it from the list, and find the next highest
-			# resource to use to update our status on the legacy network
-			debug.log("Session: Unavailable presence received from \"%s\". Looking for other resources" % (self.jabberID))
-			lst = utils.copyList(self.resourceList)
-			self.resourceList = []
-			for i in lst:
-				if(r != i):
-					self.resourceList.append(i)
-			
-			highest = None
-			for checkR in self.resourceList:
-				if(checkR > highest): # comparisons against None are always True
-					highest = checkR
-			if(highest == None):
-				# There are no resources left, so offline this session
-				debug.log("Session: No resources left \"%s\"" % (source))
-				self.removeMe()
+
+		existing = self.resourceList.has_key(resource)
+		if(ptype == "unavailable"):
+			if(existing):
+				debug.log("Session: %s - resource \"%s\" gone offline" % (self.jabberID, resource))
+				self.resourceOffline(resource)
 			else:
-				# Update the legacy network's status with the highest leftover resource
-				debug.log("Session: New resource \"%s\" found for session \"%s\"" % (highest.resource, self.jabberID))
-				self.setStatus(highest.show, highest.status)
-	
+				return # I don't know the resource, and they're leaving, so it's all good
+		else:
+			if(not existing):
+				debug.log("Session %s - resource \"%s\" has come online" % (self.jabberID, resource))
+				self.legacycon.newResourceOnline(resource)
+			debug.log("Session %s - resource \"%s\" setting \"%s\" \"%s\" \"%s\"" % (self.jabberID, resource, show, status, priority)) 
+			self.resourceList[resource] = SessionResource(show, status, priority)
+
+		highestActive = self.highestResource()
+
+		if(highestActive):
+			# If we're the highest active resource, we should update the legacy service
+			debug.log("Session %s - updating status on legacy service, resource %s" % (self.jabberID, highestActive))
+			r = self.resourceList[highestActive]
+			self.setStatus(r.show, r.status)
+		else:
+			debug.log("Session %s - tearing down, last resource gone offline")
+			self.removeMe()
+
+	def highestResource(self):
+		""" Returns the highest priority resource """
+		highestActive = None
+		for checkR in self.resourceList.keys():
+			if(highestActive == None or self.resourceList[checkR].priority > self.resourceList[highestActive].priority): 
+				highestActive = checkR
+
+		if(highestActive):
+			debug.log("Session %s - highest active resource is \"%s\" at %d" % (self.jabberID, highestActive, self.resourceList[highestActive].priority))
+
+		return highestActive
+
+	def resourceOffline(self, resource):
+		del self.resourceList[resource]
+		self.legacycon.resourceOffline(resource)
 	
 	def subscriptionReceived(self, to, subtype):
 		""" Sends the subscription request to the legacy services handler """

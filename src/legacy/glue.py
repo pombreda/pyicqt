@@ -81,8 +81,18 @@ class LegacyConnection(icqt.ICQConnection):
 		debug.log("LegacyConnection: removeMe")
 		icqt.ICQConnection.removeMe(self)
 	
-	def sendMessage(self, dest, body):
-		debug.log("LegacyConnection: sendMessage %s %s" % (dest, body))
+	def jidRes(self, resource):
+		to = self.session.jabberID
+		if(resource):
+			to += "/" + resource
+		return to
+
+	def highestResource(self):
+		""" Returns highest priority resource """
+		return self.session.highestResource()
+
+	def sendMessage(self, dest, resource, body):
+		debug.log("LegacyConnection: sendMessage %s %s %s" % (dest, resource, body))
 		icqt.ICQConnection.sendMessage(self, dest, body)
 
 	def newResourceOnline(self, resource):
@@ -121,7 +131,7 @@ class LegacyConnection(icqt.ICQConnection):
 		debug.log("LegacyConnection: jabberSubscriptionReceived %s %s" % (source, subtype))
 		icqt.ICQConnection.jabberSubscriptionReceived(self, source, subtype)
 
-	def userTypingNotification(self, dest, composing):
+	def userTypingNotification(self, dest, resource, composing):
 		debug.log("LegacyConnection: userTypingNotification %s %s" % (dest,composing))
 		if (composing):
 			icqt.ICQConnection.sendTypingNotify(self, "begin", dest)
