@@ -45,7 +45,7 @@ class strings:
 		groupchatprivateerror = u"Es tut mir leid, aber Sie können den Nutzern in diesem Gruppenchat keine Privaten Nachrichten senden. Bitte fügen Sie sie stattdessen Ihrer Kontakliste hinzu und senden Sie die Nachrichten auf diesem Wege."
 		gatewaytranslator = u"Geben Sie die ICQ Nummer des Benutzers an."
 
-	class po: # Polish - Tomasz Dominikowski (dominikowski@gmail.com)
+	class pl: # Polish - Tomasz Dominikowski (dominikowski@gmail.com)
 		sessiongreeting = u"To jest eksperymentalny transport, PyICQ-t. Jeśli występują problemy proszę skontaktować się z Danielem Henningerem <jadestorm@nc.rr.com>"
 		registertext = u"Proszę podaj swój numer ICQ w polu nazwa_użytkownika oraz swoje hasło. "
 		notloggedin = u"Błąd. Musisz zalogować się do transportu zanim rozpoczniesz wysyłanie wiadomości."
@@ -57,7 +57,7 @@ class strings:
 		groupchatprivateerror = u"Wybacz, nie możesz wysłać prywatnej wiadomości do użytkowników rozmowy grupowej. Zamiast tego dodaj użytkownika do listy kontaktów i wyślij wiadomość w zwyczajny sposób."
 		gatewaytranslator = u"Podaj numer ICQ (UIN) użytkownika."
 
-	class cz: # Czech - Mešík (pihhan@cipis.net)
+	class cs: # Czech - Mešík (pihhan@cipis.net)
 		sessiongreeting = u"Toto je experimentální brána PyICQ-t. Pokud máš problémy prosím kontaktuj Daniela Henningera <jadestorm@nc.rr.com>"
 		registertext = u"Prosím zadej tvoje ICQ číslo do kolonky username a heslo do kolonky password."
 		notloggedin = u"Chyba. Musíš se před odesíláním zpráv nejprve přihlásit."
@@ -68,3 +68,18 @@ class strings:
 		groupchatfailjoin2 = u"Byl(a) jsi vyjmut(a) z místnosti ve službě ICQ. Následující bylo řečeno než jsi byl(a) odpojena, když se uživatelům ICQ zdálo že jsi připojena v rozhovoru."
 		groupchatprivateerror = u"Promiň. Nemůžeš poslad soukromé zprávy uživatelům v tomto rozhovoru. Namísto toho přidej uživatele do kontaktů a piš jim tou cestou."
 		gatewaytranslator = u"Zadej uživatelovo ICQ číslo."
+
+	class nl: # Dutch - Gabri van Lee (webber@wfgaming.com)
+		sessiongreeting = u"Dit is een experimentele gateway, PyICQ-t. Als je problemen ondervindt, neem dan contact op met Daniel Henninger <jadestorm@nc.rr.com>"
+		registertext = u"Geef je ICQ nummer op in het veld \"username\" en je ICQ wachtwoord in het veld \"password\"."
+		notloggedin = u"Foutmelding: je dient in te loggen voor je boodschappen kunt versturen"
+		notregistered = u"Sorry, je lijkt niet geregistreerd te zijn bij dit transport. Registreer je zelf en probeer dan nogmaals. Mocht je problemen ondervinden bij het registreren, neem dan contact op met je Jabber systeembeheerder."
+		waitforlogin = u"Sorry, deze boodschap kan nog niet worden afgeleverd. Wacht tot het transport volledig is ingelogd en probeer dan nogmaals."
+		groupchatinvite = u"Je bent uitgenodigd voor een groepschat via dit transport. Je moet je aanmelden bij deze chatroom om in chatmode te komen %s.\\nAls je je niet aanmeldt bij deze chatroom, zul je niet mee kunnen praten. Gebruikers van ICQ zullen je wel in de chatroom zien."
+		groupchatfailjoin1 = u"Je hebt je niet aangemeld bij chatroom %s.\\nDe volgende gebruikers waren in de groepschat aanwezig:"
+		groupchatfailjoin2 = u"Je bent verwijderd uit de chatroom door het transport. De volgende boodschap was geplaatst voor je de chatroom verliet."
+		groupchatprivateerror = u"Sorry, je kunt in deze groepschat geen priveboodschappen versturen. Voeg de gebruiker toe aan je contactlist en stuur hem langs normale weg een boodschap."
+		gatewaytranslator = u"Geef het ICQ nummer van de gebruiker."
+	nl_NL = nl
+	dut = nl
+	nla = nl
