@@ -18,6 +18,8 @@ with ejabberd.
 
 Serge Trylis for adding encoding configuration support.
 
+Chris Carlin for adding rate limiting support.
+
 The Twisted Matrix development team who have put together this wonderful
 framework we are making use of.  =)  I'd like to especially thank
 Paul Swartz <z3p@twistedmatrix.com> for his work on the oscar.py piece and
