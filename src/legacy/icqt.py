@@ -103,6 +103,7 @@ class B(oscar.BOSConnection):
 		self.activateSSI()
 		self.setIdleTime(0)
 		self.clientReady()
+		self.requestOffline()
 		self.session.ready = True
 		tmpjid = config.jid
 		if (self.session.registeredmunge):

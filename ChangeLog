@@ -1,3 +1,9 @@
+2004-12-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	* src/legacy/icqt.py:
+	Adding handling for retrieving offline messages.
+
 2004-11-30  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/register.py:
