@@ -1,7 +1,18 @@
+2005-02-19  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	Added utf8encode.
+
+	* src/jabw.py:
+	Switched to new unicode translator function.
+
 2005-02-17  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/session.py:
 	Fixed poor stats reference.
+
+	* src/legacy/icqt.py:
+	Added check for whether buddy list is actually non-existant.
 
 2005-02-16  Daniel Henninger  <jadestorm@nc.rr.com>
 
