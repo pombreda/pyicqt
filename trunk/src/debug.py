@@ -27,14 +27,14 @@ if(config.debugOn):
 			os.abort()
 		def log(data, wtime=True):
 			if(wtime):
-				debugFile.write(time.strftime("%D - %H:%M:%S - "))
+				debugFile.write(time.strftime("[%Y-%m-%d %H:%M:%S] "))
 			#debugFile.write(utils.latin1(data) + "\n")
 			debugFile.write(data + "\n")
 			debugFile.flush()
 	else:
 		def log(data, wtime=True):
 			if(wtime):
-				print time.strftime("%D - %H:%M:%S - "),
+				print time.strftime("[%Y-%m-%d %H:%M:%S] "),
 			#print utils.latin1(data)
 			print data
 	log("Debug logging enabled.")
