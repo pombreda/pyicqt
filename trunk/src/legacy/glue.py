@@ -148,3 +148,7 @@ class LegacyConnection(icqt.ICQConnection):
 	def jabberSubscriptionReceived(self, source, subtype):
 		debug.log("LegacyConnection: jabberSubscriptionReceived %s %s" % (source, subtype))
 		icqt.ICQConnection.jabberSubscriptionReceived(self, source, subtype)
+
+	def jabberVCardRequest(self, vcard, user):
+		debug.log("LegacyConnection: jabberVCardRequest %s" % (user))
+		return icqt.ICQConnection.getvCard(self, vcard, user)
