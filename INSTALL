@@ -19,12 +19,12 @@ Jabber server (should be in router.xml for Jabberd2).  Change port to the
 port this transport is to connect to (also found in router.xml for Jabberd2).
 Edit other options at your leisure, they are fairly self-documented.
 
-If you are migrating from the C-based icq-transport, you can copy over your
-spool directory into the same directory that this INSTALL file is.  (make
-the jid field is set to the same name as this spool directory)  If you are
-starting a fresh spool directory, simply mkdir the same name you used
-in the jid field.  Note that you can set the actual location of the spool
-directory if you want, instead of having to put it in this directory.
+If you are migrating from JIT, you can copy over your spool directory into
+the same directory that this INSTALL file is.  (make the jid field is set to
+the same name as this spool directory)  If you are starting a fresh spool
+directory, simply mkdir the same name you used in the jid field.  Note that
+you can set the actual location of the spool directory if you want, instead
+of having to put it in this directory.
 
 With Jabberd2, there's little else you need to do than run PyICQt in this
 directory.  It's important to know that you should -not- have an alias
