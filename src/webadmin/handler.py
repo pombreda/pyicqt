@@ -8,6 +8,7 @@ import debug
 import config
 import legacy
 import sys, os
+import stats
 
 admintmplhead = """
 <HTML>
@@ -216,11 +217,11 @@ class WebAdmin_status(WebAdmin):
 		ret = T.table[
 			T.tr[
 				T.th(align = "right")["Incoming Messages:"],
-				T.td[self.pytrans.stats['incmessages']]
+				T.td[stats.incmessages]
 			],
 			T.tr[
 				T.th(align = "right")["Outgoing Messages:"],
-				T.td[self.pytrans.stats['outmessages']]
+				T.td[stats.outmessages]
 			]
 		]
 		return [ret]
@@ -229,11 +230,11 @@ class WebAdmin_status(WebAdmin):
 		ret = T.table[
 			T.tr[
 				T.th(align = "right")["Total Sessions:"],
-				T.td[self.pytrans.stats['totalsess']]
+				T.td[stats.totalsess]
 			],
 			T.tr[
 				T.th(align = "right")["Most Concurrent Sessions:"],
-				T.td[self.pytrans.stats['maxsess']]
+				T.td[stats.maxsess]
 			]
 		]
 		return [ret]
@@ -243,9 +244,20 @@ class WebAdmin_status(WebAdmin):
 			return "No active sessions."
 
 		ret = T.table(border = 0,width = "100%",cellspacing=5,cellpadding=2)
+		row = T.tr[
+			T.th["User"],
+			T.th["Incoming Messages"],
+			T.th["Outgoing Messages"],
+			T.th["Connections"]
+		]
+		ret[row]
 		for key in self.pytrans.sessions:
+			jid = self.pytrans.sessions[key].jabberID
 			row = T.tr[
-				T.td[self.pytrans.sessions[key].jabberID]
+				T.td[jid],
+				T.td[stats.sessionstats[jid]['incmessages']],
+				T.td[stats.sessionstats[jid]['outmessages']],
+				T.td[stats.sessionstats[jid]['connections']]
 			]
 			ret[row]
 		return ret
@@ -266,7 +278,11 @@ class WebAdmin_config(WebAdmin):
 		for key in config.__dict__.keys():
 			if (key[0] == "_"):
 				continue
-			row = T.tr[T.td[key], T.td["="], T.td[config.__dict__[key]]]
+			if (key.find("secret") >= 0):
+				setting = "**hidden**"
+			else:
+				setting = config.__dict__[key]
+			row = T.tr[T.td[key], T.td["="], T.td[setting]]
 			table[row]
 		return table
 

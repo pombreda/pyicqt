@@ -9,6 +9,7 @@ import config
 import utils
 import debug
 import sys, warnings, pprint
+import stats
 
 
 #############################################################################
@@ -119,7 +120,8 @@ class B(oscar.BOSConnection):
 		text = text.decode(encoding, "replace")
 		text = text.strip()
 		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype="chat")
-		self.session.pytrans.stats['incmessages'] += 1
+		stats.incmessages += 1
+		stats.sessionUpdate(self.session.jabberID, "incmessages", 1)
 
         def receiveTypingNotify(self, type, user):
 		from glue import icq2jid
@@ -237,7 +239,9 @@ class ICQConnection:
 		if (not self.session.ready or not hasattr(self, "bos")):
 			return
 
-		self.session.pytrans.stats['outmessages'] += 1
+		stats.outmessages += 1
+		stats.sessionUpdate(self.session.jabberID, "outmessages", 1)
+
 		scrnname = jid2icq(target)
 		debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
 		encoded = message.encode(config.encoding, "replace")

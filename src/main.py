@@ -90,13 +90,6 @@ class PyTransport(component.Service):
 		self.lastID = 0
 		self.reservedIDs = []
 
-		# Statistics
-		self.stats = { }
-		self.stats['incmessages'] = 0
-		self.stats['outmessages'] = 0
-		self.stats['totalsess'] = 0
-		self.stats['maxsess'] = 0
-
 		# Message IDs
 		self.messageID = 0
 		
