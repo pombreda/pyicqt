@@ -72,7 +72,10 @@ class B(oscar.BOSConnection):
 						self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), show=None, ptype="subscribed")
 						return
 		else:
-			u.authorizationRequestSent = False
+			for g in self.ssigroups:
+				for u in g.users:
+					if u.name == uin:
+						u.authorizationRequestSent = False
 			self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), show=None, status=None, ptype="unsubscribed")
  
 	def gotAuthorizationRequest(self, uin):
