@@ -1,11 +1,39 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+import debug
 import getopt
 import sys
+import os
 reload(sys)
 sys.setdefaultencoding('iso-8859-1')
 del sys.setdefaultencoding
+
+import config
+import xmlconfig
+conffile = "config.xml"
+options = {}
+opts, args = getopt.getopt(sys.argv[1:], "c:o:dl:h", ["config=", "option=", "debug", "log=", "help"])
+for o, v in opts:
+	if o in ("-c", "--config"):
+		conffile = v
+	elif o in ("-d", "--debug"):
+		config.debugOn = True
+	elif o in ("-l", "--log"):
+		config.debugLog = v
+	elif o in ("-o", "--option"):
+		var, setting = v.split("=", 2)
+		options[var] = setting
+	elif o in ("-h", "--help"):
+		print "./PyICQt [options]"
+		print "   -h                  print this help"
+		print "   -c <file>           read configuration from this file"
+		print "   -d                  print debugging output"
+		print "   -l <file>           write debugging output to file"
+		print "   -o <var>=<setting>  set config var to setting"
+		os._exit(0)
+reload(debug)
+xmlconfig.Import(conffile,options)
 
 from twisted.internet import reactor
 from twisted.web import proxy, server
@@ -15,7 +43,6 @@ from twisted.internet import task
 import twisted.python.log
 from nevow import appserver
 
-import os
 import types
 import xdb
 import session
@@ -25,9 +52,7 @@ import register
 import misciq
 import utils
 import legacy
-import config
 import lang
-import debug
 import webadmin
 
 #import gc
@@ -229,10 +254,8 @@ class App:
 if(__name__ == "__main__"):
 	#import tests.runtests
 	#debug.log("Twisted test cases passed successfully.")
-	opts, args = getopt.getopt(sys.argv[1:], "f:c:", ["file=", "config="])
 
 	app = App()
-
 	if (hasattr(config, "webport") and config.webport):
 		site = appserver.NevowSite(webadmin.WebAdmin(pytrans=app.transportSvc))
 		reactor.listenTCP(int(config.webport), site)
