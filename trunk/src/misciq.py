@@ -1,7 +1,8 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from twisted.protocols.jabber import component, jid
+#from twisted.protocols.jabber import component, jid
+from tlib.jabber import component, jid
 from twisted.xish.domish import Element
 
 

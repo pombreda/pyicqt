@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 from twisted.xish.domish import Element
-from twisted.protocols.jabber.jid import JID
+#from twisted.protocols.jabber.jid import JID
+from tlib.jabber.jid import JID
 import utils
 import debug
 

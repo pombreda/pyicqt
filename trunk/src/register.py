@@ -3,7 +3,8 @@
 
 from twisted.xish.domish import Element
 from twisted.web import microdom
-from twisted.protocols.jabber import jid
+#from twisted.protocols.jabber import jid
+from tlib.jabber import jid
 
 import session
 import config
