@@ -7,7 +7,7 @@ to make sure you have the following installed:
 - PyOpenSSL
 X Twisted (www.twistedmatrix.com) (see next)
 - Modified Twisted until real dist is fixed.  You can get it at:
-    http://msn-transport.jabberstudio.org/tarballs/twisted-patched-3.tar.bz2
+    http://pyicq-t.jabberstudio.org/tarballs/twisted-patched-3.tar.bz2
   Simply untar this into this transport's src directory.
 
 Then, go into the src directory and copy config_example.py to config.py and
