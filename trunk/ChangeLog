@@ -1,5 +1,8 @@
 2004-09-27  Daniel Henninger  <jadestorm@nc.rr.com>
 
+	* src/legacy/glue.py:
+	Updated to version 0.2.
+
 	* src/lang.py:
 	Added Czech translation.
 
