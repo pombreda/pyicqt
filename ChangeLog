@@ -1,3 +1,8 @@
+2004-11-30  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/register.py:
+	Changed username to be lowercased in registration.
+
 2004-11-28  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/session.py:
