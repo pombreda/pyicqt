@@ -1,3 +1,6 @@
+# Copyright 2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Licensed for distribution under the GPL version 2, check COPYING for details
+
 import time
 import traceback
 import debug
