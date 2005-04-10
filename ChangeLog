@@ -1,3 +1,13 @@
+2005-04-09  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Don't shutdown upon receiving limit.  Not the best fix yet, but
+	better than a shutdown.
+
+	* src/legacy/icqt.py:
+	Fixed issue in difference between icq and aim messages.
+	'Fixed' issue with unicode away messages.  Hides 'illegal' chars.
+
 2005-04-06  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/oscar/tlib.py:
