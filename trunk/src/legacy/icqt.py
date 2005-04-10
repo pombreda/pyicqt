@@ -119,7 +119,10 @@ class B(oscar.BOSConnection):
 
 		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
-		text = oscar.dehtml(multiparts[0][0])
+		if user.name[0].isdigit():
+			text = multiparts[0][0]
+		else:
+			text = oscar.dehtml(multiparts[0][0])
 		if (len(multiparts[0]) > 1):
 			if (multiparts[0][1] in ['unicode','utf-8']):
 				encoding = "utf-8"
@@ -243,7 +246,7 @@ class ICQConnection:
 	def setAway(self, awayMessage=None):
 		debug.log("ICQConnection: setAway %s" % (awayMessage))
 		try:
-			self.bos.setAway(awayMessage)
+			self.bos.setAway(awayMessage.encode(config.encoding, 'replace'))
 		except AttributeError:
 			#self.alertUser(lang.get(config.jid).sessionnotactive)
 			pass
