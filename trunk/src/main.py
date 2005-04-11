@@ -257,15 +257,16 @@ class PyTransport(component.Service):
 class App:
 	def __init__(self):
 		# Check that there isn't already a PID file
-		if(os.path.isfile(utils.doPath(config.pid))):
-			print "PID file exists at that location. Please check for running PyICQt and try again."
-			sys.exit(1)
+		if(config.pid):
+			if(os.path.isfile(utils.doPath(config.pid))):
+				print "PID file exists at that location. Please check for running PyICQt and try again."
+				sys.exit(1)
 
-		# Create a PID file
-		pid = str(os.getpid())
-		pf = file(utils.doPath(config.pid),'w')
-		pf.write("%s\n" % pid);
-		pf.close()
+			# Create a PID file
+			pid = str(os.getpid())
+			pf = file(utils.doPath(config.pid),'w')
+			pf.write("%s\n" % pid);
+			pf.close()
 
 		self.c = component.buildServiceManager(config.jid, config.secret, "tcp:%s:%s" % (config.mainServer, config.port))
 		self.transportSvc = PyTransport()
@@ -275,7 +276,8 @@ class App:
 	
 	def shuttingDown(self):
 		self.transportSvc.removeMe()
-		os.remove(utils.doPath(config.pid))
+		if(config.pid):
+			os.remove(utils.doPath(config.pid))
 
 
 

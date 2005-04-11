@@ -30,7 +30,7 @@ def importFile(conffile):
 			# For config options like <ip>127.0.0.1</ip>
 			try:
 				if(type(getattr(config, tag)) != str):
-					invalidError("Tag %s in your configuration file should be a string (ie, must have cdata)." % (tag))
+					invalidError("Tag %s in your configuration file should be a boolean (ie, no cdata)." % (tag))
 				setattr(config, tag, cdata)
 			except AttributeError:
 				debug.log("Ignoring configuration option %s" % (tag))
@@ -38,7 +38,7 @@ def importFile(conffile):
 			# For config options like <crossChat/>
 			try:
 				if(type(getattr(config, tag)) != bool):
-					invalidError("Tag %s in your configuration file should be a boolean (ie, no cdata)." % (tag))
+					invalidError("Tag %s in your configuration file should be a string (ie, must have cdata)." % (tag))
 				setattr(config, tag, True)
 			except AttributeError:
 				debug.log("Ignoring configuration option %s" % (tag))
