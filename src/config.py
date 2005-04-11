@@ -5,7 +5,7 @@
 
 jid = "icq.localhost"
 spooldir = ".."
-pid = "../PyICQt.pid"
+pid = ""
 mainServer = "127.0.0.1"
 port = "5347"
 webport = ""

@@ -1,3 +1,12 @@
+2005-04-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/xmlconfig.py:
+	Fixed misplaced output per type of config option.
+
+	* config_example.xml:
+	* src/main.py:
+	Added check so people can choose to have no pid file.
+
 2005-04-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
