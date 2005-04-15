@@ -1,3 +1,10 @@
+2005-04-15  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/jabw.py:
+	* src/legacy/icqt.py:
+	* src/tlib/oscar.py:
+	Applied Jonas and Magnus's patches to add ICQ nickname support.
+
 2005-04-10  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/xmlconfig.py:

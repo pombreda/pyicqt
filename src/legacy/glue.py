@@ -31,8 +31,12 @@ def formRegEntry(username, password):
 	userEl = reginfo.addElement("username")
 	userEl.addContent(username)
 
-	passEl = reginfo.addElement("password")
-	passEl.addContent(password)
+	if config.encryptspool:
+		passEl = reginfo.addElement("encryptedpassword")
+		passEl.addContent(encryptPassword(password))
+	else:
+		passEl = reginfo.addElement("password")
+		passEl.addContent(password)
 
 	return reginfo
 
@@ -47,6 +51,8 @@ def getAttributes(base):
 				username = child.__str__()
 			elif(child.name == "password"):
 				password = child.__str__()
+			elif(child.name == "encryptedpassword"):
+				password = decryptPassword(child.__str__())
 		except AttributeError:
 			continue
 
