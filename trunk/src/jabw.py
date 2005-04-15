@@ -133,7 +133,7 @@ class JabberConnection:
 		debug.log("User: %s - JabberConnection sending presence \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, to, fro, show, utils.latin1(status), priority, ptype))
 		sendPresence(self.pytrans, to, fro, show, status, priority, ptype)
 	
-	def sendRosterImport(self, jid, ptype, sub, name="", groups=[]):
+	def sendRosterImport(self, jid, ptype, sub, name="", groups=[], nick=None):
 		""" Sends a special presence packet. This will work with all clients, but clients that support roster-import will give a better user experience
 		IMPORTANT - Only ever use this for contacts that have already been authorised on the legacy service """
 		el = Element((None, "presence"))
@@ -144,7 +144,9 @@ class JabberConnection:
 		r.attributes["xmlns"] = "http://jabber.org/protocol/roster-subsync"
 		item = r.addElement("item")
 		item.attributes["subscription"] = sub
-		if(name):
+		if(nick):
+			item.attributes["name"] = unicode(nick)
+		elif(name):
 			item.attributes["name"] = unicode(name)
 		for group in groups:
 			g = item.addElement("group")

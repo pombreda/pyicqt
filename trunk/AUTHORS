@@ -16,6 +16,8 @@ for more accurate user status.  Also for repairing the SSI handling mechanisms!
 Magnus Henoch for discovering and fixing the problem with interaction
 with ejabberd.
 
+Jonas and Magnus combined for adding support for ICQ nicknames.
+
 Serge Trylis for adding encoding configuration support.
 
 Chris Carlin for adding rate limiting support.
