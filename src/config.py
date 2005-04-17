@@ -24,3 +24,4 @@ extendedDebugOn = False
 disableRegister = False
 socksProxyServer = ""
 socksProxyPort = ""
+encryptSpool = False

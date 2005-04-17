@@ -1,9 +1,24 @@
+2005-04-17  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	* src/config.py:
+	* config_example.xml:
+	Added encrypt and decrypt pieces for spool.
+
 2005-04-15  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:
 	* src/legacy/icqt.py:
 	* src/tlib/oscar.py:
 	Applied Jonas and Magnus's patches to add ICQ nickname support.
+
+	* src/config.py:
+	* src/legacy/glue.py:
+	Added pieces for password-on-spool encryption.
+
+	* src/jabw.py:
+	* src/legacy/icqt.py:
+	Backed down nick attribute from previous patch and used name instead.
 
 2005-04-10  Daniel Henninger  <jadestorm@nc.rr.com>
 

@@ -58,4 +58,8 @@
 	<!-- Disable registration with the transport -->
 	<!-- (uncomment to disable) -->
 	<!-- <disableRegister/> -->
+
+	<!-- Enable encryption of passwords on spool -->
+	<!-- (uncomment to enable) -->
+	<!-- <encryptSpool/> -->
 </pyicqt>

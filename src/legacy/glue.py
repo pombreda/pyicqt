@@ -7,6 +7,7 @@ import icqt
 import config
 import debug
 import lang
+import rotor
 
 # The name of the transport
 name = "ICQ Transport"
@@ -22,6 +23,15 @@ mangle = True
 
 # This should be set to the name space roster entries are in in the spool
 namespace = "jabber:iq:register"
+
+# Helper functions to encrypt and decrypt passwords
+def encryptPassword(password):
+	rt = rotor.newrotor(name)
+	return rt.encrypt(password)
+
+def decryptPassword(password):
+	rt = rotor.newrotor(name)
+	return rt.decrypt(password)
 
 # This function should return an xml element as it should exist in the spool
 def formRegEntry(username, password):
