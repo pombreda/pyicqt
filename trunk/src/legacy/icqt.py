@@ -177,7 +177,7 @@ class B(oscar.BOSConnection):
 				self.ssigroups.append(g)
 				for u in g.users:
 					debug.log("B: got user %s from group %s" % (u.name, g.name))
-					self.icqcon.contacts.updateSSIContact(u.name, skipsave=True, nick=u.nick)
+					self.icqcon.contacts.updateSSIContact(u.nick, skipsave=True)
 		self.icqcon.contacts.saveXDBBuddies()
 		self.activateSSI()
 		self.setProfile(None)
@@ -652,7 +652,7 @@ class ICQContacts:
 		self.xdbcontacts = self.getXDBBuddies()
 		self.xdbchanged = False
 
-	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, skipsave=False, nick=None):
+	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, skipsave=False):
 		debug.log("ICQContacts: updating contact %s" % (contact.lower()))
 		self.ssicontacts[contact.lower()] = {
 			'presence': presence,
@@ -662,7 +662,7 @@ class ICQContacts:
 
 		if (not self.xdbcontacts.count(contact.lower())):
 			from glue import icq2jid
-			self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact, nick=nick)
+			self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
 			self.xdbcontacts.append(contact.lower())
 			self.xdbchanged = True
 			if (not skipsave):
