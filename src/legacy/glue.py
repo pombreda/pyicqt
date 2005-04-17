@@ -7,7 +7,7 @@ import icqt
 import config
 import debug
 import lang
-import rotor
+import base64
 
 # The name of the transport
 name = "ICQ Transport"
@@ -26,12 +26,10 @@ namespace = "jabber:iq:register"
 
 # Helper functions to encrypt and decrypt passwords
 def encryptPassword(password):
-	rt = rotor.newrotor(name)
-	return rt.encrypt(password)
+	return base64.encryptstring(password)
 
 def decryptPassword(password):
-	rt = rotor.newrotor(name)
-	return rt.decrypt(password)
+	return base64.decodestring(password)
 
 # This function should return an xml element as it should exist in the spool
 def formRegEntry(username, password):

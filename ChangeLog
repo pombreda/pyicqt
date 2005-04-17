@@ -8,6 +8,9 @@
 	* src/legacy/icqt.py:
 	Fixed problems with nickname@icq.host being the jid.
 
+	* src/legacy/glue.py:
+	Switched to base64, which is standard but not depricated.
+
 2005-04-15  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:
