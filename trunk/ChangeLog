@@ -5,6 +5,9 @@
 	* config_example.xml:
 	Added encrypt and decrypt pieces for spool.
 
+	* src/legacy/icqt.py:
+	Fixed problems with nickname@icq.host being the jid.
+
 2005-04-15  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:
