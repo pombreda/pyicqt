@@ -26,7 +26,7 @@ namespace = "jabber:iq:register"
 
 # Helper functions to encrypt and decrypt passwords
 def encryptPassword(password):
-	return base64.encryptstring(password)
+	return base64.encodestring(password)
 
 def decryptPassword(password):
 	return base64.decodestring(password)
@@ -39,7 +39,7 @@ def formRegEntry(username, password):
 	userEl = reginfo.addElement("username")
 	userEl.addContent(username)
 
-	if config.encryptspool:
+	if config.encryptSpool:
 		passEl = reginfo.addElement("encryptedpassword")
 		passEl.addContent(encryptPassword(password))
 	else:
