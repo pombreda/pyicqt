@@ -1,7 +1,12 @@
 # Copyright 2005 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from tlib.domish import parseText, Element
+import utils
+if(utils.checkTwisted()):
+	from twisted.xish.domish import Element
+else:
+	from tlib.domish import Element
+
 import debug
 import config
 import sys
@@ -14,14 +19,7 @@ def invalidError(text):
 def importFile(conffile):
 	if (conffile[0] != "/"):
 		conffile = "../"+conffile
-	f = open(conffile)
-	lines = f.readlines()
-	f.close()
-	file = ""
-	for line in lines:
-		file += line
-
-	document = parseText(file)
+	document = utils.parseFile(conffile)
 	for child in document.elements():
 		tag = child.name
 		cdata = child.__str__()

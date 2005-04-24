@@ -2,7 +2,13 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 from tlib import oscar
-from tlib.domish import Element
+
+import utils
+if(utils.checkTwisted()):
+	from twisted.xish.domish import Element
+else:
+	from tlib.domish import Element
+
 import icqt
 import config
 import debug

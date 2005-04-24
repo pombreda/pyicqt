@@ -3,11 +3,16 @@
 
 from twisted.internet import protocol, reactor, defer
 from tlib import oscar
-from tlib.domish import Element
+
+import utils
+if(utils.checkTwisted()):
+	from twisted.xish.domish import Element
+else:
+	from tlib.domish import Element
+
 from tlib import socks5, sockserror
 from twisted.python import log
 import config
-import utils
 import debug
 import sys, warnings, pprint
 import stats

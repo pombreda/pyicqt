@@ -6,12 +6,13 @@ import getopt
 import sys
 import os
 reload(sys)
-sys.setdefaultencoding('iso-8859-1')
+#sys.setdefaultencoding('iso-8859-1')
+sys.setdefaultencoding('utf-8')
 del sys.setdefaultencoding
 
-if (float(sys.version[:3]) < 2.3):
-	print("You are using version %s of Python, at least 2.3 is required." % (sys.version[:3]))
-	os._exit(0)
+#if (float(sys.version[:3]) < 2.3):
+#	print("You are using version %s of Python, at least 2.3 is required." % (sys.version[:3]))
+#	os._exit(0)
 
 name = "PyICQt"
 exe = os.path.realpath(sys.executable)
@@ -23,7 +24,7 @@ import config
 import xmlconfig
 conffile = "config.xml"
 options = {}
-opts, args = getopt.getopt(sys.argv[1:], "c:o:dDl:h", ["config=", "option=", "debug", "Debug", "log=", "help"])
+opts, args = getopt.getopt(sys.argv[1:], "c:o:dDtl:h", ["config=", "option=", "debug", "Debug", "traceback", "log=", "help"])
 for o, v in opts:
 	if o in ("-c", "--config"):
 		conffile = v
@@ -32,6 +33,8 @@ for o, v in opts:
 	elif o in ("-D", "--Debug"):
 		config.debugOn = True
 		config.extendedDebugOn = True
+	elif o in ("-t", "--traceback"):
+		config.tracebackDebug = True
 	elif o in ("-l", "--log"):
 		config.debugLog = v
 	elif o in ("-o", "--option"):
@@ -42,6 +45,8 @@ for o, v in opts:
 		print "   -h                  print this help"
 		print "   -c <file>           read configuration from this file"
 		print "   -d                  print debugging output"
+		print "   -D                  print extended debugging output"
+		print "   -t                  print debugging only on traceback"
 		print "   -l <file>           write debugging output to file"
 		print "   -o <var>=<setting>  set config var to setting"
 		os._exit(0)
@@ -59,18 +64,24 @@ def reloadConfig(a, b):
 	# Reload default config and then process conf file
 	reload(config)
 	xmlconfig.Import(conffile, None)
+	debug.reopenFile()
 
 # Set SIGHUP to reload the config file
 if (os.name == "posix"):
 	import signal
 	signal.signal(signal.SIGHUP, reloadConfig)
 
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 from twisted.web import proxy, server
-from tlib.jabber import component, jid
-from tlib.domish import Element
-from tlib.xmlstream import STREAM_ERROR_EVENT,STREAM_END_EVENT
-from twisted.internet import task
+import utils
+if(utils.checkTwisted()):
+	from twisted.words.protocols.jabber import component, jid
+	from twisted.xish.domish import Element
+else:
+	from tlib.jabber import component, jid
+	from tlib.domish import Element
+#from tlib.xmlstream import STREAM_ERROR_EVENT,STREAM_END_EVENT
+from twisted.internet.defer import Deferred
 import twisted.python.log
 
 import types
@@ -80,7 +91,6 @@ import jabw
 import disco
 import register
 import misciq
-import utils
 import legacy
 import lang
 import exception
@@ -259,8 +269,18 @@ class App:
 		# Check that there isn't already a PID file
 		if(config.pid):
 			if(os.path.isfile(utils.doPath(config.pid))):
-				print "PID file exists at that location. Please check for running PyICQt and try again."
-				sys.exit(1)
+				pf = open(utils.doPath(config.pid))
+				pid = int(str(pf.readline().strip()))
+				pf.close()
+				if(os.name == "posix"):
+					try:
+						os.kill(pid, signal.SIGHUP)
+						self.alreadyRunning()
+					except OSError:
+						# The process is still up
+						pass
+				else:
+					self.alreadyRunning()
 
 			# Create a PID file
 			pid = str(os.getpid())
@@ -273,11 +293,21 @@ class App:
 		self.transportSvc.setServiceParent(self.c)
 		self.c.startService()
 		reactor.addSystemEventTrigger('before', 'shutdown', self.shuttingDown)
+
+	def alreadyRunning(self):
+		print "There is already a transport instance running with this configuration."
+		print "Exiting..."
+		sys.exit(1)
 	
 	def shuttingDown(self):
 		self.transportSvc.removeMe()
 		if(config.pid):
-			os.remove(utils.doPath(config.pid))
+			def cb(ignored=None):
+				os.remove(utils.doPath(config.pid))
+			d = Deferred()
+			d.addCallback(cb)
+			reactor.callLater(3.0, d.callback, None)
+			return d
 
 
 

@@ -60,7 +60,7 @@ class _Serializer:
 
         # Shortcut, check to see if elem is actually a string (aka Cdata)
         if isinstance(elem, types.StringTypes):
-            write(escapeToXml(elem).encode("utf-8"))
+            write(escapeToXml(elem).encode("utf-8")) 
             return
 
         # Further optimizations
@@ -650,45 +650,6 @@ class ExpatElementStream:
         if prefix == None:
             self.defaultNsStack.pop()
 
-
-
-def parseText(text):
-    t = TextParser()
-    t.parseString(text)
-    return t.root
-
-def parseFile(filename):
-    t = TextParser()
-    t.parseFile(filename)
-    return t.root
-
-class TextParser:
-    """ Taken from http://xoomer.virgilio.it/dialtone/rsschannel.py """
-
-    def __init__(self):
-        self.root = None
-
-    def parseFile(self, filename):
-        return self.parseString(file(filename).read())
-
-    def parseString(self, data):
-        es = SuxElementStream()
-        es.DocumentStartEvent = self.docStart
-        es.DocumentEndEvent = self.docEnd
-        es.ElementEvent = self.element
-        es.parse(data)
-        return self.root
-
-    def docStart(self, e):
-        self.root = e
-
-    def docEnd(self):
-        pass
-
-    def element(self, e):
-        self.root.addChild(e)
-
-
 ## class FileParser(ElementStream):
 ##     def __init__(self):
 ##         ElementStream.__init__(self)
@@ -714,4 +675,5 @@ class TextParser:
 
 ## def parseFile(filename):
 ##     return FileParser().parse(filename)
+
 

@@ -111,3 +111,103 @@ def doPath(path):
 		return path
 	else:
 		return "../" + path
+
+def parseText(text):
+	t = TextParser()
+	t.parseString(text)
+	return t.root
+
+def parseFile(filename):
+	t = TextParser()
+	t.parseFile(filename)
+	return t.root
+
+class TextParser:
+	""" Taken from http://xoomer.virgilio.it/dialtone/rsschannel.py """
+
+	def __init__(self):
+		self.root = None
+
+	def parseFile(self, filename):
+		return self.parseString(file(filename).read())
+
+	def parseString(self, data):
+		if(checkTwisted()):
+			from twisted.xish.domish import SuxElementStream
+		else:
+			from tlib.domish import SuxElementStream
+		es = SuxElementStream()
+		es.DocumentStartEvent = self.docStart
+		es.DocumentEndEvent = self.docEnd
+		es.ElementEvent = self.element
+		es.parse(data)
+		return self.root
+
+	def docStart(self, e):
+		self.root = e
+
+	def docEnd(self):
+		pass
+
+	def element(self, e):
+		self.root.addChild(e)
+
+checkTwistedCached = None
+def checkTwisted():
+	""" Returns False if we're using an old version that needs tlib, otherwise returns True """
+	global checkTwistedCached
+	if(checkTwistedCached == None):
+		import twisted.copyright
+		checkTwistedCached = (VersionNumber(twisted.copyright.version) >= VersionNumber("2.0.0"))
+	return checkTwistedCached
+
+class VersionNumber:
+	def __init__(self, vstring):
+		self.varray = [0]
+		index = 0 
+		flag = True
+		for c in vstring:
+			if(c == '.'):
+				self.varray.append(0)
+				index += 1
+				flag = True
+			elif(c.isdigit() and flag):
+				self.varray[index] *= 10
+				self.varray[index] += int(c)
+			else:
+				flag = False
+        
+	def __cmp__(self, other):
+		i = 0
+		while(True):
+			if(i == len(other.varray)):
+				if(i < len(self.varray)):
+					return 1
+				else:
+					return 0
+			if(i == len(self.varray)):
+				if(i < len(other.varray)):
+					return -1
+				else:
+					return 0
+			if(self.varray[i] > other.varray[i]):
+				return 1
+			elif(self.varray[i] < other.varray[i]):
+				return -1
+			i += 1
+
+class RollingStock:
+	def __init__(self, size):
+		self.lst = []
+		self.size = size
+
+	def push(self, data):
+		self.lst.append(str(data))
+		if(len(self.lst) > self.size):
+			self.lst.remove(self.lst[0])
+
+	def grabAll(self):
+		return "".join(self.lst)
+
+	def flush(self):
+		self.lst = []

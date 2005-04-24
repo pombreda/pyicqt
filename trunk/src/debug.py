@@ -15,28 +15,54 @@ If debugging is enabled then the data will be dumped to a file
 or the screen (whichever the user chose)
 """
 
-
-
 debugFile = None
-if(config.debugOn):
-	if(len(config.debugLog) > 0):
+rollingStock = None
+if(config.tracebackDebug):
+	rollingStock = utils.RollingStock(100)
+
+def reopenFile(first=False):
+	global debugFile
+	if(debugFile or first):
+		if(debugFile): debugFile.close()
+
 		try:
 			debugFile = open(utils.doPath(config.debugLog), 'a')
 		except:
-			print "Error opening debug log file. Exiting..."
+			print "Error opening debug log debugFile. Exiting..."
 			os.abort()
+
+
+def flushDebugSmart():
+	global rollingStack
+	if(config.debugSmart):
+		debugFile.write(rollingStack.grabAll())
+		rollingStack.flush()
+		debugFile.flush()
+
+
+if(config.debugOn):
+	if(len(config.debugLog) > 0):
+		reopenFile(True)
 		def log(data, wtime=True):
+			text = ""
 			if(wtime):
-				debugFile.write(time.strftime("[%Y-%m-%d %H:%M:%S] "))
-			#debugFile.write(utils.latin1(data) + "\n")
-			debugFile.write(data + "\n")
-			debugFile.flush()
+				text += time.strftime("[%Y-%m-%d %H:%M:%S] ")
+			text += data + "\n"
+			if(config.tracebackDebug):
+				rollingStock.push(text)
+			else:
+				debugFile.write(text)
+				debugFile.flush()
 	else:
 		def log(data, wtime=True):
+			text = ""
 			if(wtime):
-				print time.strftime("[%Y-%m-%d %H:%M:%S] "),
-			#print utils.latin1(data)
-			print data
+				text += time.strftime("[%Y-%m-%d %H:%M:%S] ")
+			text += data
+			if(config.tracebackDebug):
+				rollingStock.push(text)
+			else:
+				print text
 	log("Debug logging enabled.")
 else:
 	def log(data):
@@ -47,4 +73,3 @@ def write(data):
 	# So that I can pass this module to twisted.python.failure.Failure.printDetailedTraceback() as a file
 	data = data.rstrip()
 	log(data)
-

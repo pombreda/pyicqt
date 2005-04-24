@@ -1,12 +1,16 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from tlib.domish import parseText, Element
+import utils
+if(utils.checkTwisted()):
+	from twisted.xish.domish import Element
+else:
+	from tlib.domish import Element
+
 import os
 import os.path
 import config
 import debug
-import utils
 
 SPOOL_UMASK = 0177
 
@@ -29,15 +33,7 @@ class XDB:
 		if(self.mangle):
 			file = file.replace('@', '%')
 		
-		# Read the file
-		f = open(self.name + "/" + file + ".xml")
-		lines = f.readlines()
-		f.close()
-		file = ""
-		for line in lines:
-			file += line
-		
-		document = parseText(file)
+		document = utils.parseFile(self.name + "/" + file + ".xml")
 		
 		return document
 	
