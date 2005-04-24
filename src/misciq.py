@@ -1,12 +1,16 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from tlib.jabber import component, jid
-from tlib.domish import Element
+import utils
+if(utils.checkTwisted()):
+	from twisted.xish.domish import Element
+	from twisted.words.protocols.jabber import component, jid
+else:
+	from tlib.domish import Element
+	from tlib.jabber import component, jid
 
 import legacy
 import config
-import utils
 import lang
 import debug
 import sys

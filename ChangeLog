@@ -1,3 +1,40 @@
+2005-04-23  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/domish.py:
+	Removed parts that are no longer needed here.
+
+	* src/utils.py:
+	Added pieces from domish.py that were moved.
+	Added new RollingStock class.
+	Added pieces to check for version of Twisted.
+
+	* src/disco.py:
+	* src/jabw.py:
+	* src/main.py:
+	* src/misciq.py:
+	* src/register.py:
+	* src/xdb.py:
+	* src/xmlconfig.py:
+	Added tests to check for Twisted 2.
+
+	* src/xdb.py:
+	Changed to parseFile instead of parseText.
+
+	* src/debug.py:
+	Added rolling stock debugging and ability to reopen debug file.
+
+	* src/main.py:
+	Made hup also reopen debugging file.
+	Experimenting with utf-8 default encoding.
+	Experimenting with lifting my 2.3 python restriction.
+	Added tracebackDebug config option (and command line option).
+
+	* src/config.py:
+	Added tracebackDebug config option.
+
+	* src/xmlconfig.py:
+	Switched to using parseFile instead of parseText.
+
 2005-04-20  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

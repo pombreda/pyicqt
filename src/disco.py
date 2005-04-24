@@ -1,7 +1,11 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from tlib.domish import Element
+import utils
+if(utils.checkTwisted()):
+	from twisted.xish.domish import Element
+else:
+	from tlib.domish import Element
 import sys
 import config
 import legacy

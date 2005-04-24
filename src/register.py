@@ -1,8 +1,13 @@
 # Copyright 2004 James Bunton <james@delx.cjb.net>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-from tlib.jabber import jid
-from tlib.domish import Element
+import utils
+if(utils.checkTwisted()):
+	from twisted.xish.domish import Element
+	from twisted.words.protocols.jabber import jid
+else:
+	from tlib.domish import Element
+	from tlib.jabber import jid
 
 import session
 import config
@@ -10,7 +15,6 @@ import legacy
 import debug
 import lang
 import jabw
-import utils
 
 XMPP_STANZAS = 'urn:ietf:params:xml:ns:xmpp-stanzas'
 

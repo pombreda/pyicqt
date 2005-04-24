@@ -21,6 +21,7 @@ crossChat = False
 debugOn = False
 debugLog = ""
 extendedDebugOn = False
+tracebackDebug = False
 disableRegister = False
 socksProxyServer = ""
 socksProxyPort = ""
