@@ -37,12 +37,16 @@ class RegisterManager:
 		debug.log("RegisterManager: removeRegInfo(\"%s\") - done" % (jabberID))
 	
 	
-	def setRegInfo(self, jabberID, username, password):
-		debug.log("RegisterManager: setRegInfo(\"%s\", \"%s\", \"%s\")" % (jabberID, username, password))
+	def setRegInfo(self, jabberID, username, password, encoding):
+		debug.log("RegisterManager: setRegInfo(\"%s\", \"%s\", \"%s\", \"%s\")" % (jabberID, username, password, encoding))
 		if (len(password) == 0):
 			(blah1, password, blah3) = self.getRegInfo(jabberID)
+		if (len(encoding) == 0):
+			(blah1, blah2, encoding) = self.getRegInfo(jabberID)
+		if (len(encoding) == 0):
+			encoding = config.encoding
 
-		reginfo = legacy.formRegEntry(username, password)
+		reginfo = legacy.formRegEntry(username, password, encoding)
 		self.pytrans.xdb.set(jabberID, legacy.namespace, reginfo)
 	
 	def getRegInfo(self, jabberID):
@@ -52,13 +56,15 @@ class RegisterManager:
 			debug.log("RegisterManager: getRegInfo(\"%s\") - not registered!" % (jabberID))
 			return None
 		
-		username, password = legacy.getAttributes(result)
+		username, password, encoding = legacy.getAttributes(result)
+		if(not encoding):
+			encoding = config.encoding
 		
 		if(username and password and len(username) > 0 and len(password) > 0):
-			debug.log("RegisterManager: getRegInfo(\"%s\") - returning reg info \"%s\" \"%s\"!" % (jabberID, username, password))
-			return (username, password)
+			debug.log("RegisterManager: getRegInfo(\"%s\") - returning reg info \"%s\" \"%s\" \"%s\"!" % (jabberID, username, password, encoding))
+			return (username, password, encoding)
 		else:
-			debug.log("RegisterManager: getRegInfo(\"%s\") - invalid registration data! %s %s" % (jabberID, username, password))
+			debug.log("RegisterManager: getRegInfo(\"%s\") - invalid registration data! %s %s %s" % (jabberID, username, password, encoding))
 			return None
 	
 	def incomingRegisterIq(self, incoming):
@@ -85,13 +91,16 @@ class RegisterManager:
 		instructions.addContent(lang.get(ulang).registertext)
 		userEl = query.addElement("username")
 		passEl = query.addElement("password")
+		encEl = query.addElement("encoding")
 		
 		# Check to see if they're registered
 		barefrom = jid.JID(incoming.getAttribute("from")).userhost()
 		result = self.getRegInfo(barefrom)
 		if(result):
-			username, password = result
+			username, password, encoding = result
 			userEl.addContent(username)
+			if(encoding and len(encoding) > 0):
+				encEl.addContent(encoding)
 			query.addElement("registered")
 		
 		self.pytrans.send(reply)
@@ -103,6 +112,7 @@ class RegisterManager:
 		ulang = utils.getLang(incoming)
 		username = None
 		password = None
+		encoding = None
 		
 		for queryFind in incoming.elements():
 			if(queryFind.name == "query"):
@@ -112,6 +122,8 @@ class RegisterManager:
 							username = child.__str__().lower()
 						elif(child.name == "password"):
 							password = child.__str__()
+						elif(child.name == "encoding"):
+							encoding = child.__str__()
 						elif(child.name == "remove"):
 							# The user wants to unregister the transport! Gasp!
 							debug.log("RegisterManager: Session \"%s\" is about to be unregistered" % (source))
@@ -125,12 +137,15 @@ class RegisterManager:
 							return
 					except AttributeError, TypeError:
 						continue # Ignore any errors, we'll check everything below
+
+		if(not encoding):
+			encoding = config.encoding
 		
 		if(username and password and len(username) > 0 and len(password) > 0):
 			# Valid registration data
 			debug.log("RegisterManager: Valid registration data was received. Attempting to update XDB")
 			try:
-				self.setRegInfo(source, username, password)
+				self.setRegInfo(source, username, password, encoding)
 				debug.log("RegisterManager: Updated XDB successfully")
 				self.successReply(incoming)
 				debug.log("RegisterManager: Sent off a result Iq")

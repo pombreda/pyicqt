@@ -39,9 +39,9 @@ class Discovery:
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
 		type = el.getAttribute("type")
-		if(type == "error"):
-			# Never reply to an error IQ, nasty loops will result.
-			debug.log("Discovery: Error Iq received \"%s\" \"%s\". Looking for handler" % (fro, ID))
+		if(not type in ["get","set"]):
+			# Never reply to an error or result IQ, nasty loops will result.
+			debug.log("Discovery: Unhandled %s Iq received \"%s\" \"%s\". Looking for handler" % (type, fro, ID))
 			return
 			
 		debug.log("Discovery: Iq received \"%s\" \"%s\". Looking for handler" % (fro, ID))
@@ -188,12 +188,15 @@ class Discovery:
 			self.pytrans.legacycon.jabberVCardRequest(vcard, user).addCallback(self.gotIqVCard, iq)
 
 	def gotIqVCard(self, vcard, iq):
-		debug.log("Discovery: gotIqVCard iq %s" % (iq.toXml()))
-		if not len(vcard.children):
-			iq.attributes["type"] = "error"
-			error = iq.addElement("error")
-			error.attributes["type"] = "cancel"
-			error.attributes["code"] = "502"
-			type = error.addElement("undefined-condition")
-			type.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-		self.pytrans.send(iq)
+		try:
+			debug.log("Discovery: gotIqVCard iq %s" % (iq.toXml()))
+			if not len(vcard.children):
+				iq.attributes["type"] = "error"
+				error = iq.addElement("error")
+				error.attributes["type"] = "cancel"
+				error.attributes["code"] = "502"
+				type = error.addElement("undefined-condition")
+				type.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+			self.pytrans.send(iq)
+		except:
+			pass

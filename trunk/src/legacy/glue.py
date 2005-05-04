@@ -38,7 +38,7 @@ def decryptPassword(password):
 	return base64.decodestring(password)
 
 # This function should return an xml element as it should exist in the spool
-def formRegEntry(username, password):
+def formRegEntry(username, password, encoding):
 	reginfo = Element((None,"query"))
 	reginfo.attributes["xmlns"] = "jabber:iq:register"
 
@@ -52,6 +52,9 @@ def formRegEntry(username, password):
 		passEl = reginfo.addElement("password")
 		passEl.addContent(password)
 
+	encEl = reginfo.addElement("encoding")
+	encEl.addContent(encoding)
+
 	return reginfo
 
 # This function should, given a spool xml entry, pull the username and password
@@ -59,6 +62,7 @@ def formRegEntry(username, password):
 def getAttributes(base):
 	username = ""
 	password = ""
+	encoding = ""
 	for child in base.elements():
 		try:
 			if(child.name == "username"):
@@ -67,10 +71,12 @@ def getAttributes(base):
 				password = child.__str__()
 			elif(child.name == "encryptedpassword"):
 				password = decryptPassword(child.__str__())
+			elif(child.name == "encoding"):
+				encoding = child.__str__()
 		except AttributeError:
 			continue
 
-	return username, password
+	return username, password, encoding
 
 # This function translates an ICQ screen name to a JID
 def icq2jid(icqid):
@@ -90,12 +96,12 @@ translateAccount = icq2jid
 # This class handles most interaction with the legacy protocol
 class LegacyConnection(icqt.ICQConnection):
 	""" A glue class that connects to the legacy network """
-	def __init__(self, username, password, session):
+	def __init__(self, username, password, encoding, session):
 		debug.log("LegacyConnection: __init__")
 		self.session = session
 		self.savedShow = None
 		self.savedFriendly = None
-		icqt.ICQConnection.__init__(self, username, password)
+		icqt.ICQConnection.__init__(self, username, password, encoding)
 	
 	def removeMe(self):
 		debug.log("LegacyConnection: removeMe")
@@ -164,4 +170,5 @@ class LegacyConnection(icqt.ICQConnection):
 
 	def resourceOffline(self, resource):
 		debug.log("LegacyConnection: resourceOffline %s" % (resource))
-		pass
+		icqt.ICQConnection.removeResource(self, resource)
+		self.session.sendPresence(to=self.session.jabberID+"/"+resource, fro=config.jid, ptype="unavailable")

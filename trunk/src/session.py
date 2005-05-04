@@ -22,8 +22,8 @@ def makeSession(pytrans, jabberID, ulang, rosterID):
 		pytrans.sessions[jabberID].removeMe()
 	result = pytrans.registermanager.getRegInfo(jabberID)
 	if(result):
-		username, password = result
-		return Session(pytrans, jabberID, username, password, ulang, rosterID)
+		username, password, encoding = result
+		return Session(pytrans, jabberID, username, password, encoding, ulang, rosterID)
 	else:
 		return None
 
@@ -33,7 +33,7 @@ class Session(jabw.JabberConnection):
 	""" A class to represent each registered user's session with the legacy network. Exists as long as there
 	is a Jabber resource for the user available """
 	
-	def __init__(self, pytrans, jabberID, username, password, ulang, rosterID):
+	def __init__(self, pytrans, jabberID, username, password, encoding, ulang, rosterID):
 		""" Initialises the session object and connects to the legacy network """
 		jabw.JabberConnection.__init__(self, pytrans, jabberID)
 		debug.log("Session: Creating new session \"%s\"" % (jabberID))
@@ -44,6 +44,7 @@ class Session(jabw.JabberConnection):
 		self.jabberID = jabberID # the JabberID of the Session's user
 		self.username = username # the legacy network ID of the Session's user
 		self.password = password
+		self.encoding = encoding
 		self.lang = ulang
 
 		if (rosterID.resource == "registered"):
@@ -56,12 +57,12 @@ class Session(jabw.JabberConnection):
 		
 		self.resourceList = {}
 		
-		self.legacycon = legacy.LegacyConnection(self.username, self.password, self)
+		self.legacycon = legacy.LegacyConnection(self.username, self.password, self.encoding, self)
 		self.pytrans.legacycon = self.legacycon
 		
 		if (config.sessionGreeting != ""):
 			self.sendMessage(to=self.jabberID, fro=config.jid, body=config.sessiongreeting)
-		debug.log("Session: New session created \"%s\" \"%s\" \"%s\"" % (jabberID, username, password))
+		debug.log("Session: New session created \"%s\" \"%s\" \"%s\" \"%s\"" % (jabberID, username, password, encoding))
 
 		stats.totalsess += 1
 		if(len(self.pytrans.sessions)+1 > stats.maxsess):
