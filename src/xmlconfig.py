@@ -10,6 +10,7 @@ else:
 import debug
 import config
 import sys
+if type(True) != bool: from bool import bool
 
 def invalidError(text):
 	print text

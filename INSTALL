@@ -5,9 +5,30 @@ There's really not much to the install at the moment.  It's important
 to make sure you have the following installed:
 
 - Jabber ;D
+
 - Python
+Python (>= 2.2.0)		http://www.python.org/
+
 - Twisted (www.twistedmatrix.com)
+
+  Twisted 1.0 Based:
+Twisted 1.3.0			http://twistedmatrix.com/products/download
+
 - Optional: nevow (http://www.nevow.org/) for web interface
+nevow (>= 0.3.0)		http://www.nevow.org/
+
+  Twisted 2.0 Based:
+Note: You can dodge most of this by installing TwistedSumo, which contains
+      all of the below and then some, including a copy of Zope Interface.
+Zope Interface (>= 3.0.1)	http://www.zope.org/Products/ZopeInterface
+[ or ZopeX3 (>= 3.0.0c1)	http://www.zope.org/Products/ZopeX3 ]
+Twisted (>= 2.0.0)		http://twistedmatrix.com/projects/core/
+TwistedWeb (>= 0.5.0)		http://twistedmatrix.com/projects/web/
+TwistedWords (>= 0.1.0)		http://twistedmatrix.com/projects/words/
+TwistedXish (>= 0.1.0)		http://twistedmatrix.com/projects/xish/
+
+- Optional: nevow (http://www.nevow.org/) for web interface
+nevow (>= 0.4.1)		http://www.nevow.org/
 
 Then, in the same directory as this INSTALL, copy config_example.xml to
 config.xml and edit config.xml.  Change the jid to the Jabber ID you want

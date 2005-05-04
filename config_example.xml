@@ -30,7 +30,7 @@
 	<!-- The default language to use (for error/status messages) -->
 	<lang>en</lang>
 
-	<!-- Message encoding to use -->
+	<!-- Default message encoding to use (user can override) -->
 	<encoding>iso-8859-1</encoding>
 
 	<!-- The hostname of the ICQ server you wish to connect to -->

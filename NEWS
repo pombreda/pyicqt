@@ -1,3 +1,17 @@
+0.7:
+
+* Support for Twisted 2.0.
+
+* Personalized encoding settings.
+
+* Improved debugging support.
+
+* Support for encrypted passwords on spool.
+
+* Fixed support for receiving messages from older ICQ clients.
+
+* Improved unicode support.
+
 0.6:
 
 * SSI buddy list handling that actually works right.

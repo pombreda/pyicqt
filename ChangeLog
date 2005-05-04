@@ -1,3 +1,42 @@
+2005-05-03  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/session.py:
+	* src/register.py:
+	Added more pieces to personalized encoding.
+	However, it doesn't work.  Need to rethink it.
+
+	* config_example.xml:
+	Changed encoding to be "default encoding".
+
+	* src/bool.py:
+	* src/xmlconfig.py:
+	* src/config.py:
+	Added bool class to allow restriction reduction to 2.2.
+
+	* src/main.py:
+	Reduced requirement.
+
+2005-04-26  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	Fixed PyAIM bug 69 responding to result iq. 
+
+2005-04-25  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Added check for minimum python version of 2.2.1.
+
+	* src/disco.py:
+	Added try/except clause to dodge empty vcard return.
+
+2005-04-24  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/register.py:
+	* src/legacy/glue.py:
+	Added support for encoding personal config option.
+
 2005-04-23  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/domish.py:

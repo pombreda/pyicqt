@@ -26,6 +26,7 @@ class B(oscar.BOSConnection):
 	def __init__(self,username,cookie,icqcon):
 		self.icqcon = icqcon
 		self.authorizationRequests = [] # buddies that need authorization
+		self.encoding = icqcon.encoding
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
 		self.capabilities = [oscar.CAP_CHAT]
@@ -33,7 +34,7 @@ class B(oscar.BOSConnection):
 		if (config.crossChat):
 			debug.log("B: __init__ adding cross chat")
 			self.capabilities.append(oscar.CAP_CROSS_CHAT)
-		if (config.encoding in ['utf8','utf-8']):
+		if (self.encoding in ['utf8','utf-8']):
 			debug.log("B: __init__ adding utf option")
 			self.capabilities.append(oscar.CAP_UTF)
 		if (config.socksProxyServer and config.socksProxyPort):
@@ -132,9 +133,9 @@ class B(oscar.BOSConnection):
 			if (multiparts[0][1] in ['unicode','utf-8']):
 				encoding = "utf-8"
 			else:
-				encoding = config.encoding
+				encoding = self.encoding
 		else:
-			encoding = config.encoding
+			encoding = self.encoding
 		debug.log("B: using encoding %s" % (encoding))
 		text = text.decode(encoding, "replace")
 		text = text.strip()
@@ -224,9 +225,10 @@ class OA(oscar.OscarAuthenticator):
 # ICQConnection
 #############################################################################
 class ICQConnection:
-	def __init__(self, username, password):
+	def __init__(self, username, password, encoding):
 		self.username = username
 		self.password = password
+		self.encoding = encoding
 		self.reactor = reactor
 		self.contacts = ICQContacts(self.session)
 		self.userinfoCollection = {}
@@ -251,7 +253,7 @@ class ICQConnection:
 	def setAway(self, awayMessage=None):
 		debug.log("ICQConnection: setAway %s" % (awayMessage))
 		try:
-			self.bos.setAway(awayMessage.encode(config.encoding, 'replace'))
+			self.bos.setAway(awayMessage.encode(self.encoding, 'replace'))
 		except AttributeError:
 			#self.alertUser(lang.get(config.jid).sessionnotactive)
 			pass
@@ -272,7 +274,7 @@ class ICQConnection:
 
 			scrnname = jid2icq(target)
 			debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
-			encoded = message.encode(config.encoding, "replace")
+			encoded = message.encode(self.encoding, "replace")
 			debug.log("ICQConnection: sendMessage encoded %s" % (encoded))
 			self.bos.sendMessage(scrnname, encoded)
 		except AttributeError:
@@ -455,6 +457,23 @@ class ICQConnection:
 				status = None
 				ptype = "unavailable"
 				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
+		except AttributeError:
+			return
+
+	def removeResource(self, resource):
+		from glue import icq2jid
+		debug.log("ICQConnection: removeResource %s" % (resource))
+		try:
+			for c in self.contacts.ssicontacts.keys( ):
+				if (self.contacts.ssicontacts[c]['presence'] == "unavailable"):
+					continue
+
+				debug.log("ICQConnection: sending offline for %s" % (c))
+				jid = icq2jid(c)
+				show = None
+				status = None
+				ptype = "unavailable"
+				self.session.sendPresence(to=self.session.jabberID+"/"+resource, fro=jid, show=show, status=status, ptype=ptype)
 		except AttributeError:
 			return
 
