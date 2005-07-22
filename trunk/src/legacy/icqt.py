@@ -17,6 +17,7 @@ import debug
 import sys, warnings, pprint
 import stats
 import lang
+import re
 
 
 #############################################################################
