@@ -29,14 +29,11 @@ class B(oscar.BOSConnection):
 		self.encoding = icqcon.encoding
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
-		self.capabilities = [oscar.CAP_CHAT]
+		self.capabilities = [oscar.CAP_CHAT, oscar.CAP_UTF]
 		self.statusindicators = oscar.STATUS_WEBAWARE
 		if (config.crossChat):
 			debug.log("B: __init__ adding cross chat")
 			self.capabilities.append(oscar.CAP_CROSS_CHAT)
-		if (self.encoding in ['utf8','utf-8']):
-			debug.log("B: __init__ adding utf option")
-			self.capabilities.append(oscar.CAP_UTF)
 		if (config.socksProxyServer and config.socksProxyPort):
 			self.socksProxyServer = config.socksProxyServer
 			self.socksProxyPort = config.socksProxyPort
@@ -48,10 +45,9 @@ class B(oscar.BOSConnection):
 		debug.log("B: initDone %s for %s" % (self.username,self.session.jabberID))
 
 	def gotUserInfo(self, id, type, userinfo):
-		# Only characters over 16 is allowed
 		if userinfo:
 			for i in range(len(userinfo)):
-				userinfo[i] = utils.egdufstr(userinfo[i], 16)
+				userinfo[i] = userinfo[i].decode(self.encoding, "replace")
 		if self.icqcon.userinfoCollection[id].gotUserInfo(id, type, userinfo):
 			# True when all info packages has been received
 			self.icqcon.gotvCard(self.icqcon.userinfoCollection[id])
@@ -130,8 +126,8 @@ class B(oscar.BOSConnection):
 		else:
 			text = oscar.dehtml(multiparts[0][0])
 		if (len(multiparts[0]) > 1):
-			if (multiparts[0][1] in ['unicode','utf-8']):
-				encoding = "utf-8"
+			if (multiparts[0][1] == 'unicode'):
+				encoding = "utf-16be"
 			else:
 				encoding = self.encoding
 		else:
@@ -166,7 +162,27 @@ class B(oscar.BOSConnection):
 		buddyjid = icq2jid(user.name)
 		ptype = None
 		show = "away"
-		status = msg
+		status = msg[1]
+
+		if status != None: 
+			charset = "iso-8859-1"
+			m = re.search('charset="(.+)"', msg[0])
+			if m != None:
+				charset = m.group(1)
+				if charset == 'unicode-2-0':
+					charset = 'utf-16be'
+				elif charset == 'utf-8': pass
+				elif charset == "us-ascii":
+					charset = "iso-8859-1"
+				else:
+					debug.log( "unknown charset (%s) of buddy's away message" % msg[0] );
+					charset = self.encoding
+					status = msg[0] + ": " + status
+
+			status = status.decode(charset, 'replace')
+			debug.log( "dsh: away (%s, %s) message %s"
+				% (charset, msg[0], status) )
+
 		self.session.sendPresence(to=self.session.jabberID, fro=buddyjid, show=show, status=status, ptype=ptype)
 		self.icqcon.contacts.updateSSIContact(user.name, presence=ptype, show=show, status=status)
 
@@ -201,6 +217,17 @@ class B(oscar.BOSConnection):
 		self.icqcon.setICQStatus(self.icqcon.savedShow)
 		self.requestOffline()
 
+	def connectionLost(self, reason):
+		message = "ICQ connection lost! Reason: %s" % reason
+		try:
+			self.icqcon.alertUser(message)
+		except:
+			pass
+		# Send error presence
+		self.session.removeMe("wait", "remote-server-timeout", message)
+
+		oscar.OscarConnection.connectionLost(self, reason)
+
 
 #############################################################################
 # Oscar Authenticator
@@ -230,7 +257,7 @@ class ICQConnection:
 		self.password = password
 		self.encoding = encoding
 		self.reactor = reactor
-		self.contacts = ICQContacts(self.session)
+		self.contacts = ICQContacts(self.session, encoding)
 		self.userinfoCollection = {}
 		self.userinfoID = 0
 		self.deferred = defer.Deferred()
@@ -276,7 +303,7 @@ class ICQConnection:
 			debug.log("ICQConnection: sendMessage %s %s" % (scrnname, message))
 			encoded = message.encode(self.encoding, "replace")
 			debug.log("ICQConnection: sendMessage encoded %s" % (encoded))
-			self.bos.sendMessage(scrnname, encoded)
+			self.bos.sendMessage(scrnname, encoded, offline=1)
 		except AttributeError:
 			self.alertUser(lang.get(config.jid).sessionnotactive)
 
@@ -323,29 +350,6 @@ class ICQConnection:
 			return d
 		except AttributeError:
 			self.alertUser(lang.get(config.jid).sessionnotactive)
-
-#	def gotvCard(self, userinfo, uin, vcard, d):
-#		debug.log("ICQConnection: gotvCard: %s" % (userinfo))
-#
-#		fn = vcard.addElement("FN")
-#		fn.addContent(userinfo[1]+" "+userinfo[2])
-#		n = vcard.addElement("N")
-#		given = n.addElement("GIVEN")
-#		given.addContent(userinfo[1])
-#		family = n.addElement("FAMILY")
-#		family.addContent(userinfo[2])
-#		middle = n.addElement("MIDDLE")
-#		nickname = vcard.addElement("NICKNAME")
-#		nickname.addContent(userinfo[0])
-#		email = vcard.addElement("EMAIL")
-#		email.addElement("INTERNET")
-#		email.addElement("PREF")
-#		emailid = email.addElement("USERID")
-#		emailid.addContent(userinfo[3])
-#		jabberid = vcard.addElement("JABBERID")
-#		jabberid.addContent(uin+"@"+config.jid)
-#
-#		d.callback(vcard)
 
 	def gotvCard(self, usercol):
 		debug.log("ICQConnection: gotvCard: %s" % (usercol.userinfo))
@@ -441,7 +445,7 @@ class ICQConnection:
 			self.session.sendErrorMessage(self.session.jabberID, uin+"@"+config.jid, "cancel", "undefined-condition", "", "Unable to retrieve user information")
 			# error of some kind
 
-	def removeMe(self):
+	def removeMe(self, etype=None, econdition=None, etext=None):
 		from glue import icq2jid
 		debug.log("ICQConnection: removeMe")
 		try:
@@ -456,7 +460,11 @@ class ICQConnection:
 				show = None
 				status = None
 				ptype = "unavailable"
-				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
+				if etype:
+					ptype = "error"
+				else:
+					ptype = "unavailable"
+				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype, etype=etype, econdition=econdition, etext=etext)
 		except AttributeError:
 			return
 
@@ -622,7 +630,8 @@ class ICQConnection:
 			message = message+"\n"+errmsgs[3]
 		self.alertUser(message)
 
-		self.session.removeMe()
+		# Send error presence
+		self.session.removeMe("auth", "not-authorized", message)
 
 	def findGroupByID(self, groupID):
 		for x in self.bos.ssigroups:
@@ -670,7 +679,8 @@ class ICQConnection:
 # ICQContacts
 #############################################################################
 class ICQContacts:
-	def __init__(self, session):
+	def __init__(self, session, encoding):
+		self.encoding = encoding
 		self.session = session
 		self.ssicontacts = { }
 		self.xdbcontacts = self.getXDBBuddies()
@@ -687,7 +697,7 @@ class ICQContacts:
 		if (not self.xdbcontacts.count(contact.lower())):
 			from glue import icq2jid
 			if nick:
-				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick)
+				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(self.encoding, 'replace'))
 			else:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
 			self.xdbcontacts.append(contact.lower())

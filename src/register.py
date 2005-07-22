@@ -94,7 +94,7 @@ class RegisterManager:
 		encEl = query.addElement("encoding")
 		
 		# Check to see if they're registered
-		barefrom = jid.JID(incoming.getAttribute("from")).userhost()
+		barefrom = jid.JID(incoming.getAttribute("from")).userhost().lower()
 		result = self.getRegInfo(barefrom)
 		if(result):
 			username, password, encoding = result
@@ -108,7 +108,7 @@ class RegisterManager:
 	def updateRegistration(self, incoming):
 		# Grab the username and password
 		debug.log("RegisterManager: updateRegistration() for \"%s\" \"%s\"" % (incoming.getAttribute("from"), incoming.getAttribute("id")))
-		source = jid.JID(incoming.getAttribute("from")).userhost()
+		source = jid.JID(incoming.getAttribute("from")).userhost().lower()
 		ulang = utils.getLang(incoming)
 		username = None
 		password = None
@@ -151,11 +151,11 @@ class RegisterManager:
 				debug.log("RegisterManager: Sent off a result Iq")
 				# If they're in a session right now, we do nothing
 				if(not self.pytrans.sessions.has_key(source)):
-					(user, host, res) = jid.parse(incoming.getAttribute("from"))
+					(user, host, res) = jid.parse(incoming.getAttribute("from")).lower()
 					debug.log("RegisterManager: Sending subscribe presence %s@%s/%s %s" % (user, host, res, config.jid))
 					jabw.sendPresence(self.pytrans, to=user + "@" + host, fro=config.jid, ptype="subscribe")
 				if(config.registerMessage):
-					jabw.sendMessage(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, body=config.registerMessage)
+					jabw.sendMessage(self.pytrans, to=incoming.getAttribute("from").lower(), fro=config.jid, body=config.registerMessage)
 			except:
 				self.xdbErrorReply(incoming)
 				raise

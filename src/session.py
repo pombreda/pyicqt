@@ -69,7 +69,7 @@ class Session(jabw.JabberConnection):
 			stats.maxsess = len(self.pytrans.sessions)+1
 		stats.sessionUpdate(self.jabberID, "connections", 1)
 	
-	def removeMe(self):
+	def removeMe(self, etype=None, econdition=None, etext=None):
 		""" Safely removes the session object, including sending <presence type="unavailable"/> messages for each legacy related item on the user's contact list """
 		# Send offline presence to Jabber ID
 		# Delete all objects cleanly
@@ -86,7 +86,11 @@ class Session(jabw.JabberConnection):
 			tmpjid = config.jid
 			if (self.registeredmunge):
 				tmpjid = tmpjid + "/registered"
-			self.sendPresence(to=self.jabberID, fro=tmpjid, ptype="unavailable")
+			if etype:
+				ptype = "error"
+			else:
+				ptype = "unavailable"
+			self.sendPresence(to=self.jabberID, fro=tmpjid, ptype=ptype, etype=etype, econdition=econdition, etext=etext)
 		
 		# Clean up stuff on the legacy service end (including sending offline presences for all contacts)
 		if(self.legacycon):

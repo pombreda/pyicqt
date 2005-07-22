@@ -10,6 +10,7 @@ import sys
 import config
 import legacy
 import debug
+import jabw
 
 XMPP_STANZAS = 'urn:ietf:params:xml:ns:xmpp-stanzas'
 DISCO = "http://jabber.org/protocol/disco"
@@ -138,38 +139,31 @@ class Discovery:
 	
 	def sendIqNotSupported(self, to, ID, xmlns):
 		debug.log("Discovery: Replying with error to unknown Iq request")
-		iq = Element((None, "iq"))
-		iq.attributes["type"] = "error"
-		iq.attributes["from"] = config.jid
-		iq.attributes["to"] = to
-		if(ID):
-			iq.attributes["id"] = ID
-		error = iq.addElement("error")
-		error.attributes["xmlns"] = xmlns
-		error.attributes["type"] = "cancel"
-		error.attributes["xmlns"] = XMPP_STANZAS
-		text = error.addElement("text")
-		text.attributes["xmlns"] = XMPP_STANZAS
-		text.addContent("Not implemented.")
-		
-		self.pytrans.send(iq)
+		self.sendIqError(to, ID, "feature-not-implemented", "cancel", "Not implemented.", 501)
 	
 	def sendIqNotValid(self, to, ID, xmlns):
 		debug.log("Discovery: Replying with error to invalid Iq request")
+		self.sendIqError(to, ID, "bad-request", "modify", "Not valid.", 400)
+
+	def sendIqError(self, to, ID, condition, type, text, code=None):
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "error"
 		iq.attributes["from"] = config.jid
 		iq.attributes["to"] = to
 		if(ID):
 			iq.attributes["id"] = ID
-		error = iq.addElement("error")
-		error.attributes["xmlns"] = xmlns
-		error.attributes["type"] = "modify"
-		error.attributes["xmlns"] = XMPP_STANZAS
-		text = error.addElement("text")
-		text.attributes["xmlns"] = XMPP_STANZAS
-		text.addContent("Not valid.")
-		
+		iq.addChild(jabw.makeErrorElement(type, condition, text))
+		#error = iq.addElement("error")
+		#error.attributes["type"] = type
+		#if code:
+		#	error.attributes["code"] = code
+		#con = error.addElement(condition)
+		#con.attributes["xmlns"] = XMPP_STANZAS
+		#if text:
+		#	txt = error.addElement("text")
+		#	txt.attributes["xmlns"] = XMPP_STANZAS
+		#	txt.addContent(text)
+
 		self.pytrans.send(iq)
 
 	def sendIqVCard(self, to, target, ID, xmlns):
@@ -188,6 +182,7 @@ class Discovery:
 			self.pytrans.legacycon.jabberVCardRequest(vcard, user).addCallback(self.gotIqVCard, iq)
 
 	def gotIqVCard(self, vcard, iq):
+		# DSH removed the try/except... why?
 		try:
 			debug.log("Discovery: gotIqVCard iq %s" % (iq.toXml()))
 			if not len(vcard.children):

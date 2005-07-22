@@ -1,3 +1,71 @@
+2005-07-21  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	* src/tlib/domish.py:
+	* src/disco.py:
+	* src/legacy/icqt.py:
+	Applied Denis Shaposhnikov's patch set (modified slightly).
+
+	* src/tlib/scheduler.py:
+	* src/tlib/oscar.py:
+	Applied Chris Carlin's rate handling patches.
+
+	* src/register.py:
+	* src/jabw.py:
+	Applied Oleg Motienko's lowercase spool file patches.
+
+	* src/legacy/icqt.py:
+	Applied Oleg Motienko's vcard encoding patches.
+
+	* src/disco.py:
+	* src/jabw.py:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/session.py:
+	Applied patch from Magnus Henoch for handling of lost connections.
+	See ChangeLogs below with his name.
+
+	* src/legacy/icqt.py:
+	Unapplied Oleg Motienko's vcard encoding patches; conflict with
+	Denis Shaposhnikov's fixes.
+
+2005-06-13  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	Applied patch from Magnus Henoch for proper error handling.
+
+2005-06-13  Magnus Henoch  <mange@freemail.hu>
+
+	* src/legacy/icqt.py:
+	Add B.connectionLost, alerting user about lost ICQ connection.
+
+2005-06-10  Magnus Henoch  <mange@freemail.hu>
+
+	* src/jabw.py:
+	Accept error arguments in sendPresence.
+
+	* src/legacy/icqt.py:
+	* src/legacy/glue.py:
+	* src/session.py:
+	Accept error arguments in removeMe.  Send presence error
+	when user sent wrong password.
+
+2005-06-09  Magnus Henoch  <henoch@cd.chalmers.se>
+
+	* src/jabw.py:
+	* src/disco.py:
+	* src/register.py:
+	Define makeErrorElement in jabw.py and use it.
+
+2005-05-31  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Cleaned up retrieve message code a bit.
+
+	* src/tlib/oscar.py:
+	Cleaned up retrieve message code a bit.
+	Added error callbacks for all deferreds.
+
 2005-05-03  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

@@ -19,16 +19,18 @@ def sendMessage(pytrans, to, fro, body, mtype=None, errorType=None, delay=None):
 	el.attributes["from"] = fro
 	el.attributes["id"] = pytrans.makeMessageID()
 	if(mtype):
+		el.attributes["type"] = mtype
 		if(mtype == "error" and errorType is not None):
-			err = el.addElement("error")
-			err.attributes["type"] = errorType[0]
-			condition = err.addElement(errorType[1])
-			condition.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-			text = el.addElement("text")
-			text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-			text.addContent(errorType[2])
-		else:
-			el.attributes["type"] = mtype
+			el.addChild(makeErrorElement(errorType[0], errorType[1], errorType[2]))
+			#err = el.addElement("error")
+			#err.attributes["type"] = errorType[0]
+			#condition = err.addElement(errorType[1])
+			#condition.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+			#text = el.addElement("text")
+			#text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+			#text.addContent(errorType[2])
+		#else:
+			#el.attributes["type"] = mtype
 
 	if(delay):
 		x = el.addElement("x")
@@ -43,10 +45,15 @@ def sendMessage(pytrans, to, fro, body, mtype=None, errorType=None, delay=None):
 	composing = x.addElement("composing")
 	pytrans.send(el)
 
-def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None):
+def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, etype=None, econdition=None, etext=None):
+	# If you want to send a presence error, etype and econdition
+	# must be strings (something like "wait" and "internal-server-error",
+	# for example), and etext may be a string with human-readable information.
 	el = Element((None, "presence"))
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
+	if(etype):
+		ptype = "error"
 	if(ptype):
 		el.attributes["type"] = ptype
 	if(show):
@@ -58,21 +65,37 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 	if(priority):
 		s = el.addElement("priority")
 		s.addContent(priority)
+	if(etype):
+		el.addChild(makeErrorElement(etype, econdition, etext))
 	pytrans.send(el)
 
+def makeErrorElement(etype, eelement, econtent=None, appspecific=None):
+	""" Create an <error/> stanza suitable for insertion into a <message/>, <iq/> or <presence/>. """
+	error = Element((None, "error"))
+	error.attributes["type"] = etype
+	desc = error.addElement(eelement)
+	desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+	if econtent:
+		text = error.addElement("text")
+		text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+		text.addContent(econtent)
+	if appspecific:
+		error.addChild(appspecific)
+	return error
 
 def sendErrorMessage(pytrans, to, fro, etype, eelement, econtent, body=None):
 	el = Element((None, "message"))
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
 	el.attributes["type"] = "error"
-	error = el.addElement("error")
-	error.attributes["type"] = etype
-	desc = error.addElement(eelement)
-	desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-	text = error.addElement("text")
-	text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-	text.addContent(econtent)
+	#error = el.addElement("error")
+	#error.attributes["type"] = etype
+	#desc = error.addElement(eelement)
+	#desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+	#text = error.addElement("text")
+	#text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+	#text.addContent(econtent)
+	el.addChild(makeErrorElement(etype, eelement, econtent))
 	if(body and len(body) > 0):
 		b = el.addElement("body")
 		b.addContent(body)
@@ -116,7 +139,7 @@ class JabberConnection:
 	def checkFrom(self, el):
 		""" Checks to see that this packet was intended for this object """
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		froj = jid.JID(fro.lower())
 		
 		return (froj.userhost() == self.jabberID) # Compare with the Jabber ID that we're looking at
 	
@@ -132,10 +155,10 @@ class JabberConnection:
 		debug.log("User: %s - JabberConnection sending error response." % (self.jabberID))
 		sendErrorMessage(self.pytrans, to, fro, etype, eelement, econtent, body)
 	
-	def sendPresence(self, to, fro, show=None, status=None, priority=None, ptype=None):
+	def sendPresence(self, to, fro, show=None, status=None, priority=None, ptype=None, etype=None, econdition=None, etext=None):
 		""" Sends a Jabber presence packet """
 		debug.log("User: %s - JabberConnection sending presence \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, to, fro, show, utils.latin1(status), priority, ptype))
-		sendPresence(self.pytrans, to, fro, show, status, priority, ptype)
+		sendPresence(self.pytrans, to, fro, show, status, priority, ptype, etype, econdition, etext)
 	
 	def sendRosterImport(self, jid, ptype, sub, name="", groups=[]):
 		""" Sends a special presence packet. This will work with all clients, but clients that support roster-import will give a better user experience
@@ -161,9 +184,9 @@ class JabberConnection:
 		if(not self.checkFrom(el)): return
 		debug.log("User: %s - JabberConnection received message packet" % (self.jabberID))
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		froj = jid.JID(fro.lower())
 		to = el.getAttribute("to")
-		toj = jid.JID(to)
+		toj = jid.JID(to.lower())
 		mID = el.getAttribute("id")
 		
 		mtype = el.getAttribute("type")
@@ -209,9 +232,9 @@ class JabberConnection:
 		if(not self.checkFrom(el)): return
 		debug.log("User: %s - JabberConnection received presence packet" % (self.jabberID))
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		froj = jid.JID(fro.lower())
 		to = el.getAttribute("to")
-		toj = jid.JID(to)
+		toj = jid.JID(to.lower())
 		
 		# Grab the contents of the <presence/> packet
 		ptype = el.getAttribute("type")
