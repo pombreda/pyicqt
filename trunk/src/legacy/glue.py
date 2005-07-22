@@ -103,9 +103,9 @@ class LegacyConnection(icqt.ICQConnection):
 		self.savedFriendly = None
 		icqt.ICQConnection.__init__(self, username, password, encoding)
 	
-	def removeMe(self):
+	def removeMe(self, etype=None, econdition=None, etext=None):
 		debug.log("LegacyConnection: removeMe")
-		icqt.ICQConnection.removeMe(self)
+		icqt.ICQConnection.removeMe(self, etype, econdition, etext)
 	
 	def jidRes(self, resource):
 		to = self.session.jabberID
