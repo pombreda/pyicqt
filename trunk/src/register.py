@@ -151,7 +151,7 @@ class RegisterManager:
 				debug.log("RegisterManager: Sent off a result Iq")
 				# If they're in a session right now, we do nothing
 				if(not self.pytrans.sessions.has_key(source)):
-					(user, host, res) = jid.parse(incoming.getAttribute("from")).lower()
+					(user, host, res) = jid.parse(incoming.getAttribute("from").lower())
 					debug.log("RegisterManager: Sending subscribe presence %s@%s/%s %s" % (user, host, res, config.jid))
 					jabw.sendPresence(self.pytrans, to=user + "@" + host, fro=config.jid, ptype="subscribe")
 				if(config.registerMessage):

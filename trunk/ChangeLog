@@ -1,3 +1,8 @@
+2005-07-26  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/register.py:
+	Fixed misplaced .lower().
+
 2005-07-22  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:
