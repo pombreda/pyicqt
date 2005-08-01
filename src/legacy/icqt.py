@@ -105,7 +105,7 @@ class B(oscar.BOSConnection):
 			self.getAway(user.name).addCallback(self.sendAwayPresence, user)
 		else:
 			self.session.sendPresence(to=self.session.jabberID, fro=buddyjid, show=show, status=status, ptype=ptype)
-			self.icqcon.contacts.updateSSIContact(user.name, presence=ptype, show=show, status=status)
+			self.icqcon.contacts.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion)
 
 	def offlineBuddy(self, user):
 		from glue import icq2jid
@@ -185,7 +185,7 @@ class B(oscar.BOSConnection):
 				% (charset, msg[0], status) )
 
 		self.session.sendPresence(to=self.session.jabberID, fro=buddyjid, show=show, status=status, ptype=ptype)
-		self.icqcon.contacts.updateSSIContact(user.name, presence=ptype, show=show, status=status)
+		self.icqcon.contacts.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion)
 
 	def gotSelfInfo(self, user):
 		debug.log("B: gotSelfInfo: %s" % (user.__dict__))
@@ -371,6 +371,9 @@ class ICQConnection:
 			bday.addContent(usercol.birthday)
 			desc = vcard.addElement("DESC")
 			desc.addContent(usercol.about)
+			if (self.contacts.ssicontacts[usercol.userinfo]):
+				c = self.contacts.ssicontacts[usercol.userinfo]
+				desc.addContent("\n\n-----\n"+c['lanipaddr']+'/'+c['ipaddr']+':'+"%s"%(c['lanipport'])+' v.'+"%s"%(c['icqprotocol']))
 			url = vcard.addElement("URL")
 			url.addContent(usercol.homepage)
 
@@ -687,12 +690,16 @@ class ICQContacts:
 		self.xdbcontacts = self.getXDBBuddies()
 		self.xdbchanged = False
 
-	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, skipsave=False, nick=None):
+	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, skipsave=False, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None):
 		debug.log("ICQContacts: updating contact %s" % (contact.lower()))
 		self.ssicontacts[contact.lower()] = {
 			'presence': presence,
 			'show': show,
-			'status': status
+			'status': status,
+			'ipaddr' : ipaddr,
+			'lanipaddr' : lanipaddr,
+			'lanipport' : lanipport,
+			'icqprotocol' : icqprotocol
 		}
 
 		if (not self.xdbcontacts.count(contact.lower())):
@@ -729,18 +736,18 @@ class ICQContacts:
 			return
 
 		newXDB = Element((None, "query"))
-		newXDB.namespace = "jabber:iq:roster"
+		newXDB.attributes["xmlns"] = "jabber:iq:roster"
 
 		for c in self.xdbcontacts:
 			try:
 				item = Element((None, "item"))
-				item.setAttribute("jid", c)
-				newXDB.appendChild(item)
+				item.attributes["jid"] = c
+				newXDB.addChild(item)
 
 			except:
 				pass
 
-		self.session.pytrans.xdb.set(self.session.jabberID, "aimtrans:roster", newXDB)
+		self.session.pytrans.xdb.set(self.session.jabberID, "jabber:iq:roster", newXDB)
 		self.xdbchanged = False
 		debug.log("ICQContacts: contacts saved")
 

@@ -1,3 +1,12 @@
+2005-07-31  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Applied Oleg Motienko's patch for busted XDB writing.
+	Added support for ip addresses and icq versions in vcard.
+
+	* src/tlib/oscar.py:
+	Applied Oleg Motienko's lan ip address capture patch.
+
 2005-07-26  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/register.py:
