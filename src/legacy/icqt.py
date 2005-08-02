@@ -371,9 +371,11 @@ class ICQConnection:
 			bday.addContent(usercol.birthday)
 			desc = vcard.addElement("DESC")
 			desc.addContent(usercol.about)
-			if (self.contacts.ssicontacts[usercol.userinfo]):
+			try:
 				c = self.contacts.ssicontacts[usercol.userinfo]
 				desc.addContent("\n\n-----\n"+c['lanipaddr']+'/'+c['ipaddr']+':'+"%s"%(c['lanipport'])+' v.'+"%s"%(c['icqprotocol']))
+			except:
+				pass
 			url = vcard.addElement("URL")
 			url.addContent(usercol.homepage)
 
