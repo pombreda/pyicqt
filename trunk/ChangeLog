@@ -1,3 +1,8 @@
+2005-08-02  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Added try/except clause around ip address check.
+
 2005-07-31  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:
