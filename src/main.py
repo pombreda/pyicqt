@@ -295,6 +295,13 @@ class App:
 		self.c.startService()
 		reactor.addSystemEventTrigger('before', 'shutdown', self.shuttingDown)
 
+		self.sendInvitations()
+
+	def sendInvitations(self):              
+		for jid in self.transportSvc.xdb.files():
+			debug.log("Inviting %s..." % (jid))
+			jabw.sendPresence(self.transportSvc,jid, config.jid, ptype="probe")
+
 	def alreadyRunning(self):
 		print "There is already a transport instance running with this configuration."
 		print "Exiting..."

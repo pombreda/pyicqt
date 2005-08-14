@@ -57,7 +57,15 @@ class XDB:
 					return child
 		except:
 			return None
-	
+
+	def files(self):
+		""" Returns a list containing the files in the current XDB database """         
+		files=os.listdir(self.name);
+		for i in range(len(files)):
+			if(self.mangle): files[i]=files[i].replace('%','@');
+			files[i]=files[i][:len(files[i])-4]
+		return files
+
 	def set(self, file, xdbns, element):
 		""" Sets a specific xdb namespace in the XDB 'file' to element """
 		try:
