@@ -1,3 +1,16 @@
+2005-08-14  Robert Quattlebaum  <darco@deepdarc.com>
+
+	* src/main.py:
+	Added code to send a "probe" presence to everyone registered on the
+	transport, so that if they happen to be logged in when the transport
+	starts up they are automaticly logged into the transport as well.
+	Just be careful with restarting the transport frequently, this can
+	very quickly annoy users!
+
+	* src/xdb.py:
+	Added a function to grab the JID's of all the registered users.
+	Necessary to send the initial "probe" presence packets.
+
 2005-08-02  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:
