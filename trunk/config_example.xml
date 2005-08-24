@@ -62,4 +62,8 @@
 	<!-- Enable encryption of passwords on spool -->
 	<!-- (uncomment to enable) -->
 	<!-- <encryptSpool/> -->
+
+	<!-- Disable automatic invitation to reconnect on restart -->
+	<!-- (uncomment to disable) -->
+	<!-- <disableAutoInvite/> -->
 </pyicqt>

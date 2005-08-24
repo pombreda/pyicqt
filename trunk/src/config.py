@@ -25,6 +25,7 @@ debugLog = ""
 extendedDebugOn = bool(False)
 tracebackDebug = bool(False)
 disableRegister = bool(False)
+disableAutoInvite = bool(False)
 socksProxyServer = ""
 socksProxyPort = ""
 encryptSpool = bool(False)

@@ -1,3 +1,24 @@
+2005-08-24  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Set defaults for ip address related variables.
+
+2005-08-20  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Decreased announced ICQ version.  Increase didn't work.
+
+2005-08-15  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Increased announced ICQ version.
+
+	* src/main.py:
+	* src/config.py:
+	* config_example.xml:
+	Added disableAutoInvite option to disable automatic invitations
+	to reconnect upon startup.
+
 2005-08-14  Robert Quattlebaum  <darco@deepdarc.com>
 
 	* src/main.py:

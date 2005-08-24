@@ -298,9 +298,10 @@ class App:
 		self.sendInvitations()
 
 	def sendInvitations(self):              
-		for jid in self.transportSvc.xdb.files():
-			debug.log("Inviting %s..." % (jid))
-			jabw.sendPresence(self.transportSvc,jid, config.jid, ptype="probe")
+		if (not config.disableAutoInvite):
+			for jid in self.transportSvc.xdb.files():
+				debug.log("Inviting %s..." % (jid))
+				jabw.sendPresence(self.transportSvc,jid, config.jid, ptype="probe")
 
 	def alreadyRunning(self):
 		print "There is already a transport instance running with this configuration."
