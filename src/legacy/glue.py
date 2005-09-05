@@ -76,7 +76,7 @@ def getAttributes(base):
 		except AttributeError:
 			continue
 
-	return username, password, encoding
+	return username, password[:8], encoding
 
 # This function translates an ICQ screen name to a JID
 def icq2jid(icqid):

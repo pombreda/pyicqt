@@ -1,3 +1,8 @@
+2005-09-05  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	Cut off password at 8 characters, which is ICQ's limit.
+
 2005-08-24  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
