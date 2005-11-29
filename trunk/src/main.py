@@ -1,39 +1,49 @@
-# Copyright 2004 James Bunton <james@delx.cjb.net>
+# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+import exception
+import utils
 import debug
 import getopt
 import sys
 import os
+import shutil
+import time
 reload(sys)
 #sys.setdefaultencoding('iso-8859-1')
 sys.setdefaultencoding('utf-8')
 del sys.setdefaultencoding
 
 from utils import VersionNumber
-if  (VersionNumber(sys.version[:3]) < VersionNumber("2.2")):
+if VersionNumber(sys.version[:3]) < VersionNumber("2.2"):
 	print("You are using version %s of Python, at least 2.2 is required." % (sys.version[:3]))
-	os._exit(0)
+	sys.exit(0)
 
 name = "PyICQt"
 exe = os.path.realpath(sys.executable)
-if (exe.find("python") >= 0):
-	print("Restarting with process name %s..." % (name))
-	os.execv(exe, [name, sys.argv[0]]+sys.argv[1:])
+#This does not work under Windows, so we're getting rid of it for now.
+#if (exe.find("python") >= 0):
+#	os.execv(exe, [name, sys.argv[0]]+sys.argv[1:])
 
 import config
 import xmlconfig
 conffile = "config.xml"
 options = {}
-opts, args = getopt.getopt(sys.argv[1:], "c:o:dDtl:h", ["config=", "option=", "debug", "Debug", "traceback", "log=", "help"])
+daemonizeme = False
+opts, args = getopt.getopt(sys.argv[1:], "bc:o:dDgtl:h", ["background", "config=", "option=", "debug", "Debug", "garbage", "traceback", "log=", "help"])
 for o, v in opts:
 	if o in ("-c", "--config"):
 		conffile = v
+	elif o in ("-b", "--background"):
+                daemonizeme = True
 	elif o in ("-d", "--debug"):
 		config.debugOn = True
 	elif o in ("-D", "--Debug"):
 		config.debugOn = True
 		config.extendedDebugOn = True
+	elif o in ("-g", "--garbage"):
+		import gc
+		gc.set_debug(gc.DEBUG_LEAK|gc.DEBUG_STATS)
 	elif o in ("-t", "--traceback"):
 		config.tracebackDebug = True
 	elif o in ("-l", "--log"):
@@ -44,49 +54,61 @@ for o, v in opts:
 	elif o in ("-h", "--help"):
 		print "./PyICQt [options]"
 		print "   -h                  print this help"
+		print "   -b                  daemonize/background transport"
 		print "   -c <file>           read configuration from this file"
 		print "   -d                  print debugging output"
 		print "   -D                  print extended debugging output"
+		print "   -g                  print garbage collection output"
 		print "   -t                  print debugging only on traceback"
 		print "   -l <file>           write debugging output to file"
 		print "   -o <var>=<setting>  set config var to setting"
-		os._exit(0)
+		sys.exit(0)
 reload(debug)
 
-if (config.extendedDebugOn):
+if config.extendedDebugOn:
 	from twisted.python import log
-	if (debug.debugFile):
+	if debug.debugFile:
 		log.startLogging(debug.debugFile, 0)
 	else:
 		log.startLogging(sys.stdout, 0)
 xmlconfig.Import(conffile, options)
- 
+
 def reloadConfig(a, b):
 	# Reload default config and then process conf file
 	reload(config)
 	xmlconfig.Import(conffile, None)
-	debug.reopenFile()
+	debug.reopenfile()
 
 # Set SIGHUP to reload the config file
-if (os.name == "posix"):
+if os.name == "posix":
 	import signal
 	signal.signal(signal.SIGHUP, reloadConfig)
 
+if config.reactor == "epoll":
+	from twisted.internet import epollreactor
+	epollreactor.install()
+elif config.reactor == "poll":
+	from twisted.internet import pollreactor
+	pollreactor.install()
+elif config.reactor == "kqueue":
+	from twisted.internet import kqreactor
+	kqreactor.install()
+elif len(config.reactor) > 0:
+	print "Unknown reactor: ", config.reactor, ". Using default, select(), reactor."
+
 from twisted.internet import reactor, task
+from twisted.internet.defer import Deferred
 from twisted.web import proxy, server
-import utils
-if(utils.checkTwisted()):
+import twisted.python.log
+if utils.checkTwisted():
 	from twisted.words.protocols.jabber import component, jid
 	from twisted.xish.domish import Element
 else:
 	from tlib.jabber import component, jid
 	from tlib.domish import Element
-#from tlib.xmlstream import STREAM_ERROR_EVENT,STREAM_END_EVENT
-from twisted.internet.defer import Deferred
-import twisted.python.log
 
-import types
 import xdb
+import avatar
 import session
 import jabw
 import disco
@@ -94,69 +116,109 @@ import register
 import misciq
 import legacy
 import lang
-import exception
+import groupchat
+import sasl
+import globals
+
+
 
 class PyTransport(component.Service):
+	j2bound = 0
 	def __init__(self):
 		debug.log("PyTransport: Service starting up")
-		
 		# Discovery, as well as some builtin features
-		self.discovery = disco.Discovery(self)
-		self.discovery.addIdentity("gateway", legacy.id, legacy.name)
+		self.discovery = disco.ServerDiscovery(self)
+		self.discovery.addIdentity("gateway", legacy.id, legacy.name, config.jid)
+		self.discovery.addFeature(globals.XHTML, None, "USER")
+		if config.confjid and config.confjid != "":
+			self.discovery.addIdentity("gateway", legacy.id, legacy.name + " Chatrooms", config.confjid)
+			self.discovery.addIdentity("conference", "text", legacy.name + " Chatrooms", config.confjid)
+			self.discovery.addFeature("jabber:x:conference", None, config.confjid)
+			self.discovery.addFeature("jabber:iq:conference", None, config.confjid)
 
-		self.xdb = xdb.XDB(config.jid, legacy.mangle)
-		if(not config.disableRegister):
-			self.registermanager = register.RegisterManager(self)
+		self.xdb = xdb.XDB(config.jid)
+		self.avatarCache = avatar.AvatarCache()
+		self.registermanager = register.RegisterManager(self)
+		self.adHocCommands = misciq.AdHocCommands(self)
 		self.gatewayTranslator = misciq.GatewayTranslator(self)
 		self.versionTeller = misciq.VersionTeller(self)
-		
+		self.pingService = misciq.PingService(self)
+		self.vCardFactory = misciq.VCardFactory(self)
+		self.searchFactory = misciq.SearchFactory(self)
+		self.IqAvatarFactory = misciq.IqAvatarFactory(self)
+		#self.groupChatDisco = misciq.GroupChat(self)
+		self.statistics = misciq.Statistics(self)
+		self.connectUsers = misciq.ConnectUsers(self)
+		legacy.addCommands(self)
+		self.startTime = int(time.time())
+
 		self.xmlstream = None
 		self.sessions = {}
 		
+		# Groupchat ID handling
+		self.lastID = 0
+		self.reservedIDs = []
+
 		# Message IDs
 		self.messageID = 0
 		
-		self.loopCheckSessions = task.LoopingCall(self.loopCheckSessionsCall)
-		self.loopCheckSessions.start(60.0) # call every ten seconds
+		self.loopCall = task.LoopingCall(self.loopCall)
+		self.loopCall.start(60.0)
 		
 		# Display active sessions if debug mode is on
-		if(config.debugOn):
-			self.loop = task.LoopingCall(self.loopCall)
-			self.loop.start(60.0) # call every 60 seconds
+		if config.debugOn:
 			twisted.python.log.addObserver(self.exceptionLogger)
-
+		
+	
 	def removeMe(self):
 		debug.log("PyTransport: Service shutting down")
-		dic = utils.copyDict(self.sessions)
-		for session in dic:
-			dic[session].removeMe()
+		for session in self.sessions.copy():
+			self.sessions[session].removeMe()
 
 	def exceptionLogger(self, *kwargs):
-		if(len(config.debugLog) > 0):
+		if len(config.debugLog) > 0:
 			kwargs = kwargs[0]
-			if(kwargs.has_key("failure")):
+			if kwargs.has_key("failure"):
 				failure = kwargs["failure"]
 				failure.printTraceback(debug) # Pass debug as a pretend file object because it implements the write method
-				if(config.debugLog):
+				if config.debugLog:
+					debug.flushDebugSmart()
 					print "Exception occured! Check the log!"
 
 	def makeMessageID(self):
 		self.messageID += 1
 		return str(self.messageID)
 	
+	def makeID(self):
+		newID = "r" + str(self.lastID)
+		self.lastID += 1
+		if self.reservedIDs.count(newID) > 0:
+			# Ack, it's already used.. Try again
+			return self.makeID()
+		else:
+			return newID
+	
+	def reserveID(self, ID):
+		self.reservedIDs.append(ID)
+
 	def loopCall(self):
-		if(len(self.sessions) > 0):
+		numsessions = len(self.sessions)
+
+		if config.debugOn and numsessions > 0:
 			debug.log("Sessions:")
 			for key in self.sessions:
 				debug.log("\t" + self.sessions[key].jabberID)
-	
-	def loopCheckSessionsCall(self):
-		if(len(self.sessions) > 0):
-			oldDict = utils.copyDict(self.sessions)
+				for res in self.sessions[key].resourceList:
+					debug.log("\t\t" + res)
+        
+		self.statistics.stats["Uptime"] = int(time.time()) - self.startTime
+		legacy.updateStats(self.statistics)
+		if numsessions > 0:
+			oldDict = self.sessions.copy()
 			self.sessions = {}
 			for key in oldDict:
 				session = oldDict[key]
-				if(not session.alive):
+				if not session.alive:
 					debug.log("Ghost session %s found. This shouldn't happen. Trace" % (session.jabberID))
 					# Don't add it to the new dictionary. Effectively removing it
 				else:
@@ -168,22 +230,71 @@ class PyTransport(component.Service):
 		self.xmlstream.addObserver("/iq", self.discovery.onIq)
 		self.xmlstream.addObserver("/presence", self.onPresence)
 		self.xmlstream.addObserver("/message", self.onMessage)
+		self.xmlstream.addObserver("/bind", self.onBind)
+		self.xmlstream.addObserver("/route", self.onRouteMessage)
 		self.xmlstream.addObserver("/error[@xmlns='http://etherx.jabber.org/streams']", self.streamError)
-		#self.xmlstream.addObserver(STREAM_ERROR_EVENT, self.streamError)
-		#self.xmlstream.addObserver(STREAM_END_EVENT, self.streamEnd)
+		if config.useXCP and config.compjid:
+			pres = Element((None, "presence"))
+			pres.attributes["to"] = "presence@-internal"
+			pres.attributes["from"] = config.compjid
+			x = pres.addElement("x")
+			x.attributes["xmlns"] = "http://www.jabber.com/schemas/component-presence.xsd"
+			x.attributes["xmlns:config"] = "http://www.jabber.com/config"
+			x.attributes["config:version"] = "1"
+			x.attributes["protocol-version"] = "1.0"
+			x.attributes["config-ns"] = legacy.url + "/component"
+			self.send(pres)
+		if config.saslUsername and config.useJ2Component:
+			debug.log("PyTransport: J2C Binding to %s" % config.jid)
+			bind = Element((None,"bind"))
+			#bind.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
+			bind.attributes["name"] = config.jid
+			self.send(bind)
+		if config.saslUsername and config.useJ2Component and config.confjid:
+			debug.log("PyTransport: J2C Binding to %s" % config.confjid)
+			bind = Element((None,"bind"))
+			#bind.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
+			bind.attributes["name"] = config.confjid
+			self.send(bind)
+		if config.saslUsername and config.useJ2Component:
+			self.j2bound = 1
 
+	def send(self, obj):
+		if self.j2bound == 1 and type(obj) == Element:
+			to = obj.getAttribute("to")
+			route = Element((None,"route"))
+			#route.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
+			route.attributes["from"] = config.jid
+			route.attributes["to"] = jid.JID(to).host
+			route.addChild(obj)
+			obj.attributes["xmlns"] = "jabber:client"
+			component.Service.send(self,route.toXml())
+		else:
+			if type(obj) == Element:
+				obj = obj.toXml()
+			component.Service.send(self,obj)
+	
 	def componentDisconnected(self):
 		debug.log("PyTransport: Disconnected from main Jabberd server")
-		# Is this proper?  I mean we were disconnected but we're
-		# sending this anyway?  Hrm..  it does work, which is a
-		# little odd.
-		# Ok, this appears to have the potential to cause an
-		# infinite stream error loop, so shut this up for now.
-		#if (self.sessions):
-		#	sessionkeys = self.sessions.keys()
-		#	for s in sessionkeys:
-		#		self.sessions[s].removeMe()
 		self.xmlstream = None
+
+	def onRouteMessage(self, el):
+		debug.log("PyTransport: Received route packet %s" % (el.toXml()))
+		for child in el.elements():
+			if child.name == "message": 
+				self.onMessage(child)
+			elif child.name == "presence":
+				# Ignore any presence broadcasts about other XCP components
+				if child.getAttribute("to") and child.getAttribute("to").find("@-internal") > 0: return
+				self.onPresence(child)
+			elif child.name == "iq":
+				self.discovery.onIq(child)
+			elif child.name == "bind": 
+				self.onBind(child)
+
+	def onBind(self, el):
+		debug.log("PyTransport: Received bind packet %s" % (el.toXml()))
+		pass
 
 	def streamError(self, errelem):
 		debug.log("PyTransport: Received stream error")
@@ -195,56 +306,59 @@ class PyTransport(component.Service):
 	
 	def onMessage(self, el):
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro.lower())
 		to = el.getAttribute("to")
-		#if(to.find('@') < 0): return
 		mtype = el.getAttribute("type")
-		ulang = utils.getLang(el)
-		body = None
-		for child in el.elements():
-			if(child.name == "body"):
-				body = child.__str__()
-		if(self.sessions.has_key(froj.userhost())):
+		try:
+			froj = jid.JID(fro)
+		except Exception, e:
+			debug.log("PyTransport: Failed stringprep on <message from=\"%s\"/> - %s" % (fro, str(e)))
+			return
+		if self.sessions.has_key(froj.userhost()):
 			self.sessions[froj.userhost()].onMessage(el)
-		elif(mtype != "error"):
+		elif mtype != "error":
+			ulang = utils.getLang(el)
+			body = None
+			for child in el.elements():
+				if child.name == "body":
+					body = child.__str__()
 			debug.log("PyTrans: Sending error response to a message outside of session.")
-			jabw.sendErrorMessage(self, fro, to, "auth", "forbidden", lang.get(ulang).notloggedin, body)
+			jabw.sendErrorMessage(self, fro, to, "auth", "not-authorized", lang.get("notloggedin", ulang), body)
 	
 	def onPresence(self, el):
 		fro = el.getAttribute("from")
-		ptype = el.getAttribute("type")
-		froj = jid.JID(fro.lower())
 		to = el.getAttribute("to")
-		toj = jid.JID(to.lower())
-		ulang = utils.getLang(el)
-		debug.log("PyTransport: onPresence type %s from %s to %s" % (ptype, fro, to))
-		if(self.sessions.has_key(froj.userhost())):
+		# Ignore any presence broadcasts about other JD2 components
+		if to == None: return
+		try:
+			froj = jid.JID(fro)
+			toj = jid.JID(to)
+		except Exception, e:
+			debug.log("PyTransport: Failed stringprep on <presence from=\"%s\" to=\"%s\"/> - %s" % (fro, to, str(e)))
+			return
+
+		if self.sessions.has_key(froj.userhost()):
 			self.sessions[froj.userhost()].onPresence(el)
 		else:
-			if(to.find('@') < 0):
+			ulang = utils.getLang(el)
+			ptype = el.getAttribute("type")
+			if to.find('@') < 0:
 				# If the presence packet is to the transport (not a user) and there isn't already a session
-				if(ptype == "subscribe"):
-					debug.log("PyTransport: Answering subscription request")
-					el.swapAttributeValues("from", "to")
-					el.attributes["type"] = "subscribed"
-					self.send(el)
-				elif(ptype in [None, ""]): # Don't create a session unless they're sending available presence
+				if not ptype: # Don't create a session unless they're sending available presence
 					debug.log("PyTransport: Attempting to create a new session \"%s\"" % (froj.userhost()))
 					s = session.makeSession(self, froj.userhost(), ulang, toj)
-					if(s):
+					if s:
 						self.sessions[froj.userhost()] = s
 						debug.log("PyTransport: New session created \"%s\"" % (froj.userhost()))
 						# Send the first presence
 						s.onPresence(el)
+						# Get the capabilities
+						s.getCapabilities(el)
 					else:
 						debug.log("PyTransport: Failed to create session \"%s\"" % (froj.userhost()))
-						jabw.sendMessage(self, to=froj.userhost(), fro=config.jid, body=lang.get(ulang).notregistered)
+						jabw.sendMessage(self, to=froj.userhost(), fro=config.jid, body=lang.get("notregistered", ulang))
 				
-				elif(ptype != "error"):
+				elif ptype != "error":
 					debug.log("PyTransport: Sending unavailable presence to non-logged in user \"%s\"" % (froj.userhost()))
-					#el.swapAttributeValues("from", "to")
-					#el.attributes["type"] = "unavailable"
-					#self.send(el)
 					pres = Element((None, "presence"))
 					pres.attributes["from"] = to
 					pres.attributes["to"] = fro
@@ -252,12 +366,12 @@ class PyTransport(component.Service):
 					self.send(pres)
 					return
 			
-			elif(ptype in ["subscribe", "subscribed", "unsubscribe", "unsubscribed"]):
+			elif ptype and (ptype.startswith("subscribe") or ptype.startswith("unsubscribe")):
 				# They haven't logged in, and are trying to change subscription to a user
 				# Lets log them in and then do it
 				debug.log("PyTransport: Attempting to create a session to do subscription stuff %s" % (froj.userhost()))
 				s = session.makeSession(self, froj.userhost(), ulang, toj)
-				if(s):
+				if s:
 					self.sessions[froj.userhost()] = s
 					debug.log("PyTransport: New session created \"%s\"" % (froj.userhost()))
 					# Tell the session there's a new resource
@@ -265,15 +379,16 @@ class PyTransport(component.Service):
 					# Send this subscription
 					s.onPresence(el)
 
+
 class App:
 	def __init__(self):
 		# Check that there isn't already a PID file
-		if(config.pid):
-			if(os.path.isfile(utils.doPath(config.pid))):
+		if config.pid:
+			if os.path.isfile(utils.doPath(config.pid)):
 				pf = open(utils.doPath(config.pid))
 				pid = int(str(pf.readline().strip()))
 				pf.close()
-				if(os.name == "posix"):
+				if os.name == "posix":
 					try:
 						os.kill(pid, signal.SIGHUP)
 						self.alreadyRunning()
@@ -289,17 +404,24 @@ class App:
 			pf.write("%s\n" % pid);
 			pf.close()
 
-		self.c = component.buildServiceManager(config.jid, config.secret, "tcp:%s:%s" % (config.mainServer, config.port))
+		jid = config.jid
+		if config.useXCP and config.compjid: jid = config.compjid
+
+		if config.saslUsername:
+			self.c = sasl.buildServiceManager(jid, config.saslUsername, config.secret, "tcp:%s:%s" % (config.mainServer, config.port))
+		else:
+			self.c = component.buildServiceManager(jid, config.secret, "tcp:%s:%s" % (config.mainServer, config.port))
 		self.transportSvc = PyTransport()
 		self.transportSvc.setServiceParent(self.c)
 		self.c.startService()
+
 		reactor.addSystemEventTrigger('before', 'shutdown', self.shuttingDown)
 
 		self.sendInvitations()
 
 	def sendInvitations(self):              
-		if (not config.disableAutoInvite):
-			for jid in self.transportSvc.xdb.files():
+		if config.enableAutoInvite:
+			for jid in self.transportSvc.xdb.getRegistrationList():
 				debug.log("Inviting %s..." % (jid))
 				jabw.sendPresence(self.transportSvc,jid, config.jid, ptype="probe")
 
@@ -307,10 +429,10 @@ class App:
 		print "There is already a transport instance running with this configuration."
 		print "Exiting..."
 		sys.exit(1)
-	
+
 	def shuttingDown(self):
 		self.transportSvc.removeMe()
-		if(config.pid):
+		if config.pid:
 			def cb(ignored=None):
 				os.remove(utils.doPath(config.pid))
 			d = Deferred()
@@ -320,9 +442,19 @@ class App:
 
 
 
-if(__name__ == "__main__"):
+if __name__ == "__main__":
+	if daemonizeme:
+		import daemonize
+		if len(config.debugLog) > 0:
+			daemonize.daemonize(stdout=config.debugLog,stderr=config.debugLog)
+		else:
+			daemonize.daemonize()
+
+	# Do any auto-update stuff
+	xdb.housekeep()
+
 	app = App()
-	if (hasattr(config, "webport") and config.webport):
+	if hasattr(config, "webport") and config.webport:
 		try:
 			from nevow import appserver
 			import webadmin

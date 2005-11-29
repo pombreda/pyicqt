@@ -60,7 +60,7 @@ class _Serializer:
 
         # Shortcut, check to see if elem is actually a string (aka Cdata)
         if isinstance(elem, types.StringTypes):
-            write(escapeToXml(elem).encode("utf-8")) 
+            write(escapeToXml(elem).encode("utf-8"))
             return
 
         # Further optimizations
@@ -85,12 +85,11 @@ class _Serializer:
 
         # Serialize attributes
         for k,v in elem.attributes.items():
-            if isinstance(v, types.StringTypes): v = escapeToXml(v, 1)
             # If the attribute name is a list, it's a qualified attribute
             if isinstance(k, types.TupleType):
-                write(" %s:%s='%s'" % (self.getPrefix[k[0]], k[1], v).encode("utf-8"))
+                write(" %s:%s='%s'" % (self.getPrefix(k[0]), k[1], escapeToXml(v, 1)).encode("utf-8"))
             else:
-                write((" %s='%s'" % ( k, v)).encode("utf-8"))
+                write((" %s='%s'" % ( k, escapeToXml(v, 1))).encode("utf-8"))
 
         # Shortcut out if this is only going to return
         # the element (i.e. no children)
@@ -165,7 +164,7 @@ class _ListSerializer:
         for k,v in elem.attributes.items():
             # If the attribute name is a list, it's a qualified attribute
             if isinstance(k, types.TupleType):
-                write(" %s:%s='%s'" % (self.getPrefix[k[0]], k[1], escapeToXml(v, 1)))
+                write(" %s:%s='%s'" % (self.getPrefix(k[0]), k[1], escapeToXml(v, 1)))
             else:
                 write((" %s='%s'" % ( k, escapeToXml(v, 1))))
 
@@ -650,31 +649,3 @@ class ExpatElementStream:
         # Remove last element on the stack
         if prefix == None:
             self.defaultNsStack.pop()
-
-## class FileParser(ElementStream):
-##     def __init__(self):
-##         ElementStream.__init__(self)
-##         self.DocumentStartEvent = self.docStart
-##         self.ElementEvent = self.elem
-##         self.DocumentEndEvent = self.docEnd
-##         self.done = 0
-
-##     def docStart(self, elem):
-##         self.document = elem
-
-##     def elem(self, elem):
-##         self.document.addChild(elem)
-
-##     def docEnd(self):
-##         self.done = 1
-
-##     def parse(self, filename):
-##         for l in open(filename).readlines():
-##             self.parser.Parse(l)
-##         assert self.done == 1
-##         return self.document
-
-## def parseFile(filename):
-##     return FileParser().parse(filename)
-
-

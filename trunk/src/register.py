@@ -1,8 +1,8 @@
-# Copyright 2004 James Bunton <james@delx.cjb.net>
+# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-if(utils.checkTwisted()):
+if utils.checkTwisted():
 	from twisted.xish.domish import Element
 	from twisted.words.protocols.jabber import jid
 else:
@@ -10,18 +10,18 @@ else:
 	from tlib.jabber import jid
 
 import session
-import config
 import legacy
 import debug
 import lang
 import jabw
-
-XMPP_STANZAS = 'urn:ietf:params:xml:ns:xmpp-stanzas'
+import config
+import globals
 
 class RegisterManager:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		self.pytrans.discovery.addFeature("jabber:iq:register", self.incomingRegisterIq)
+		if not config.disableRegister:
+			self.pytrans.discovery.addFeature("jabber:iq:register", self.incomingRegisterIq, config.jid)
 		debug.log("RegisterManager: Created")
 	
 	def removeRegInfo(self, jabberID):
@@ -33,39 +33,34 @@ class RegisterManager:
 		except KeyError:
 			pass
 		
-		self.pytrans.xdb.remove(jabberID)
+		self.pytrans.xdb.removeRegistration(jabberID)
 		debug.log("RegisterManager: removeRegInfo(\"%s\") - done" % (jabberID))
 	
 	
-	def setRegInfo(self, jabberID, username, password, encoding):
-		debug.log("RegisterManager: setRegInfo(\"%s\", \"%s\", \"%s\", \"%s\")" % (jabberID, username, password, encoding))
-		if (len(password) == 0):
-			(blah1, password, blah3) = self.getRegInfo(jabberID)
-		if (len(encoding) == 0):
-			(blah1, blah2, encoding) = self.getRegInfo(jabberID)
-		if (len(encoding) == 0):
-			encoding = config.encoding
+	#def setRegInfo(self, jabberID, username, password):
+	#	debug.log("RegisterManager: setRegInfo(\"%s\", \"%s\", \"%s\")" % (jabberID, username, password))
+	#	if(len(password) == 0):
+	#		(blah1, password, blah3) = self.getRegInfo(jabberID)
 
-		reginfo = legacy.formRegEntry(username, password, encoding)
-		self.pytrans.xdb.set(jabberID, legacy.namespace, reginfo)
+	#	reginfo = legacy.formRegEntry(username, password)
+	#	self.pytrans.xdb.set(jid.JID(jabberID).full(), legacy.namespace, reginfo)
 	
-	def getRegInfo(self, jabberID):
-		debug.log("RegisterManager: getRegInfo(\"%s\")" % (jabberID))
-		result = self.pytrans.xdb.request(jabberID, legacy.namespace)
-		if(result == None):
-			debug.log("RegisterManager: getRegInfo(\"%s\") - not registered!" % (jabberID))
-			return None
-		
-		username, password, encoding = legacy.getAttributes(result)
-		if(not encoding):
-			encoding = config.encoding
-		
-		if(username and password and len(username) > 0 and len(password) > 0):
-			debug.log("RegisterManager: getRegInfo(\"%s\") - returning reg info \"%s\" \"%s\" \"%s\"!" % (jabberID, username, password, encoding))
-			return (username, password, encoding)
-		else:
-			debug.log("RegisterManager: getRegInfo(\"%s\") - invalid registration data! %s %s %s" % (jabberID, username, password, encoding))
-			return None
+	#def getRegInfo(self, jabberID):
+	#	debug.log("RegisterManager: getRegInfo(\"%s\")" % (jabberID))
+	#	#result = self.pytrans.xdb.request(jid.JID(jabberID).full(), legacy.namespace)
+	#	result = self.pytrans.xdb.request(jid.JID(jabberID).userhost(), legacy.namespace)
+	#	if(result == None):
+	#		debug.log("RegisterManager: getRegInfo(\"%s\") - not registered!" % (jabberID))
+	#		return None
+	#	
+	#	username, password = legacy.getAttributes(result)
+	#	
+	#	if(username and password and len(username) > 0 and len(password) > 0):
+	#		debug.log("RegisterManager: getRegInfo(\"%s\") - returning reg info \"%s\" \"%s\"!" % (jabberID, username, password))
+	#		return (username, password)
+	#	else:
+	#		debug.log("RegisterManager: getRegInfo(\"%s\") - invalid registration data! %s %s" % (jabberID, username, password))
+	#		return None
 	
 	def incomingRegisterIq(self, incoming):
 		# Check what type the Iq is..
@@ -88,19 +83,16 @@ class RegisterManager:
 		query.attributes["xmlns"] = "jabber:iq:register"
 		instructions = query.addElement("instructions")
 		ulang = utils.getLang(incoming)
-		instructions.addContent(lang.get(ulang).registertext)
+		instructions.addContent(lang.get("registertext", ulang))
 		userEl = query.addElement("username")
 		passEl = query.addElement("password")
-		encEl = query.addElement("encoding")
 		
 		# Check to see if they're registered
-		barefrom = jid.JID(incoming.getAttribute("from")).userhost().lower()
-		result = self.getRegInfo(barefrom)
+		source = jid.JID(incoming.getAttribute("from")).userhost()
+		result = self.pytrans.xdb.getRegistration(source)
 		if(result):
-			username, password, encoding = result
+			username, password = result
 			userEl.addContent(username)
-			if(encoding and len(encoding) > 0):
-				encEl.addContent(encoding)
 			query.addElement("registered")
 		
 		self.pytrans.send(reply)
@@ -108,11 +100,10 @@ class RegisterManager:
 	def updateRegistration(self, incoming):
 		# Grab the username and password
 		debug.log("RegisterManager: updateRegistration() for \"%s\" \"%s\"" % (incoming.getAttribute("from"), incoming.getAttribute("id")))
-		source = jid.JID(incoming.getAttribute("from")).userhost().lower()
+		source = jid.JID(incoming.getAttribute("from")).userhost()
 		ulang = utils.getLang(incoming)
 		username = None
 		password = None
-		encoding = None
 		
 		for queryFind in incoming.elements():
 			if(queryFind.name == "query"):
@@ -122,8 +113,6 @@ class RegisterManager:
 							username = child.__str__().lower()
 						elif(child.name == "password"):
 							password = child.__str__()
-						elif(child.name == "encoding"):
-							encoding = child.__str__()
 						elif(child.name == "remove"):
 							# The user wants to unregister the transport! Gasp!
 							debug.log("RegisterManager: Session \"%s\" is about to be unregistered" % (source))
@@ -137,25 +126,20 @@ class RegisterManager:
 							return
 					except AttributeError, TypeError:
 						continue # Ignore any errors, we'll check everything below
-
-		if(not encoding):
-			encoding = config.encoding
 		
 		if(username and password and len(username) > 0 and len(password) > 0):
 			# Valid registration data
 			debug.log("RegisterManager: Valid registration data was received. Attempting to update XDB")
 			try:
-				self.setRegInfo(source, username, password, encoding)
+				self.pytrans.xdb.setRegistration(source, username, password)
 				debug.log("RegisterManager: Updated XDB successfully")
 				self.successReply(incoming)
 				debug.log("RegisterManager: Sent off a result Iq")
-				# If they're in a session right now, we do nothing
-				if(not self.pytrans.sessions.has_key(source)):
-					(user, host, res) = jid.parse(incoming.getAttribute("from").lower())
-					debug.log("RegisterManager: Sending subscribe presence %s@%s/%s %s" % (user, host, res, config.jid))
-					jabw.sendPresence(self.pytrans, to=user + "@" + host, fro=config.jid, ptype="subscribe")
+				(user, host, res) = jid.parse(incoming.getAttribute("from"))
+				debug.log("RegisterManager: Sending subscribe presence %s@%s/%s %s" % (user, host, res, config.jid))
+				jabw.sendPresence(self.pytrans, to=user + "@" + host, fro=config.jid, ptype="subscribe")
 				if(config.registerMessage):
-					jabw.sendMessage(self.pytrans, to=incoming.getAttribute("from").lower(), fro=config.jid, body=config.registerMessage)
+					jabw.sendMessage(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, body=config.registerMessage)
 			except:
 				self.xdbErrorReply(incoming)
 				raise
@@ -172,7 +156,7 @@ class RegisterManager:
 		error = reply.addElement("error")
 		error.attributes["type"] = "modify"
 		interror = error.addElement("bad-request")
-		interror["xmlns"] = XMPP_STANZAS
+		interror["xmlns"] = globals.XMPP_STANZAS
 		self.pytrans.send(reply)
 	
 	def xdbErrorReply(self, incoming):
@@ -184,13 +168,15 @@ class RegisterManager:
 		error = reply.addElement("error")
 		error.attributes["type"] = "wait"
 		interror = error.addElement("internal-server-error")
-		interror["xmlns"] = XMPP_STANZAS
+		interror["xmlns"] = globals.XMPP_STANZAS
 		self.pytrans.send(reply)
 	
 	def successReply(self, incoming):
 		reply = Element((None, "iq"))
 		reply.attributes["type"] = "result"
-		reply.attributes["id"] = incoming.getAttribute("id")
+		ID = incoming.getAttribute("id")
+		if(ID): reply.attributes["id"] = ID
 		reply.attributes["from"] = config.jid
 		reply.attributes["to"] = incoming.getAttribute("from")
 		self.pytrans.send(reply)
+

@@ -1,3 +1,41 @@
+2005-11-28  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/avatar.py:
+	* src/config.py:
+	* src/contact.py:
+	* src/daemonize.py:
+	* src/debug,py:
+	* src/globals.py:
+	* src/lang.py:
+	* src/langs/__init__.py:
+	* src/langs/cs.py:
+	* src/langs/de.py:
+	* src/langs/en.py:
+	* src/langs/es.py:
+	* src/langs/fr.py:
+	* src/langs/nl.py:
+	* src/langs/pl.py:
+	* src/langs/ru.py:
+	* src/langs/sv.py:
+	* src/main.py:
+	* src/misciq.py:
+	* src/register.py:
+	* src/sasl.py:
+	* src/tlib/domish.py:
+	* src/tlib/jabber/jid.py:
+	* src/tlib/jabber/xmpp_stringprep.py:
+	* src/tlib/oscar.py:
+	* src/webadmin/handler.py:
+	* src/xdb/__init__.py:
+	* src/xdb/mysql.py:
+	* src/xdb/template.py:
+	* src/xdb/xmlfiles.py:
+	* src/xmlconfig.py:
+	Imported directly from PyAIM, with some minor mods.
+
+	* src/stats.py:
+	Removed since we don't use it anymore.
+
 2005-09-05  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

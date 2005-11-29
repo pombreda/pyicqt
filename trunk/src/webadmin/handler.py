@@ -1,3 +1,6 @@
+# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Licensed for distribution under the GPL version 2, check COPYING for details
+
 #from twisted.web.woven import page
 from nevow import rend, loaders, inevow
 from nevow import tags as T
@@ -8,7 +11,7 @@ import debug
 import config
 import legacy
 import sys, os
-import stats
+import lang
 
 admintmplhead = """
 <HTML>
@@ -170,7 +173,7 @@ but for now, enjoy the statistics and such!</P>
 	def renderHTTP(self, ctx):
 		request = inevow.IRequest(ctx)
 		password = request.getPassword()
-		if (password != config.websecret):
+		if password != config.websecret:
 			request.setHeader('WWW-Authenticate', 'Basic realm="PyICQ-t"')
 			request.setResponseCode(http.UNAUTHORIZED)
 			return "Authorization required."
@@ -178,11 +181,11 @@ but for now, enjoy the statistics and such!</P>
 
 	def childFactory(self, ctx, name):
 		debug.log("WebAdmin: getDynamicChild %s %s" % (ctx, name))
-		if (name == "status"):
+		if name == "status":
 			return WebAdmin_status(pytrans=self.pytrans)
-		if (name == "config"):
+		if name == "config":
 			return WebAdmin_config(pytrans=self.pytrans)
-		if (name == "controls"):
+		if name == "controls":
 			return WebAdmin_controls(pytrans=self.pytrans)
 		else:
 			pass
@@ -196,16 +199,11 @@ but for now, enjoy the statistics and such!</P>
 # Status Node
 class WebAdmin_status(WebAdmin):
 	docFactory = loaders.htmlstr(admintmplhead + """
-<B>Transport Status</B>
+<B>Transport Statistics</B>
 <HR />
-<TABLE BORDER="0" WIDTH="100%" CELLSPACING="5" CELLPADDING="2">
-<TR VALIGN="top">
-<TD ALIGN="left"><SPAN nevow:render="traffic" /></TD>
-<TD ALIGN="right"><SPAN nevow:render="usage" /></TD>
-</TR>
-</TABLE>
+<SPAN nevow:render="statistics" />
 <BR /><BR />
-<B>Transport Status</B>
+<B>Sessions</B>
 <HR />
 <SPAN nevow:render="sessions" />
 """ + admintmplfoot)
@@ -213,34 +211,22 @@ class WebAdmin_status(WebAdmin):
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
 
-	def render_traffic(self, context, data):
-		ret = T.table[
-			T.tr[
-				T.th(align = "right")["Incoming Messages:"],
-				T.td[stats.incmessages]
-			],
-			T.tr[
-				T.th(align = "right")["Outgoing Messages:"],
-				T.td[stats.outmessages]
-			]
-		]
-		return [ret]
+	def render_statistics(self, context, data):
+		ret = T.table(border = 0,width = "100%",cellspacing=5,cellpadding=2)
+		for key in self.pytrans.statistics.stats:
+			label = lang.get("statistics_%s" % key, config.lang)
+			description = lang.get("statistics_%s_Desc" % key, config.lang)
 
-	def render_usage(self, context, data):
-		ret = T.table[
-			T.tr[
-				T.th(align = "right")["Total Sessions:"],
-				T.td[stats.totalsess]
-			],
-			T.tr[
-				T.th(align = "right")["Most Concurrent Sessions:"],
-				T.td[stats.maxsess]
+			row = T.tr[
+				T.th(align = "right")[label+":"],
+				T.td[self.pytrans.statistics.stats[key]],
+				T.td[description]
 			]
-		]
-		return [ret]
+			ret[row]
+		return ret
 
 	def render_sessions(self, context, data):
-		if (len(self.pytrans.sessions) <= 0):
+		if len(self.pytrans.sessions) <= 0:
 			return "No active sessions."
 
 		ret = T.table(border = 0,width = "100%",cellspacing=5,cellpadding=2)
@@ -255,9 +241,9 @@ class WebAdmin_status(WebAdmin):
 			jid = self.pytrans.sessions[key].jabberID
 			row = T.tr[
 				T.td[jid],
-				T.td[stats.sessionstats[jid]['incmessages']],
-				T.td[stats.sessionstats[jid]['outmessages']],
-				T.td[stats.sessionstats[jid]['connections']]
+				T.td(align = "center")[self.pytrans.statistics.sessionstats[jid]['IncomingMessages']],
+				T.td(align = "center")[self.pytrans.statistics.sessionstats[jid]['OutgoingMessages']],
+				T.td(align = "center")[self.pytrans.statistics.sessionstats[jid]['Connections']]
 			]
 			ret[row]
 		return ret
@@ -276,9 +262,9 @@ class WebAdmin_config(WebAdmin):
 	def render_config(self, context, data):
 		table = T.table(border=0)
 		for key in config.__dict__.keys():
-			if (key[0] == "_"):
+			if key[0] == "_":
 				continue
-			if (key.find("secret") >= 0):
+			if key.find("secret") >= 0:
 				setting = "**hidden**"
 			else:
 				setting = config.__dict__[key]
@@ -301,24 +287,24 @@ class WebAdmin_controls(WebAdmin):
 	def renderHTTP(self, ctx):
 		request = inevow.IRequest(ctx)
 		password = request.getPassword()
-		if (password != config.websecret):
-			request.setHeader('WWW-Authenticate', 'Basic realm="PyICQ-t"')
+		if password != config.websecret:
+			request.setHeader('WWW-Authenticate', 'Basic realm="PyICQ-t"')                  
 			request.setResponseCode(http.UNAUTHORIZED)
 			return "Authorization required."
-		if (request.args.get('shutdown')):
+		if request.args.get('shutdown'):
 			debug.log("WebAdmin: Received shutdown")
 			reactor.stop()
 		return rend.Page.renderHTTP(self, ctx)
 
 	def render_message(self, context, data):
 		request = inevow.IRequest(context)
-		if (request.args.get('shutdown')):
+		if request.args.get('shutdown'):
 			return T.b["Server is now shut down.  Attempts to reload this page will fail."]
 		return ""
 
 	def render_controls(self, context, data):
 		request = inevow.IRequest(context)
-		if (request.args.get('shutdown')):
+		if request.args.get('shutdown'):
 			return ""
 		return T.form(method="POST")[
 			T.input(type="submit", name="shutdown", value="Shut Down")
