@@ -19,6 +19,7 @@
 from twisted.internet import reactor, protocol, defer
 from tlib import domish
 from twisted.xish import utility
+from tlib.jabber.xmpp_stringprep import nodeprep, resourceprep, nameprep
 import string
 
 class InvalidFormat(Exception):
@@ -40,38 +41,54 @@ def parse(jidstring):
         else:
             # host/resource
             server = jidstring[0:res_sep]
-            resource = jidstring[res_sep + 1:]
+            resource = jidstring[res_sep + 1:] or None
     else:
         if res_sep == -1:
             # user@host
-            user = jidstring[0:user_sep]
+            user = jidstring[0:user_sep] or None
             server = jidstring[user_sep + 1:]
         else:
             if user_sep < res_sep:
                 # user@host/resource
-                user = jidstring[0:user_sep]
+                user = jidstring[0:user_sep] or None
                 server = jidstring[user_sep + 1:user_sep + (res_sep - user_sep)]
-                resource = jidstring[res_sep + 1:]
+                resource = jidstring[res_sep + 1:] or None
             else:
                 # server/resource (with an @ in resource)
                 server = jidstring[0:res_sep]
-                resource = jidstring[res_sep + 1:]
-
-    # Check for misc. invalid cases
-    if user and (user.find("@") != -1 or user.find("/") != -1):
-        raise InvalidFormat, "Invalid character in username"
-    if not server or len(server) == 0:
-        raise InvalidFormat, "Server address required."
-    if server and (server.find("@") != -1 or server.find("/") != -1):
-        raise InvalidFormat, "Invalid character in hostname"
-
-    # Treat empty resource as NULL resource
-    if resource and len(resource) == 0:
-        resource = None
-
-    # XXX: Do string prep here!
+                resource = jidstring[res_sep + 1:] or None
 
     # Return the tuple
+    return prep(user, server, resource)
+
+
+def prep(user, server, resource):
+    """ Stringprep, backported from Twisted 2.0 """
+
+    if user:
+        try:
+            user = nodeprep.prepare(unicode(user))
+        except UnicodeError:
+            raise InvalidFormat, "Invalid character in username"
+    else:
+        user = None
+
+    if not server:
+        raise InvalidFormat, "Server address required."
+    else:
+        try:
+            server = nameprep.prepare(unicode(server))
+        except UnicodeError:
+            raise InvalidFormat, "Invalid character in resource"
+
+    if resource:
+        try:
+            resource = resourceprep.prepare(unicode(resource))
+        except UnicodeError:
+            raise InvalidFormat, "Invalid character in resource"
+    else:
+        resource = None
+
     return (user, server, resource)
 
 __internJIDs = {}
