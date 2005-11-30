@@ -54,8 +54,9 @@ class B(oscar.BOSConnection):
 		except:
 			pass
 
-		self.session.removeMe()
 		oscar.BOSConnection.connectionLost(self, reason)
+		if has_attr(self, "session"):
+			self.session.removeMe()
 
 	def gotUserInfo(self, id, type, userinfo):
 		if userinfo:
@@ -409,8 +410,9 @@ class OA(oscar.OscarAuthenticator):
 		except:
 			pass
 
-		self.icqcon.session.removeMe()
 		oscar.OscarConnection.connectionLost(self, reason)
+		if has_attr(self.icqcon, "session"):
+			self.icqcon.session.removeMe()
 
 
 

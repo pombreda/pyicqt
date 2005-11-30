@@ -6,6 +6,15 @@
 	* src/legacy/icqt.py:
 	Imported PyAIM changes.
 
+	* src/legacy/glue.py:
+	Fixed typo.
+
+	* src/config.py:
+	Added encoding which I had missed.
+
+	* src/legacy/icqt.py:
+	Check if session exists before removing.
+
 2005-11-29  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/misciq.py:
