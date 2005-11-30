@@ -226,7 +226,7 @@ class LegacyConnection(icqt.ICQConnection):
 		if not self.session.ready:
 			return
 
-		if not show or show == "online" or show = "Online" or show == "chat":
+		if not show or show == "online" or show == "Online" or show == "chat":
 			icqt.ICQConnection.setICQStatus(self, show)
 			icqt.ICQConnection.setAway(self)
 			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None)
