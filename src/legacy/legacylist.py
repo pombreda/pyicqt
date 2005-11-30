@@ -119,7 +119,7 @@ class LegacyList:
 				debug.log("Update setting default avatar for %s" %(contact))
 				c.updateAvatar(defaultAvatar, push=True)
 
-	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None):
+	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None):
 		global defaultAvatar
 		from glue import icq2jid
 
@@ -127,7 +127,11 @@ class LegacyList:
 		self.ssicontacts[contact.lower()] = {
 			'presence': presence,
 			'show': show,
-			'status': status
+			'status': status,
+                        'ipaddr' : ipaddr,
+                        'lanipaddr' : lanipaddr,
+                        'lanipport' : lanipport,
+                        'icqprotocol' : icqprotocol
 		}
 
 		c = self.session.contactList.findContact(icq2jid(contact))
@@ -137,7 +141,10 @@ class LegacyList:
 			jabContact.updateAvatar(defaultAvatar, push=False)
 
 		if not self.xdbcontacts.has_key(contact.lower()):
-			self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
+			if nick:
+				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
+			else:
+				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
 			self.xdbcontacts[contact.lower()] = {}
 			self.session.pytrans.xdb.setListEntry("roster", self.session.jabberID, contact.lower(), payload=self.xdbcontacts[contact.lower()])
 
