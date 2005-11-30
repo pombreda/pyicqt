@@ -2,6 +2,13 @@
 	<!-- The JabberID of the transport. -->
 	<jid>icq.example.org</jid>
 
+	<!-- The JabberID of the conference room handler. -->
+	<!-- GROUPCHAT IS NOT STABLE YET -->
+	<confjid>chatrooms.icq.example.org</confjid>
+
+	<!-- The component JID of the transport. Unless you're doing clustering, leave this alone -->
+	<!-- <compjid>icq1</compjid> -->
+
 	<!-- The location of the spool directory.. if relative, relative to -->
 	<!-- this directory.  Do not include the jid of the transport. -->
 	<spooldir>.</spooldir>
@@ -12,6 +19,12 @@
 
 	<!-- The IP address of the main Jabberd server -->
 	<mainServer>127.0.0.1</mainServer>
+
+	<!-- The JID of the main Jabber server -->
+	<mainServerJID>jabber.localhost</mainServerJID>
+
+	<!-- The website of the Jabber service -->
+	<website>http://jabber.localhost/</website>
 
 	<!-- The TCP port to connect to the Jabber server on -->
 	<!-- (this is the default for Jabberd2) -->
@@ -30,7 +43,7 @@
 	<!-- The default language to use (for error/status messages) -->
 	<lang>en</lang>
 
-	<!-- Default message encoding to use (user can override) -->
+	<!-- Default message encoding to use -->
 	<encoding>iso-8859-1</encoding>
 
 	<!-- The hostname of the ICQ server you wish to connect to -->
@@ -59,11 +72,60 @@
 	<!-- (uncomment to disable) -->
 	<!-- <disableRegister/> -->
 
-	<!-- Enable encryption of passwords on spool -->
+	<!-- Enable automatic invitation to reconnect on restart -->
 	<!-- (uncomment to enable) -->
-	<!-- <encryptSpool/> -->
+	<!-- <enableAutoInvite/> -->
 
-	<!-- Disable automatic invitation to reconnect on restart -->
-	<!-- (uncomment to disable) -->
-	<!-- <disableAutoInvite/> -->
+	<!-- You can choose which users you wish to have as administrators. These users can perform some tasks with Ad-Hoc commands that others cannot -->
+	<admins>
+	<!--<jid>admin@host.com</jid>-->
+	</admins>
+
+	<!-- You can select which event loop PyAIMt will use. It's probably safe to leave this as the default -->
+
+	<!-- Use epoll for high-load Linux servers running kernel 2.6 or above -->
+	<!--<reactor>epoll</reactor>-->
+
+	<!-- Use kqueue for high-load FreeBSD servers -->
+	<!--<reactor>kqueue</reactor>-->
+
+	<!-- Use poll for high-load Unix servers -->
+	<!--<reactor>poll</reactor>-->
+
+	<!-- You can select which spool storage method you wish to use -->
+	<!-- Available methods are: -->
+	<!-- xmlfiles: single xml files in the spool directory in hashed dirs (default)-->
+	<!-- legacyaimtransport: compatible with c-based aim transport, less functionality -->
+	<!-- mysql: registration information stored in a MySQL database -->
+	<!--<xdbDriver>xmlfiles</xdbDriver>-->
+
+	<!-- For MySQL -->
+	<!--<xdbDriver>mysql</xdbDriver>-->
+	<!--<xdbDriver_mysql>-->
+	<!--<username>pyicqt</username>-->
+	<!--<password>pyicqt</password>-->
+	<!--<database>pyicqt</database>-->
+	<!--<server>localhost</server>-->
+	<!--</xdbDriver_mysql>-->
+
+	<!-- For XMLFiles -->
+	<!--<xdbDriver>xmlfiles</xdbDriver>-->
+	<!--<xdbDriver_xmlfiles>-->
+	<!--<format>encrypted</format>--> <!-- Enable encryption of passwords -->
+	<!--</xdbDriver_xmlfiles>-->
+
+	<!-- Only grab avatars when a chat is initiated. -->
+	<!-- NOT IMPLEMENTED YET -->
+	<!-- <avatarsOnlyOnChat/> -->
+
+	<!-- Use Jabber.com's XCP component protocol extensions. -->
+	<!-- <useXCP/> -->
+
+	<!-- SASL username used to bind to Jabber server. -->
+	<!-- secret, above, is used for sasl password -->
+	<!-- <saslUsername/> -->
+
+	<!-- Use Jabberd 2's component protocol extensions. -->
+	<!-- Requires saslUsername to work. -->
+	<!-- <useJ2Component/> -->
 </pyicqt>

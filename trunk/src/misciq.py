@@ -576,7 +576,7 @@ class SearchFactory:
 	def incomingIq(self, el):
 		eltype = el.getAttribute("type")
 		ID = el.getAttribute("id")
-		to = el.getAttribute("to")
+		to = el.getAttribute("from")
 		if not hasattr(self.pytrans, "legacycon"):
 			self.pytrans.discovery.sendIqError(to=to, fro=config.jid, ID=ID, xmlns=globals.COMMANDS, etype="cancel", condition="service-unavailable")
 		elif eltype == "get":
