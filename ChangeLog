@@ -1,3 +1,34 @@
+2005-11-29  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/misciq.py:
+	Fixed error packet to go back to user.
+
+	* src/xdb/legacyaimtransport.py:
+	Added aim-transport XDB plugin because you can use ICQ with it.
+
+	* src/tlib/oscar.py:
+	Added default exchange for createChat.
+
+	* src/groupchat.py:
+	Readded groupchat to see if it does indeed work with ICQ.
+
+	* src/disco.py:
+	* src/jabw.py:
+	* src/legacy/__init__.py:
+	* src/legacy/legacylist.py:
+	* src/session.py:
+	* src/utils.py:
+	Imported directly from PyAIM, with some minor mods.
+
+	* src/legacy/glue.py:
+	Imported from PyAIM with a lot of mods for ICQ.
+
+	* src/legacy/legacyiq.py:
+	Imported barebones legacyiq.
+
+	* config_example.xml:
+	Added PyAIM new config options.
+
 2005-11-28  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/avatar.py:

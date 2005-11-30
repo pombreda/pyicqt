@@ -1,8 +1,52 @@
 0.7:
 
-* Support for Twisted 2.0.
+* Added Jabberd2 component protocol support.
 
-* Personalized encoding settings.
+* Script added to migrate between XDB formats/backends.
+
+* Script added to view/manage buddy list directly.
+
+* Spool encryption (for xmlfiles driver) is now driver-specific config option.
+
+* Default driver is now xmlfiles.
+
+* Backwards compatible (JIT) driver is legacyjittransport.
+
+* Backwards compatible (c-based aim transport) driver is legacyaimtransport.
+
+* MySQL XDB driver.
+
+* Support for multiple drivers for XDB.
+
+* Improved language layout.
+
+* Chat State Notifications (JEP-0085) support.
+
+* XHTML support.
+
+* Ad-Hoc commands added to handle ICQ specific tasks.
+
+* Email notification support added.
+
+* Added ability to daemonize from command line option.
+
+* Directory search functionality added.
+
+* Support for Avatars/Buddy Icons.
+
+* Support for Ad-Hoc commands.
+
+* Groupchat moved to separate jid.  Please see online docs.
+
+* Improved disco support.
+
+* Improvements for running under Python 2.2.
+
+* Improved notification of errors to user.
+
+* Support for choices of poll reactors.
+
+* Support for Twisted 2.0.
 
 * Improved debugging support.
 

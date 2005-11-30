@@ -1,38 +1,30 @@
-# Copyright 2004 James Bunton <james@delx.cjb.net>
+# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-if(utils.checkTwisted()):
+if utils.checkTwisted():
 	from twisted.xish.domish import Element
 	from twisted.words.protocols.jabber import jid
 else:
 	from tlib.domish import Element
 	from tlib.jabber import jid
 import debug
+import config
+import disco
+import globals
 
 
-def sendMessage(pytrans, to, fro, body, mtype=None, errorType=None, delay=None):
+def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None):
 	""" Sends a Jabber message """
-	debug.log("jabw: Sending a Jabber message \"%s\" \"%s\" \"%s\" \"%s\"" % (to, fro, utils.latin1(body), mtype))
+	debug.log("jabw: Sending a Jabber message \"%s\" \"%s\" \"%s\" \"%s\"" % (to, fro, body, mtype))
 	el = Element((None, "message"))
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
 	el.attributes["id"] = pytrans.makeMessageID()
-	if(mtype):
+	if mtype:
 		el.attributes["type"] = mtype
-		if(mtype == "error" and errorType is not None):
-			el.addChild(makeErrorElement(errorType[0], errorType[1], errorType[2]))
-			#err = el.addElement("error")
-			#err.attributes["type"] = errorType[0]
-			#condition = err.addElement(errorType[1])
-			#condition.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-			#text = el.addElement("text")
-			#text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-			#text.addContent(errorType[2])
-		#else:
-			#el.attributes["type"] = mtype
 
-	if(delay):
+	if delay:
 		x = el.addElement("x")
 		x.attributes["xmlns"] = "jabber:x:delay"
 		x.attributes["from"] = fro
@@ -43,60 +35,76 @@ def sendMessage(pytrans, to, fro, body, mtype=None, errorType=None, delay=None):
 	x = el.addElement("x")
 	x.attributes["xmlns"] = "jabber:x:event"
 	composing = x.addElement("composing")
+	xx = el.addElement("active")
+	xx.attributes["xmlns"] = "http://jabber.org/protocol/chatstates"
+
+	if xhtml:
+		try:
+			el.addChild(utils.parseText(xhtml))
+		except:
+			# Hrm, didn't add, we're not going to end the world
+			# because of it.
+			pass
+
 	pytrans.send(el)
 
-def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, etype=None, econdition=None, etext=None):
-	# If you want to send a presence error, etype and econdition
-	# must be strings (something like "wait" and "internal-server-error",
-	# for example), and etext may be a string with human-readable information.
+def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[]):
+	if ptype == "subscribe":
+		(user,host,res) = jid.parse(to)
+		to = "%s@%s" % (user, host)
+
 	el = Element((None, "presence"))
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
-	if(etype):
-		ptype = "error"
-	if(ptype):
+	if ptype:
 		el.attributes["type"] = ptype
-	if(show):
+	if show:
 		s = el.addElement("show")
 		s.addContent(utils.xmlify(show))
-	if(status):
+	if status:
 		s = el.addElement("status")
 		s.addContent(utils.xmlify(status))
-	if(priority):
+	if priority:
 		s = el.addElement("priority")
 		s.addContent(priority)
-	if(etype):
-		el.addChild(makeErrorElement(etype, econdition, etext))
+
+	x = el.addElement("x")
+	x.attributes["xmlns"] = "vcard-temp:x:update"
+	if avatarHash:
+		p = x.addElement("photo")
+		p.addContent(avatarHash)
+	if nickname:
+		n = x.addElement("nickname")
+		n.addContent(nickname)
+
+	if avatarHash:
+		xx = el.addElement("x")
+		xx.attributes["xmlns"] = "jabber:x:avatar"
+		h = xx.addElement("hash")
+		h.addContent(avatarHash)
+
+	if payload:
+		for p in payload:
+			el.addChild(p)
+
 	pytrans.send(el)
 
-def makeErrorElement(etype, eelement, econtent=None, appspecific=None):
-	""" Create an <error/> stanza suitable for insertion into a <message/>, <iq/> or <presence/>. """
-	error = Element((None, "error"))
-	error.attributes["type"] = etype
-	desc = error.addElement(eelement)
-	desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-	if econtent:
-		text = error.addElement("text")
-		text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-		text.addContent(econtent)
-	if appspecific:
-		error.addChild(appspecific)
-	return error
 
-def sendErrorMessage(pytrans, to, fro, etype, eelement, econtent, body=None):
+def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None):
 	el = Element((None, "message"))
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
 	el.attributes["type"] = "error"
-	#error = el.addElement("error")
-	#error.attributes["type"] = etype
-	#desc = error.addElement(eelement)
-	#desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-	#text = error.addElement("text")
-	#text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
-	#text.addContent(econtent)
-	el.addChild(makeErrorElement(etype, eelement, econtent))
-	if(body and len(body) > 0):
+	error = el.addElement("error")
+	error.attributes["type"] = etype
+	error.attributes["code"] = str(utils.errorCodeMap[condition])
+	desc = error.addElement(condition)
+	desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+	text = error.addElement("text")
+	text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+	text.addContent(explanation)
+
+	if body and len(body) > 0:
 		b = el.addElement("body")
 		b.addContent(body)
 	pytrans.send(el)
@@ -112,53 +120,81 @@ class JabberConnection:
 	def __init__(self, pytrans, jabberID):
 		self.pytrans = pytrans
 		self.jabberID = jabberID
-		self.typingUser = False # Whether this user can accept typing notifications
+		self.typingUser = False # Whether this user can accept typing notifications.
+		self.chatStateUser = False # Whether this user can accept chat state notifications.
 		self.messageIDs = dict() # The ID of the last message the user sent to a particular contact. Indexed by contact JID
 		debug.log("User: %s - JabberConnection constructed" % (self.jabberID))
 	
 	def removeMe(self):
 		""" Cleanly deletes the object """
 		debug.log("User: %s - JabberConnection removed" % (self.jabberID))
+	
+	def checkFrom(self, el):
+		""" Checks to see that this packet was intended for this object """
+		fro = el.getAttribute("from")
+		froj = jid.JID(fro)
+		
+		return (froj.userhost() == self.jabberID) # Compare with the Jabber ID that we're looking at
+	
+	def sendMessage(self, to, fro, body, mtype=None, delay=None, xhtml=None):
+		""" Sends a Jabber message 
+		For this message to have a <x xmlns="jabber:x:delay"/> you must pass a correctly formatted timestamp (See JEP0091)
+		"""
+		debug.log("User: %s - JabberConnection sending message \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, to, fro, body, mtype))
+		if xhtml and not self.hasCapability(globals.XHTML):
+			# User doesn't support XHTML, so kill it.
+			xhtml = None
+		sendMessage(self.pytrans, to, fro, body, mtype, delay, xhtml)
 
 	def sendTypingNotification(self, to, fro, typing):
 		""" Sends the user the contact's current typing notification status """
-		if(self.typingUser):
+		if self.typingUser:
 			debug.log("jabw: Sending a Jabber typing notification message \"%s\" \"%s\" \"%s\"" % (to, fro, typing))
 			el = Element((None, "message"))
 			el.attributes["to"] = to
 			el.attributes["from"] = fro
 			x = el.addElement("x")
 			x.attributes["xmlns"] = "jabber:x:event"
-			if(typing):
+			if typing:
 				composing = x.addElement("composing") 
 			id = x.addElement("id")
-			if(self.messageIDs.has_key(fro) and self.messageIDs[fro]):
+			if self.messageIDs.has_key(fro) and self.messageIDs[fro]:
 				id.addContent(self.messageIDs[fro])
 			self.pytrans.send(el)
-	
-	def checkFrom(self, el):
-		""" Checks to see that this packet was intended for this object """
-		fro = el.getAttribute("from")
-		froj = jid.JID(fro.lower())
-		
-		return (froj.userhost() == self.jabberID) # Compare with the Jabber ID that we're looking at
-	
-	def sendMessage(self, to, fro, body, mtype=None, errorType=None, delay=None):
-		""" Sends a Jabber message
-		For this message to be an error, mtype="error", errorType=("modify", "bad-request", "Human readable descriptive text") - See XMPP Core (RFC3920) for more details
-		For this message to have a <x xmlns="jabber:x:delay"/> you must pass a correctly formatted timestamp (See JEP0091)
+
+	def sendChatStateNotification(self, to, fro, state):
+		""" Sends the user the contact's chat state status """
+		if self.chatStateUser:
+			debug.log("jabw: Sending chat state \"%s\" \"%s\" \"%s\"" % (to, fro, state))
+			el = Element((None, "message"))
+			el.attributes["to"] = to
+			el.attributes["from"] = fro
+			x = el.addElement(state)
+			x.attributes["xmlns"] = "http://jabber.org/protocol/chatstates"
+			self.pytrans.send(el)
+
+	def sendVCardRequest(self, to, fro):
+		""" Requests the the vCard of 'to'
+		Returns a Deferred which fires when the vCard has been received.
+		First argument an Element object of the vCard
 		"""
-		debug.log("User: %s - JabberConnection sending message \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, to, fro, utils.latin1(body), mtype))
-		sendMessage(self.pytrans, to, fro, body, mtype, errorType, delay)
-	
-	def sendErrorMessage(self, to, fro, etype, eelement, econtent, body=None):
+		el = Element((None, "iq"))
+		el.attributes["to"] = to
+		el.attributes["from"] = fro
+		el.attributes["type"] = "get"
+		el.attributes["id"] = self.pytrans.makeMessageID()
+		vCard = el.addElement("vCard")
+		vCard.attributes["xmlns"] = "vcard-temp"
+		return self.pytrans.discovery.sendIq(el)
+
+	def sendErrorMessage(self, to, fro, etype, condition, explanation, body=None):
 		debug.log("User: %s - JabberConnection sending error response." % (self.jabberID))
-		sendErrorMessage(self.pytrans, to, fro, etype, eelement, econtent, body)
+		sendErrorMessage(self.pytrans, to, fro, etype, condition, explanation, body)
 	
-	def sendPresence(self, to, fro, show=None, status=None, priority=None, ptype=None, etype=None, econdition=None, etext=None):
+	def sendPresence(self, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[]):
 		""" Sends a Jabber presence packet """
-		debug.log("User: %s - JabberConnection sending presence \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, to, fro, show, utils.latin1(status), priority, ptype))
-		sendPresence(self.pytrans, to, fro, show, status, priority, ptype, etype, econdition, etext)
+		debug.log("User: %s - JabberConnection sending presence \"%s\"\"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, to, fro, show, status, priority, ptype, not not avatarHash, nickname))
+		sendPresence(self.pytrans, to, fro, show, status, priority, ptype, avatarHash, nickname, payload)
 	
 	def sendRosterImport(self, jid, ptype, sub, name="", groups=[]):
 		""" Sends a special presence packet. This will work with all clients, but clients that support roster-import will give a better user experience
@@ -171,95 +207,180 @@ class JabberConnection:
 		r.attributes["xmlns"] = "http://jabber.org/protocol/roster-subsync"
 		item = r.addElement("item")
 		item.attributes["subscription"] = sub
-		if(name):
+		if name:
 			item.attributes["name"] = unicode(name)
 		for group in groups:
 			g = item.addElement("group")
 			g.addContent(group)
 		
 		self.pytrans.send(el)
-	
+
+	def getCapabilities(self, el): 
+		""" Requests the capabilities of the client """
+		fro = el.getAttribute("from")
+		froj = jid.JID(fro)
+
+		iq = Element((None, "iq"))
+		iq.attributes["type"] = "get"
+		iq.attributes["from"] = config.jid
+		iq.attributes["to"] = froj.full()
+		query = iq.addElement("query")
+		query.attributes["xmlns"] = globals.DISCO_INFO
+
+		debug.log("Asking for capabilities %s" % (iq.toXml()))
+		self.pytrans.discovery.sendIq(iq).addCallback(self.gotCapabilities)
+
+	def gotCapabilities(self, el):
+		fro = el.getAttribute("from")
+		for e in el.elements():
+			if e.name == "query" and e.defaultUri == globals.DISCO_INFO:
+				for item in e.elements():
+					if item.name == "feature":
+						var = item.getAttribute("var")
+						self.capabilities.append(var)
+
+		debug.log("Capabilities of %s:\n\t%s" % (fro, "\n\t".join(self.capabilities)))
+
+	def hasCapability(self, capability):
+		for c in self.capabilities:
+			if c == capability:
+				return True
+		return False
+
 	def onMessage(self, el):
 		""" Handles incoming message packets """
-		if(not self.checkFrom(el)): return
+		if not self.checkFrom(el): return
 		debug.log("User: %s - JabberConnection received message packet" % (self.jabberID))
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro.lower())
 		to = el.getAttribute("to")
-		toj = jid.JID(to.lower())
+		try:
+			froj = jid.JID(fro)
+			toj = jid.JID(to)
+		except Exception, e:
+			debug.log("PyTransport: Failed stringprep on <presence from=\"%s\" to=\"%s\"/> - %s" % (fro, to, str(e)))
+			return
+
 		mID = el.getAttribute("id")
-		
 		mtype = el.getAttribute("type")
 		body = ""
-		invite = ""
+		inviteTo = ""
+		inviteRoom = ""
+		xhtml = None
 		messageEvent = False
+		noerror = False
 		composing = None
+		chatStateEvent = None
+		chatStates = None
 		for child in el.elements():
-			if(child.name == "body"):
+			debug.log("child: %s" % child.name)
+			if child.name == "body":
 				body = child.__str__()
-			if(child.name == "x"):
-				if(child.uri == "jabber:x:conference"):
-					invite = child.getAttribute("jid") # The room the contact is being invited to
-				if(child.uri == "jabber:x:event"):
+			elif child.name == "html":
+				xhtml = child.toXml()
+			elif child.name == "noerror" and child.uri == "sapo:noerror":
+				noerror = True
+			elif child.name == "x":
+				if child.uri == "jabber:x:conference":
+					inviteTo = to
+					inviteRoom = child.getAttribute("jid") # The room the contact is being invited to
+				elif child.uri == "http://jabber.org/protocol/muc#user":
+					for child2 in child.elements():
+						if child2.name == "invite":
+							inviteTo = child2.getAttribute("to")
+							break
+					inviteRoom = to
+				elif child.uri == "jabber:x:event":
 					messageEvent = True
 					composing = False
 					for deepchild in child.elements():
-						if(deepchild.name == "composing"):
+						if deepchild.name == "composing":
 							composing = True
-
-		if(invite):
-			debug.log("User: %s - JabberConnection parsed message groupchat invite packet \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, utils.latin1(invite)))
+							break
+			elif child.name == "composing" or child.name == "active" or child.name == "paused" or child.name == "inactive" or child.name == "gone":
+				if child.uri=="http://jabber.org/protocol/chatstates":
+					chatStates = True
+					chatStateEvent = child.name
+		
+		if(inviteTo and inviteRoom):
+			debug.log("User: %s - JabberConnection parsed message groupchat invite packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, inviteTo, inviteRoom))
+			self.inviteReceived(source=froj.userhost(), resource=froj.resource, dest=inviteTo, destr="", roomjid=inviteRoom)
 			return
 
 		# Check message event stuff
-		if(body and messageEvent):
+		if body and chatStates:
+			self.chatStateUser = True
+		elif body and messageEvent:
 			self.typingUser = True
-		elif(body and not messageEvent):
+		elif body and not messageEvent and not chatStates:
 			self.typingUser = False
-		elif(not body and messageEvent):
+			self.chatStateUser = False
+		elif not body and chatStateEvent:
+			debug.log("User: %s - JabberConnection parsed chat state notification \"%s\" \"%s\"" % (self.jabberID, toj.userhost(), chatStateEvent))
+			self.chatStateReceived(toj.userhost(), toj.resource, chatStateEvent)
+		elif not body and messageEvent:
 			debug.log("User: %s - JabberConnection parsed typing notification \"%s\" \"%s\"" % (self.jabberID, toj.userhost(), composing))
 			self.typingNotificationReceived(toj.userhost(), toj.resource, composing)
 
-		if(body):
+		if body:
 # 			body = utils.utf8(body)
 			# Save the message ID for later
 			self.messageIDs[to] = mID
-			debug.log("User: %s - JabberConnection parsed message packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, mtype, utils.latin1(body)))
-			self.messageReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, mtype, body)
+			debug.log("User: %s - JabberConnection parsed message packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, mtype, body))
+			self.messageReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, mtype, body, noerror, xhtml)
 	
 	def onPresence(self, el):
 		""" Handles incoming presence packets """
-		if(not self.checkFrom(el)): return
-		debug.log("User: %s - JabberConnection received presence packet" % (self.jabberID))
+		if not self.checkFrom(el): return
+		debug.log("User: %s - JabberConnection received presence packet %s" % (self.jabberID, el.toXml()))
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro.lower())
+		froj = jid.JID(fro)
 		to = el.getAttribute("to")
-		toj = jid.JID(to.lower())
+		toj = jid.JID(to)
 		
 		# Grab the contents of the <presence/> packet
 		ptype = el.getAttribute("type")
-		if(ptype in ["subscribe", "subscribed", "unsubscribe", "unsubscribed"]):
+		if ptype and (ptype.startswith("subscribe") or ptype.startswith("unsubscribe")):
 			debug.log("User: %s - JabberConnection parsed subscription presence packet \"%s\" \"%s\"" % (self.jabberID, toj.userhost(), ptype))
 			self.subscriptionReceived(toj.userhost(), ptype)
 		else:
 			status = None
 			show = None
 			priority = None
+			avatarHash = ""
+			nickname = ""
 			for child in el.elements():
-				if(child.name == "status"):
+				if child.name == "status":
 					status = child.__str__()
-				elif(child.name == "show"):
+				elif child.name == "show":
 					show = child.__str__()
-				elif(child.name == "priority"):
+				elif child.name == "priority":
 					priority = child.__str__()
-			
-			debug.log("User: %s - JabberConnection parsed presence packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), froj.resource, priority, ptype, show, utils.latin1(status)))
+				elif child.defaultUri == "vcard-temp:x:update":
+					avatarHash = " "
+					for child2 in child.elements():
+						if child2.name == "photo":
+							avatarHash = child2.__str__()
+						if child2.name == "nickname":
+							nickname = child2.__str__()
+
+			if not ptype:
+				# ptype == None
+				if avatarHash:
+					self.avatarHashReceived(froj.userhost(), toj.userhost(), avatarHash)
+				if nickname:
+					self.nicknameReceived(froj.userhost(), toj.userhost(), nickname)
+
+			debug.log("User: %s - JabberConnection parsed presence packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), froj.resource, priority, ptype, show, status))
 			self.presenceReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, priority, ptype, show, status)
 	
 	
 	
-	def messageReceived(self, source, resource, dest, destr, mtype, body):
+	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml):
 		""" Override this method to be notified when a message is received """
+		pass
+	
+	def inviteReceived(self, source, resource, dest, destr, roomjid):
+		""" Override this method to be notified when an invitation is received """
 		pass
 	
 	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status):
@@ -270,5 +391,10 @@ class JabberConnection:
 		""" Override this method to be notified when a subscription packet is received """
 		pass
 
+	def nicknameReceived(self, source, dest, nickname):
+		""" Override this method to be notified when a nickname has been received """
+		pass
 
-
+	def avatarHashReceieved(self, source, dest, avatarHash):
+		""" Override this method to be notified when an avatar hash is received """
+		pass
