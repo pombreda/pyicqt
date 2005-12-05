@@ -80,7 +80,7 @@ class ServerDiscovery:
 
 	def onIq(self, el):
 		""" Decides what to do with an IQ """
-		debug.log("ServerDiscovery: onIq element \"%s\"" % (el.toXml()))
+		#debug.log("ServerDiscovery: onIq element \"%s\"" % (el.toXml()))
 		fro = el.getAttribute("from")
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")

@@ -1,3 +1,20 @@
+2005-12-04  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Hrm, connectionlost doesn't work well with icq.
+	Lots of fixes.
+
+2005-12-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	More attempts to sever connection nicely.
+
+	* src/tlib/oscar.py:
+	Increased version we identify ourselves as.
+
+	* src/disco.py:
+	Severed long log entry.
+
 2005-11-30  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/legacylist.py:
