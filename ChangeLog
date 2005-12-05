@@ -1,8 +1,17 @@
+2005-12-05  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/defaultAvatar.png:
+	* src/legacy/defaultJabberAvatar.png:
+	Updated to maarten's submitted icon!  Thanks maarten!
+
 2005-12-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:
 	Hrm, connectionlost doesn't work well with icq.
 	Lots of fixes.
+
+	* src/tlib/oscar.py:
+	Actually bother to listen for message ack.
 
 2005-12-01  Daniel Henninger  <jadestorm@nc.rr.com>
 
