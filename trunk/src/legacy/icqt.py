@@ -41,27 +41,30 @@ class B(oscar.BOSConnection):
 		oscar.BOSConnection.__init__(self,username,cookie)
 
 	def initDone(self):
-		#self.requestSelfInfo().addCallback(self.gotSelfInfo)
-		self.requestSelfInfo() # experimenting with no callback
+		if not hasattr(self, "session") or not self.session:
+			debug.log("B: initDone, no session!")
+			return
+		self.requestSelfInfo().addCallback(self.gotSelfInfo)
+		#self.requestSelfInfo() # experimenting with no callback
 		self.requestSSI().addCallback(self.gotBuddyList)
 		debug.log("B: initDone %s for %s" % (self.username,self.session.jabberID))
 
 	def connectionLost(self, reason):
 		message = "ICQ connection lost! Reason: %s" % reason
-		debug.log("B: connectionList: %s" % message)
+		debug.log("B: connectionLost: %s" % message)
 		try:
 			self.icqcon.alertUser(message)
 		except:
 			pass
 
 		oscar.BOSConnection.connectionLost(self, reason)
-		if has_attr(self, "session"):
+		if hasattr(self, "session") and self.session:
 			self.session.removeMe()
 
 	def gotUserInfo(self, id, type, userinfo):
 		if userinfo:
 			for i in range(len(userinfo)):
-				userinfo[i] = userinfo[i].decode(self.encoding, "replace")
+				userinfo[i] = userinfo[i].decode(config.encoding, "replace")
 		if self.icqcon.userinfoCollection[id].gotUserInfo(id, type, userinfo):
 			# True when all info packages has been received
 			self.icqcon.gotvCard(self.icqcon.userinfoCollection[id])
@@ -276,7 +279,9 @@ class B(oscar.BOSConnection):
 
 		if status != None:
 			charset = "iso-8859-1"
-			m = re.search('charset="(.+)"', msg[0])
+			m = None
+			if msg[0]:
+				m = re.search('charset="(.+)"', msg[0])
 			if m != None:
 				charset = m.group(1)
 				if charset == 'unicode-2-0':
@@ -286,7 +291,7 @@ class B(oscar.BOSConnection):
 					charset = "iso-8859-1"
 				else:
 					debug.log( "unknown charset (%s) of buddy's away message" % msg[0] );
-					charset = self.encoding
+					charset = config.encoding
 					status = msg[0] + ": " + status
 
 			status = status.decode(charset, 'replace')
@@ -316,10 +321,6 @@ class B(oscar.BOSConnection):
 	def receivedSelfInfo(self, user):
 		debug.log("B: receivedSelfInfo: %s" % (user.__dict__))
 		self.name = user.name
-		#if user.sendicon and hasattr(self, "myavatar"):
-		#	debug.log("B: Server wants our buddy icon!")
-		#	self.sendBuddyIcon(self.myavatar, len(self.myavatar)).addCallback(self.sentBuddyIcon)
-		#	del self.myavatar
 
 	def requestBuddyIcon(self, iconhash):
 		debug.log("B: requestBuddyIcon: %s" % binascii.hexlify(iconhash))
@@ -402,17 +403,17 @@ class OA(oscar.OscarAuthenticator):
 			c = protocol.ClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.icqcon)
 			return c.connectTCP(server, int(port))
 
-	def connectionLost(self, reason):
-		message = "ICQ connection lost! Reason: %s" % reason
-		debug.log("OA: connectionLost: %s" % message)
-		try:
-			self.icqcon.alertUser(message)
-		except:
-			pass
-
-		oscar.OscarConnection.connectionLost(self, reason)
-		if has_attr(self.icqcon, "session"):
-			self.icqcon.session.removeMe()
+#	def connectionLost(self, reason):
+#		message = "ICQ connection lost! Reason: %s" % reason
+#		debug.log("OA: connectionLost: %s" % message)
+#		try:
+#			self.icqcon.alertUser(message)
+#		except:
+#			pass
+#
+#		oscar.OscarConnection.connectionLost(self, reason)
+#		if hasattr(self.icqcon, "session") and self.icqcon.session:
+#			self.icqcon.session.removeMe()
 
 
 
@@ -467,6 +468,14 @@ class ICQConnection:
 			self.bos.setProfile(profileMessage)
 		except AttributeError:
 			#self.alertUser(lang.get("sessionnotactive", config.jid))
+			pass
+
+	def setICQStatus(self, status):
+		debug.log("ICQConnection: setICQStatus %s" % (status))
+		try:
+			self.bos.setICQStatus(status)
+		except AttributeError:
+			#self.alertUser(lang.get(config.jid).sessionnotactive)
 			pass
 
 	def sendMessage(self, target, message, xhtml):
@@ -578,7 +587,8 @@ class ICQConnection:
 	def gotvCard(self, usercol):
 		from glue import icq2jid
 
-		debug.log("ICQConnection: gotvCard: %s" % (profile))
+		#debug.log("ICQConnection: gotvCard: %s" % (profile))
+		debug.log("ICQConnection: gotvCard")
 
 		if usercol != None and usercol.valid:
 			vcard = usercol.vcard
