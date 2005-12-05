@@ -26,6 +26,9 @@ Daniel Chandran for adding socks5 support.
 
 Martin von Loewis for supplying xmlify function.
 
+Maarten Fonville for his wonderful PyICQ login/icon, as well as
+James Bunton and the people of Psi, of whose work the icon was based on.
+
 The Twisted Matrix development team who have put together this wonderful
 framework we are making use of.  =)  I'd like to especially thank
 Paul Swartz <z3p@twistedmatrix.com> for his work on the oscar.py piece and
