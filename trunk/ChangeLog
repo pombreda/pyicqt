@@ -1,8 +1,16 @@
+2005-12-08  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Fixed encoding issue.
+
 2005-12-05  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/defaultAvatar.png:
 	* src/legacy/defaultJabberAvatar.png:
 	Updated to maarten's submitted icon!  Thanks maarten!
+
+	* src/legacy/icqt.py:
+	Fixed issue wth retrieving vcard for user who isn't an ICQ user.
 
 2005-12-04  Daniel Henninger  <jadestorm@nc.rr.com>
 

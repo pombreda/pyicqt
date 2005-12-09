@@ -486,7 +486,7 @@ class ICQConnection:
 			uin = jid2icq(target)
 			debug.log("ICQConnection: sendMessage %s %s" % (uin, message))
 			if uin[0].isdigit():
-				encoding = "iso-8859-1"
+				encoding = config.encoding
 				if self.legacyList.hasCapability(uin, "unicode"):
 					encoding = "utf-8"
 				debug.log("ICQConnection: sendMessage encoding %s" % encoding)
@@ -572,22 +572,41 @@ class ICQConnection:
 	def getvCard(self, vcard, user):
 		debug.log("ICQConnection: getvCard %s" % (user))
 		if (not user.isdigit()):
-			debug.log("ICQConnection: getvCard uin is not a number")
-			return          
-		try:
-			d = defer.Deferred()
-			#self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
-			self.userinfoID = (self.userinfoID+1)%256
-			self.userinfoCollection[self.userinfoID] = UserInfoCollector(self.userinfoID, d, vcard, user)
-			self.bos.getMetaInfo(user, self.userinfoID) #.addCallback(self.gotvCard, user, vcard, d)
-			return d
-		except AttributeError:
-			self.alertUser(lang.get("sessionnotactive", config.jid))
+			try:
+                        	d = defer.Deferred()
+				self.bos.getProfile(user).addCallback(self.gotAIMvCard, user, vcard, d).addErrback(self.gotnovCard, user, vcard, d)
+				return d
+			except AttributeError:
+				self.alertUser(lang.get("sessionnotactive", config.jid))
+		else:
+			try:
+				d = defer.Deferred()
+				#self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
+				self.userinfoID = (self.userinfoID+1)%256
+				self.userinfoCollection[self.userinfoID] = UserInfoCollector(self.userinfoID, d, vcard, user)
+				self.bos.getMetaInfo(user, self.userinfoID) #.addCallback(self.gotvCard, user, vcard, d)
+				return d
+			except AttributeError:
+				self.alertUser(lang.get("sessionnotactive", config.jid))
+
+	def gotAIMvCard(self, profile, user, vcard, d):
+		from glue import icq2jid
+
+		debug.log("ICQConnection: gotAIMvCard: %s" % (profile))
+
+		cutprofile = oscar.dehtml(profile)
+		nickname = vcard.addElement("NICKNAME")
+		nickname.addContent(utils.utf8encode(user))
+		jabberid = vcard.addElement("JABBERID")
+		jabberid.addContent(icq2jid(user))
+		desc = vcard.addElement("DESC")
+		desc.addContent(utils.utf8encode(cutprofile))
+
+		d.callback(vcard)
 
 	def gotvCard(self, usercol):
 		from glue import icq2jid
 
-		#debug.log("ICQConnection: gotvCard: %s" % (profile))
 		debug.log("ICQConnection: gotvCard")
 
 		if usercol != None and usercol.valid:
