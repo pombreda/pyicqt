@@ -1,3 +1,15 @@
+2005-12-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Updated announced versions for ICQ5 support.
+
+	* config_example.xml:
+	Removed confjid reference since it doesn't appear to work.
+
+	* src/legacy/legacyiq.py:
+	* src/legacy/glue.py:
+	Added misc iq features.
+
 2005-12-08  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:

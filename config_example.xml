@@ -2,10 +2,6 @@
 	<!-- The JabberID of the transport. -->
 	<jid>icq.example.org</jid>
 
-	<!-- The JabberID of the conference room handler. -->
-	<!-- GROUPCHAT IS NOT STABLE YET -->
-	<confjid>chatrooms.icq.example.org</confjid>
-
 	<!-- The component JID of the transport. Unless you're doing clustering, leave this alone -->
 	<!-- <compjid>icq1</compjid> -->
 
