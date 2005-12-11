@@ -142,6 +142,8 @@ def addCommands(pytrans):
 	specific ad-hoc commands, and set them up with disco as
 	appropriate """
 	import legacyiq
+	pytrans.ICQEmailLookup = legacyiq.EmailLookup(pytrans)
+	pytrans.ICQConfirmAccount = legacyiq.ConfirmAccount(pytrans)
 
 # This class handles groupchats with the legacy protocol
 class LegacyGroupchat(groupchat.BaseGroupchat):
