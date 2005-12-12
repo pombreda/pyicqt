@@ -1,3 +1,8 @@
+2005-12-12  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/domish.py:
+	Fixed location of utf-8 encode.
+
 2005-12-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:
