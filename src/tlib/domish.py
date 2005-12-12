@@ -87,7 +87,7 @@ class _Serializer:
         for k,v in elem.attributes.items():
             # If the attribute name is a list, it's a qualified attribute
             if isinstance(k, types.TupleType):
-                write(" %s:%s='%s'" % (self.getPrefix(k[0]), k[1], escapeToXml(v, 1)).encode("utf-8"))
+                write((" %s:%s='%s'" % (self.getPrefix(k[0]), k[1], escapeToXml(v, 1))).encode("utf-8"))
             else:
                 write((" %s='%s'" % ( k, escapeToXml(v, 1))).encode("utf-8"))
 
