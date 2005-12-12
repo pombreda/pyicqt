@@ -3,6 +3,12 @@
 	* src/tlib/domish.py:
 	Fixed location of utf-8 encode.
 
+	* src/tlib/oscar.py:
+	Check for existance of extended status encoding.
+
+	* src/legacy/icqt.py:
+	Added handling of extended status encoding.
+
 2005-12-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:
