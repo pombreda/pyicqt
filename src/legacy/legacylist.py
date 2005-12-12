@@ -22,6 +22,7 @@ class LegacyList:
 	def __init__(self, session):
 		self.session = session
 		self.ssicontacts = { }
+		self.usercaps = { }
 		self.xdbcontacts = self.getLegacyList()
 		for c in self.xdbcontacts:
 			from glue import icq2jid
@@ -38,6 +39,7 @@ class LegacyList:
 	def removeMe(self):
 		self.session = None
 		self.ssicontacts = None
+		self.usercaps = None
 		self.xdbcontacts = None
 
 	def addContact(self, jid):
@@ -62,15 +64,16 @@ class LegacyList:
 		self.session.legacycon.deauthContact(userHandle)
 
 	def setCapabilities(self, contact, caplist):
-		#self.ssicontacts[contact.lower()]['caps'] = caplist
-		pass
+		debug.log("LegacyList: Session \"%s\" setCapabilities(\"%s\"): %s" % (self.session.jabberID, contact.lower(), caplist))
+		self.usercaps[contact.lower()] = [ ]
+		for c in caplist:
+			self.usercaps[contact.lower()].append(c)
 
 	def hasCapability(self, contact, capability):
-		if self.ssicontacts.has_key(contact.lower()):
-			if self.ssicontacts[contact.lower()].has_key("caps"):
-				c = self.ssicontacts[contact.lower()]['caps']
-				if c and c.has_key(capability):
-					return True
+		debug.log("LegacyList: Session \"%s\" hasCapability(\"%s\"): %s" % (self.session.jabberID, contact.lower(), capability))
+		if self.usercaps.has_key(contact.lower()):
+			if capability in self.usercaps[contact.lower()]:
+				return True
 		return False
 
 	def diffAvatar(self, contact, iconHash):

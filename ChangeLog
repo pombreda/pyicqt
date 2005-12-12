@@ -6,6 +6,15 @@
 	* src/main.py:
 	Rebinded sys.stdout so that it can handle unicode.
 
+	* src/legacy/icqt.py:
+	Switched to encode with utf-16be for unicode support.
+
+	* src/legacy/legacylist.py:
+	Added handling of capabilities.
+
+	* src/legacy/icqt.py:
+	Fixed handling of unicode check.
+
 2005-12-10  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
