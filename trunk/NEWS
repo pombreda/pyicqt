@@ -36,8 +36,6 @@
 
 * Support for Ad-Hoc commands.
 
-* Groupchat moved to separate jid.  Please see online docs.
-
 * Improved disco support.
 
 * Improvements for running under Python 2.2.
