@@ -114,7 +114,7 @@ def prepxhtml(s):
 		debug.log("prepxhtml: Made %s" % ret)
 		return ret
 	except:
-		debug.log("prepxhtml: Failed: %s")
+		debug.log("prepxhtml: Failed")
 		return None
 	
 def utf8encode(text):

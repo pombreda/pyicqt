@@ -1,3 +1,11 @@
+2005-12-11  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	Killed %s print.
+
+	* src/main.py:
+	Rebinded sys.stdout so that it can handle unicode.
+
 2005-12-10  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:

@@ -9,10 +9,12 @@ import sys
 import os
 import shutil
 import time
+import codecs
 reload(sys)
 #sys.setdefaultencoding('iso-8859-1')
 sys.setdefaultencoding('utf-8')
 del sys.setdefaultencoding
+sys.stdout = codecs.lookup('utf-8')[-1](sys.stdout)
 
 from utils import VersionNumber
 if VersionNumber(sys.version[:3]) < VersionNumber("2.2"):
