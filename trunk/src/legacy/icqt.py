@@ -30,7 +30,7 @@ class B(oscar.BOSConnection):
 		self.authorizationRequests = [] # buddies that need authorization
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
-		self.capabilities = [oscar.CAP_CHAT, oscar.CAP_ICON, oscar.CAP_UTF]
+		self.capabilities = [oscar.CAP_ICON, oscar.CAP_UTF]
 		self.statusindicators = oscar.STATUS_WEBAWARE
 		self.unreadmessages = 0
 		if config.crossChat:
@@ -142,7 +142,8 @@ class B(oscar.BOSConnection):
 			else:
 				debug.log("Buddy icon is the same, using what we have for %s" % user.name)
 
-		self.icqcon.legacyList.setCapabilities(user.name, user.caps)
+		if user.caps:
+			self.icqcon.legacyList.setCapabilities(user.name, user.caps)
 		if user.flags.count("away"):
 			self.getAway(user.name).addCallback(self.sendAwayPresence, user)
 		else:
@@ -487,10 +488,13 @@ class ICQConnection:
 			debug.log("ICQConnection: sendMessage %s %s" % (uin, message))
 			if uin[0].isdigit():
 				encoding = config.encoding
+				charset = "iso-8859-1"
 				if self.legacyList.hasCapability(uin, "unicode"):
-					encoding = "utf-8"
+					encoding = "utf-16be"
+					charset = "unicode"
 				debug.log("ICQConnection: sendMessage encoding %s" % encoding)
-				self.bos.sendMessage(uin, message.encode(encoding, "replace"), offline=1)
+				#self.bos.sendMessage(uin, [[message.encode(encoding, "replace"),charset]], offline=1)
+				self.bos.sendMessage(uin, [[message,charset]], offline=1)
 			else:
 				if xhtml:
 					self.bos.sendMessage(uin, xhtml, offline=1)
