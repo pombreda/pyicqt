@@ -119,8 +119,14 @@ class B(oscar.BOSConnection):
 		ptype = None
 		show = None
 		status = user.status
+		encoding = user.statusencoding
 		#status = re.sub("<[^>]*>","",status) # Removes any HTML tags
 		status = oscar.dehtml(status) # Removes any HTML tags
+		if encoding:
+			if encoding == "unicode":
+				status = status.decode("utf-16be", "replace")
+			elif encoding == "iso-8859-1":
+				status = status.decode("iso-8859-1", "replace")
 		if status == "Away" or status=="I am currently away from the computer." or status=="I am away from my computer right now.":
 			status = ""
 		if user.idleTime:
@@ -144,6 +150,7 @@ class B(oscar.BOSConnection):
 
 		if user.caps:
 			self.icqcon.legacyList.setCapabilities(user.name, user.caps)
+		status = status.encode("utf-8", "replace")
 		if user.flags.count("away"):
 			self.getAway(user.name).addCallback(self.sendAwayPresence, user)
 		else:
