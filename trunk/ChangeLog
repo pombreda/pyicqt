@@ -1,3 +1,10 @@
+2005-12-15  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* tools/db-setup.msql:
+	* tools/migrate.py:
+	* tools/managessi.py:
+	Added tools from AIM that I forgot.
+
 2005-12-12  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/domish.py:
