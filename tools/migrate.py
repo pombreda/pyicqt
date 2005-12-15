@@ -29,7 +29,7 @@
 # itself accepts.  Please run it with '-h' to see the available options.
 #
 
-transportname	= "PyAIMt"
+transportname	= "PyICQt"
 dumpversion	= "1.0"
 
 import sys

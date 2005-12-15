@@ -5,12 +5,12 @@
 --     mysql> \. db-setup.mysql
 --
 -- Then make sure you create a user in MySQL and grant it full access
--- to the pyaimt database.  You will need to enter this information
--- into your PyAIMt config file.
+-- to the pyicqt database.  You will need to enter this information
+-- into your PyICQt config file.
 --
 
-CREATE DATABASE pyaimt;
-USE pyaimt;
+CREATE DATABASE pyicqt;
+USE pyicqt;
 
 --
 -- registration table
