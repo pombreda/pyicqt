@@ -77,6 +77,7 @@ class LegacyList:
 		return False
 
 	def diffAvatar(self, contact, iconHash):
+		return True
 		if self.xdbcontacts.has_key(contact.lower()):
 			if self.xdbcontacts[contact.lower()].has_key("ssihash"):
 				if self.xdbcontacts[contact.lower()]["ssihash"] == iconHash:
