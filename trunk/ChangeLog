@@ -1,3 +1,21 @@
+2006-01-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Fixed problems with splitting web pager messages.
+
+	* src/utils.py:
+	Changed warning to an error when there's no imaging library (for now).
+
+2005-12-31  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Added much channel 4 message handling.
+
+2005-12-21  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Added extra ICQ capabilities, will attempt to figure them out.
+
 2005-12-15  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* tools/db-setup.msql:

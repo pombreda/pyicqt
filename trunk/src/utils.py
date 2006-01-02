@@ -7,6 +7,7 @@ import string
 import config
 import os
 import os.path
+import sys
 from twisted.web import microdom
 
 class VersionNumber:
@@ -183,10 +184,8 @@ try:
 		imageData = outbuff.read()
 		return imageData
 except ImportError:
-	print "WARNING! Only PNG avatars will be understood by this transport. Please install the Python Imaging Library."
-
-	def convertToPNG(imageData):
-		return ""
+	print "ERROR! PyICQ-t requires the Python Imaging Library to function with avatars.  Either install the Python Imaging Library, or disable avatars using the <disableAvatars/> option in your config file. (this is not implemented just yet btw)"
+	sys.exit(-1)
 
 
 errorCodeMap = {
