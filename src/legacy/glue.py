@@ -268,6 +268,11 @@ class LegacyConnection(icqt.ICQConnection):
 		debug.log("LegacyConnection: jabberVCardRequest %s" % (user))
 		return icqt.ICQConnection.getvCard(self, vcard, user)
 
+	def getvCardNotInList(self, vcard, jid):
+		debug.log("LegacyConnection: getvCardNotInList %s" % (jid))
+		user = jid.split('@')[0]
+		return icqt.ICQConnection.getvCard(self, vcard, user)
+
 	def createChat(self, chatroom, exchange):
 		debug.log("LegacyConnection: createChat %s %d" % (chatroom, exchange))
 		icqt.ICQConnection.createChat(self, chatroom, exchange)
@@ -294,9 +299,12 @@ class LegacyConnection(icqt.ICQConnection):
 		if av:
 			imageData = av.getImageData()
 		else:
-			f = open("legacy/defaultJabberAvatar.png")
-			imageData = f.read()
-			f.close()
+			if not config.disableDefaultAvatar:
+				f = open("legacy/defaultJabberAvatar.png")
+				imageData = f.read()
+				f.close()
+			else:
+				imageData = None
 
 		icqt.ICQConnection.changeAvatar(self, imageData)
 

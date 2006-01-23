@@ -44,3 +44,4 @@ useXCP = bool(False)
 useJ2Component = bool(False)
 saslUsername = ""
 avatarsOnlyOnChat = bool(False)
+disableDefaultAvatar = bool(False)

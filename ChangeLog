@@ -1,3 +1,43 @@
+2006-01-22  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	* src/misciq.py:
+	Added support for getting vcards for not-in-list users.
+
+	* src/config.py:
+	* config_example.xml:
+	* src/legacy/glue.py:
+	* src/legacy/legacylist.py:
+	* src/legacy/icqt.py:
+	Added ability to skip the default avatar.
+
+	* src/tlib/oscar.py:
+	Added retrieval of SMS number.
+
+	* src/legacy/icqt.py:
+	Added attempt to update nickname from buddy list.
+
+2006-01-17  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Added handling of more channel 2 icbm things.
+
+	* src/legacy/icqt.py:
+	Adjusted call to buddy icon upload.
+
+2006-01-15  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Added function to "simply notify about a buddy icon".
+
+	* src/legacy/icqt.py:
+	Added handling of icon notification attached to a message.
+
+2006-01-03  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Added haveIcon and wantIcon to sendMessage, not complete yet.
+
 2006-01-01  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
