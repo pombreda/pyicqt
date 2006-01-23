@@ -204,6 +204,13 @@ class B(oscar.BOSConnection):
 				self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
 				self.awayResponses[user.name] = time.time
 
+		if user.iconhash != None:
+			if self.icqcon.legacyList.diffAvatar(user.name, binascii.hexlify(user.iconhash)):
+				debug.log("Retrieving buddy icon for %s" % user.name)
+				self.retrieveBuddyIcon(user.name, user.iconhash, user.icontype).addCallback(self.gotBuddyIcon)
+			else:
+				debug.log("Buddy icon is the same, using what we have for %s" % user.name)
+
 	def receiveWarning(self, newLevel, user):
 		debug.log("B: receiveWarning [%s] from %s" % (newLevel,hasattr(user,'name') and user.name or None))
 
@@ -334,10 +341,10 @@ class B(oscar.BOSConnection):
 		debug.log("B: requestBuddyIcon: %s" % binascii.hexlify(iconhash))
 		if hasattr(self.icqcon, "myavatar"):
 			debug.log("B: I have an icon, sending it on, %d" % len(self.icqcon.myavatar))
-			self.sendBuddyIcon(self.icqcon.myavatar, len(self.icqcon.myavatar)).addCallback(self.sentBuddyIcon)
+			self.uploadBuddyIcon(self.icqcon.myavatar, len(self.icqcon.myavatar)).addCallback(self.uploadedBuddyIcon)
 			del self.icqcon.myavatar
 
-	def sentBuddyIcon(self, iconchecksum):
+	def uploadedBuddyIcon(self, iconchecksum):
 		debug.log("B: sentBuddyIcon: %s" % (iconchecksum))
 
 	def gotBuddyList(self, l):
@@ -347,7 +354,7 @@ class B(oscar.BOSConnection):
 				debug.log("B: gotBuddyList found group %s" % (g.name))
 				self.ssigroups.append(g)
 				for u in g.users:
-					debug.log("B: got user %s from group %s" % (u.name, g.name))
+					debug.log("B: got user %s (%s) from group %s" % (u.name, u.nick, g.name))
 					self.icqcon.legacyList.updateSSIContact(u.name, nick=u.nick)
 		if l is not None and l[5] is not None:
 			for i in l[5]:
@@ -501,13 +508,13 @@ class ICQConnection:
 					charset = "unicode"
 				debug.log("ICQConnection: sendMessage encoding %s" % encoding)
 				#self.bos.sendMessage(uin, [[message.encode(encoding, "replace"),charset]], offline=1)
-				self.bos.sendMessage(uin, [[message,charset]], offline=1)
+				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=1)
 			else:
 				if xhtml:
 					self.bos.sendMessage(uin, xhtml, offline=1)
 				else:
 					htmlized = oscar.html(message)
-					self.bos.sendMessage(uin, htmlized, offline=1)
+					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=1)
 		except AttributeError:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 
@@ -926,12 +933,23 @@ class ICQConnection:
 		self.session.sendMessage(to=self.session.jabberID, fro=tmpjid, body=message, mtype="error")
 
 	def changeAvatar(self, imageData):
-		try:
-			self.myavatar = utils.convertToJPG(imageData)
-		except:
-			debug.log("ICQConnection: changeAvatar, unable to convert avatar to JPEG, punting.")
-			return
+		if imageData:
+			try:
+				self.myavatar = utils.convertToJPG(imageData)
+			except:
+				debug.log("ICQConnection: changeAvatar, unable to convert avatar to JPEG, punting.")
+				return
 		if hasattr(self, "bos"):
+			if not imageData:
+				if hasattr(self, "myavatar"):
+					del self.myavatar
+				if len(self.bos.ssiiconsum) > 0:
+					self.bos.startModifySSI()
+					for i in self.bos.ssiiconsum:
+						debug.log("ICQConnection: Removing icon %s (u:%d g:%d) from group %s"%(i.name, i.buddyID, i.groupID, i.group.name))
+						de = self.bos.delItemSSI(i)
+					self.bos.endModifySSI()
+					return
 			if len(self.bos.ssiiconsum) > 0 and self.bos.ssiiconsum[0]:
 				debug.log("ICQConnection: changeAvatar, replacing existing icon")
 				self.bos.ssiiconsum[0].updateIcon(imageData)
@@ -945,8 +963,6 @@ class ICQConnection:
 				self.bos.startModifySSI()
 				self.bos.addItemSSI(newBuddySum)
 				self.bos.endModifySSI()
-			#if hasattr(self, "myavatar"):
-			#	del self.myavatar
 
 	def doSearch(self, form, iq):
 		#TEST self.bos.sendInterestsRequest()

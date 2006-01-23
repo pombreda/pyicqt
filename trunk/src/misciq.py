@@ -304,8 +304,17 @@ class VCardFactory:
 
 			c = s.contactList.findContact(to)
 			if not c:
-				self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns="vcard-temp", etype="cancel", condition="recipient-unavailable")
+				iq = Element((None, "iq"))
+				iq.attributes["to"] = fro
+				iq.attributes["from"] = to
+				iq.attributes["id"] = ID
+				iq.attributes["type"] = "result"
+				vCard = iq.addElement("vCard")
+				vCard.attributes["xmlns"] = "vcard-temp"
+				self.pytrans.legacycon.getvCardNotInList(vCard, to).addCallback(self.gotvCardResponse, iq)
 				return
+				# Lets leave this up to the legacy pieces
+				#self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns="vcard-temp", etype="cancel", condition="recipient-unavailable")
 
 
 		iq = Element((None, "iq"))

@@ -32,9 +32,10 @@ class LegacyList:
 				avatarData = avatar.AvatarCache().getAvatar(self.xdbcontacts[c]["localhash"])
 				jabContact.updateAvatar(avatarData, push=False)
 			else:
-				global defaultAvatar
-				debug.log("Setting default avatar for %s" %(c))
-				jabContact.updateAvatar(defaultAvatar, push=False)
+				if not config.disableDefaultAvatar:
+					global defaultAvatar
+					debug.log("Setting default avatar for %s" %(c))
+					jabContact.updateAvatar(defaultAvatar, push=False)
 
 	def removeMe(self):
 		self.session = None
@@ -121,7 +122,10 @@ class LegacyList:
 		else:
 			if not c.avatar:
 				debug.log("Update setting default avatar for %s" %(contact))
-				c.updateAvatar(defaultAvatar, push=True)
+				if config.disableDefaultAvatar:
+					c.updateAvatar(None, push=True)
+				else:
+					c.updateAvatar(defaultAvatar, push=True)
 
 	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None):
 		global defaultAvatar
@@ -146,6 +150,7 @@ class LegacyList:
 
 		if not self.xdbcontacts.has_key(contact.lower()):
 			if nick:
+				contact.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
 			else:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)

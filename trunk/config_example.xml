@@ -72,6 +72,10 @@
 	<!-- (uncomment to enable) -->
 	<!-- <enableAutoInvite/> -->
 
+	<!-- Disable use of default avatar if none is specified -->
+	<!-- (uncomment to disable) -->
+	<!-- <disableDefaultAvatar/> -->
+
 	<!-- You can choose which users you wish to have as administrators. These users can perform some tasks with Ad-Hoc commands that others cannot -->
 	<admins>
 	<!--<jid>admin@host.com</jid>-->
