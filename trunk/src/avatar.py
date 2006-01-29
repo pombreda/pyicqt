@@ -8,7 +8,6 @@ if utils.checkTwisted():
 	from twisted.xish.domish import Element
 else:
 	from tlib.domish import Element
-import jabw
 import config
 import debug
 import lang

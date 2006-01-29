@@ -1,5 +1,9 @@
 0.7:
 
+* Added cross-platform capable startup script.
+
+* Restructured code a tad.
+
 * Added Jabberd2 component protocol support.
 
 * Script added to migrate between XDB formats/backends.

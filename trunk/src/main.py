@@ -16,6 +16,12 @@ sys.setdefaultencoding('utf-8')
 del sys.setdefaultencoding
 sys.stdout = codecs.lookup('utf-8')[-1](sys.stdout)
 
+if __name__ == "__main__":
+	#main()
+	print "The transport can no longer be started from main.py.  Please use"
+	print "PyICQt.py from the root of the distribution instead."
+	sys.exit(0)
+
 from utils import VersionNumber
 if VersionNumber(sys.version[:3]) < VersionNumber("2.2"):
 	print("You are using version %s of Python, at least 2.2 is required." % (sys.version[:3]))
@@ -444,7 +450,7 @@ class App:
 
 
 
-if __name__ == "__main__":
+def main():
 	if daemonizeme:
 		import daemonize
 		if len(config.debugLog) > 0:
