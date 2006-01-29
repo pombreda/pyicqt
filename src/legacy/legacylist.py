@@ -12,11 +12,7 @@ import config
 import avatar
 import debug
 import binascii
-
-f = open("legacy/defaultAvatar.png")
-defaultAvatarData = f.read()
-f.close()
-defaultAvatar = avatar.AvatarCache().setAvatar(defaultAvatarData)
+import os.path
 
 class LegacyList:
 	def __init__(self, session):
@@ -33,9 +29,8 @@ class LegacyList:
 				jabContact.updateAvatar(avatarData, push=False)
 			else:
 				if not config.disableDefaultAvatar:
-					global defaultAvatar
 					debug.log("Setting default avatar for %s" %(c))
-					jabContact.updateAvatar(defaultAvatar, push=False)
+					jabContact.updateAvatar(glue.defaultAvatar, push=False)
 
 	def removeMe(self):
 		self.session = None
@@ -92,7 +87,6 @@ class LegacyList:
 		self.session.pytrans.xdb.setListEntry("roster", self.session.jabberID, contact.lower(), payload=self.xdbcontacts[contact.lower()])
 
 	def updateAvatar(self, contact, iconData=None, iconHash=None):
-		global defaultAvatar
 		from glue import icq2jid
 
 		debug.log("updateAvatar: %s %s" % (contact.lower(), binascii.hexlify(iconHash)))
@@ -125,10 +119,9 @@ class LegacyList:
 				if config.disableDefaultAvatar:
 					c.updateAvatar(None, push=True)
 				else:
-					c.updateAvatar(defaultAvatar, push=True)
+					c.updateAvatar(glue.defaultAvatar, push=True)
 
 	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None):
-		global defaultAvatar
 		from glue import icq2jid
 
 		debug.log("LegacyList: updating contact %s" % (contact.lower()))
@@ -146,7 +139,7 @@ class LegacyList:
 		if not c:
 			debug.log("Update setting default avatar for %s" %(contact))
 			jabContact = self.session.contactList.createContact(icq2jid(contact), "both")
-			jabContact.updateAvatar(defaultAvatar, push=False)
+			jabContact.updateAvatar(glue.defaultAvatar, push=False)
 
 		if not self.xdbcontacts.has_key(contact.lower()):
 			if nick:

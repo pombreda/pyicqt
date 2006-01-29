@@ -6,13 +6,21 @@ if utils.checkTwisted():
 	from twisted.xish.domish import Element
 else:
 	from tlib.domish import Element
-from twisted.internet import task
+from twisted.internet import protocol, reactor, defer, task
 from tlib import oscar
+from tlib import socks5, sockserror
+from twisted.python import log
 import groupchat
-import icqt
+import oscart
 import config
 import debug
-import base64
+import sys, warnings, pprint
+import lang
+import os.path
+import re
+import time
+import binascii
+import avatar
 
 # The name of the transport
 name = "ICQ Transport"
@@ -26,56 +34,11 @@ url = "http://pyicq-t.blathersource.org"
 # This should be set to the identity of the gateway
 id = "icq"
 
-# This should be set to the name space roster entries are in in the spool
-namespace = "jabber:iq:register"
-
-# Helper functions to encrypt and decrypt passwords
-def encryptPassword(password):
-	return base64.encodestring(password)
-
-def decryptPassword(password):
-	return base64.decodestring(password)
-
-# This function should return an xml element as it should exist in the spool
-def formRegEntry(username, password, encoding):
-	reginfo = Element((None,"query"))
-	reginfo.attributes["xmlns"] = "jabber:iq:register"
-
-	userEl = reginfo.addElement("username")
-	userEl.addContent(username)
-
-	if config.encryptSpool:
-		passEl = reginfo.addElement("encryptedpassword")
-		passEl.addContent(encryptPassword(password))
-	else:
-		passEl = reginfo.addElement("password")
-		passEl.addContent(password)
-
-	encEl = reginfo.addElement("encoding")
-	encEl.addContent(encoding)
-
-	return reginfo
-
-# This function should, given a spool xml entry, pull the username and password
-# out of it and return them
-def getAttributes(base):
-	username = ""
-	password = ""
-	encoding = ""
-	for child in base.elements():
-		try:
-			if(child.name == "username"):
-				username = child.__str__()
-			elif(child.name == "password"):
-				password = child.__str__()
-			elif(child.name == "encryptedpassword"):
-				password = decryptPassword(child.__str__())
-			elif(child.name == "encoding"):
-				encoding = child.__str__()
-		except AttributeError:
-			continue
-
-	return username, password[:8], encoding
+# Load the default avatar
+f = open(os.path.join("data", "defaultAvatar.png"))
+defaultAvatarData = f.read()
+f.close()
+defaultAvatar = avatar.AvatarCache().setAvatar(defaultAvatarData)
 
 # This function should return true if the JID is a group JID, false otherwise
 def isGroupJID(jid):
@@ -145,7 +108,11 @@ def addCommands(pytrans):
 	pytrans.ICQEmailLookup = legacyiq.EmailLookup(pytrans)
 	pytrans.ICQConfirmAccount = legacyiq.ConfirmAccount(pytrans)
 
-# This class handles groupchats with the legacy protocol
+
+
+############################################################################
+# This class handles groupchats with the ICQ
+############################################################################
 class LegacyGroupchat(groupchat.BaseGroupchat):
 	def __init__(self, session, resource, ID=None, existing=False, switchboardSession=None):
 		groupchat.BaseGroupchat.__init__(self, session, resource, ID)
@@ -171,22 +138,50 @@ class LegacyGroupchat(groupchat.BaseGroupchat):
 		debug.log("LegacyGroupchat: send invite \"%s\" \"%s\" \"%s\" \"%s\"" % (self.roomJID(), contactJID, groupid, contactid))
 		self.session.legacycon.sendInvite(groupid, contactid)
 
-# This class handles most interaction with the legacy protocol
-class LegacyConnection(icqt.ICQConnection):
+
+
+############################################################################
+# This class handles most interaction with ICQ
+############################################################################
+class LegacyConnection:
 	""" A glue class that connects to the legacy network """
 	def __init__(self, username, password, session):
-		debug.log("LegacyConnection: __init__")
+		import legacylist
+
+		self.username = username
+		self.password = password
 		self.session = session
+		self.legacyList = legacylist.LegacyList(self.session)
 		self.savedShow = None
 		self.savedFriendly = None
-		icqt.ICQConnection.__init__(self, username, password)
+		self.reactor = reactor
+		self.userinfoCollection = {}
+		self.userinfoID = 0
+		self.deferred = defer.Deferred()
+		self.deferred.addErrback(self.errorCallback)
+		hostport = (config.icqServer, int(config.icqPort))
+		debug.log("LegacyConnection: client creation for %s" % (self.session.jabberID))
+		if config.socksProxyServer and config.socksProxyPort:
+			self.oa = oscart.OA
+			self.creator = socks5.ProxyClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
+			debug.log("LegacyConnection: connect via socks proxy")
+			self.creator.connectSocks5Proxy(config.icqServer, int(config.icqPort), config.socksProxyServer, int(config.socksProxyPort), "ICQCONN")
+		else:
+			self.oa = oscart.OA
+			self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
+			debug.log("LegacyConnection: connect direct tcp")
+			self.creator.connectTCP(*hostport)
 
-		import legacylist
-		self.legacyList = legacylist.LegacyList(self.session)
+		debug.log("LegacyConnection: \"%s\" created" % (self.username))
 	
 	def removeMe(self):
+		from glue import icq2jid
 		debug.log("LegacyConnection: removeMe")
-		icqt.ICQConnection.removeMe(self)
+		try:
+			self.bos.stopKeepAlive()
+			self.bos.disconnect()
+		except AttributeError:
+			pass
 		self.legacyList.removeMe()
 		self.legacyList = None
 		self.session = None
@@ -202,14 +197,65 @@ class LegacyConnection(icqt.ICQConnection):
 		""" Returns highest priority resource """
 		return self.session.highestResource()
 
-	def sendMessage(self, dest, resource, body, noerror, xhtml):
+	def sendMessage(self, target, resource, message, noerror, xhtml):
 		debug.log("LegacyConnection: sendMessage %s %s %s" % (dest, resource, body))
-		icqt.ICQConnection.sendMessage(self, dest, body, xhtml)
+		from glue import jid2icq
+		try:
+			self.session.pytrans.statistics.stats['OutgoingMessages'] += 1
+			self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
+			uin = jid2icq(target)
+			debug.log("LegacyConnection: sendMessage %s %s" % (uin, message))
+			if uin[0].isdigit():
+				encoding = config.encoding
+				charset = "iso-8859-1"
+				if self.legacyList.hasCapability(uin, "unicode"):
+					encoding = "utf-16be"
+					charset = "unicode"
+				debug.log("LegacyConnection: sendMessage encoding %s" % encoding)
+				#self.bos.sendMessage(uin, [[message.encode(encoding, "replace"),charset]], offline=1)
+				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=1)
+			else:
+				if xhtml:
+					self.bos.sendMessage(uin, xhtml, offline=1)
+				else:
+					htmlized = oscar.html(message)
+					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=1)
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def newResourceOnline(self, resource):
+		from glue import icq2jid
 		debug.log("LegacyConnection: newResourceOnline %s" % (resource))
-		icqt.ICQConnection.resendBuddies(self, resource)
-	
+		try:
+			for c in self.legacyList.ssicontacts.keys( ):
+				debug.log("LegacyConnection: resending buddy of %s" % (c))
+				jid = icq2jid(c)
+				show = self.legacyList.ssicontacts[c]['show']
+				status = self.legacyList.ssicontacts[c]['status']
+				ptype = self.legacyList.ssicontacts[c]['presence']
+				#FIXME, needs to be contact based updatePresence
+				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
+		except AttributeError:
+			return
+
+	def setAway(self, awayMessage=None):
+		debug.log("LegacyConnection: setAway %s" % (awayMessage))
+		try:
+			self.bos.awayResponses = {}
+			self.bos.setAway(utils.xmlify(awayMessage))
+		except AttributeError:
+			#self.alertUser(lang.get("sessionnotactive", config.jid))
+			pass
+
+	def setBack(self, backMessage=None):
+		debug.log("LegacyConnection: setBack %s" % (backMessage))
+		try:
+			self.bos.awayResponses = {}
+			self.bos.setBack(utils.utf8encode(backMessage))
+		except AttributeError:
+			#self.alertUser(lang.get("sessionnotactive", config.jid))
+			pass
+
  	def setStatus(self, nickname, show, friendly):
 		debug.log("LegacyConnection: setStatus %s %s" % (show, friendly))
 
@@ -229,13 +275,29 @@ class LegacyConnection(icqt.ICQConnection):
 			return
 
 		if not show or show == "online" or show == "Online" or show == "chat":
-			icqt.ICQConnection.setICQStatus(self, show)
-			icqt.ICQConnection.setAway(self)
+			self.setICQStatus(show)
+			self.setAway()
 			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None)
 		else:
-			icqt.ICQConnection.setICQStatus(self, show)
-			icqt.ICQConnection.setAway(self, friendly)
+			self.setICQStatus(show)
+			self.setAway(friendly)
 			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=show, status=friendly)
+
+	def setProfile(self, profileMessage=None):
+		debug.log("LegacyConnection: setProfile %s" % (profileMessage))
+		try:
+			self.bos.setProfile(profileMessage)
+		except AttributeError:
+			#self.alertUser(lang.get("sessionnotactive", config.jid))
+			pass
+
+	def setICQStatus(self, status):
+		debug.log("LegacyConnection: setICQStatus %s" % (status))
+		try:
+			self.bos.setICQStatus(status)
+		except AttributeError:
+			#self.alertUser(lang.get(config.jid).sessionnotactive)
+			pass
 
         def buildFriendly(self, status):
 		friendly = self.jabberID[:self.jabberID.find('@')]
@@ -246,52 +308,103 @@ class LegacyConnection(icqt.ICQConnection):
 			friendly = friendly[:124] + "..."
 		debug.log("Session: buildFriendly(%s) returning \"%s\"" % (self.jabberID, friendly))
 		return friendly
+
+	def sendTypingNotify(self, type, dest):
+		from tlib.oscar import MTN_FINISH, MTN_IDLE, MTN_BEGIN
+		from glue import jid2icq
+		try:
+			username = jid2icq(dest)
+			debug.log("LegacyConnection: sendTypingNotify %s to %s" % (type,username))
+			if type == "begin":
+				self.bos.sendTypingNotification(username, MTN_BEGIN)
+			elif type == "idle":
+				self.bos.sendTypingNotification(username, MTN_IDLE)
+			elif type == "finish":
+				self.bos.sendTypingNotification(username, MTN_FINISH)
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
 	
 	def userTypingNotification(self, dest, resource, composing):
 		debug.log("LegacyConnection: userTypingNotification %s %s" % (dest,composing))
 		if composing:
-			icqt.ICQConnection.sendTypingNotify(self, "begin", dest)
+			self.sendTypingNotify("begin", dest)
 		else:
-			icqt.ICQConnection.sendTypingNotify(self, "finish", dest)
+			self.sendTypingNotify("finish", dest)
 
 	def chatStateNotification(self, dest, resource, state):
 		debug.log("LegacyConnection: chatStateNotification %s %s" % (dest,state))
 		if state == "composing":
-			icqt.ICQConnection.sendTypingNotify(self, "begin", dest)
+			self.sendTypingNotify("begin", dest)
 		elif state == "paused" or state == "inactive":
-			icqt.ICQConnection.sendTypingNotify(self, "idle", dest)
+			self.sendTypingNotify("idle", dest)
 		elif state == "active" or state == "gone":
-			icqt.ICQConnection.sendTypingNotify(self, "finish", dest)
+			self.sendTypingNotify("finish", dest)
 		pass
 
 	def jabberVCardRequest(self, vcard, user):
 		debug.log("LegacyConnection: jabberVCardRequest %s" % (user))
-		return icqt.ICQConnection.getvCard(self, vcard, user)
+		return self.getvCard(vcard, user)
 
 	def getvCardNotInList(self, vcard, jid):
 		debug.log("LegacyConnection: getvCardNotInList %s" % (jid))
 		user = jid.split('@')[0]
-		return icqt.ICQConnection.getvCard(self, vcard, user)
+		return self.getvCard(vcard, user)
 
 	def createChat(self, chatroom, exchange):
 		debug.log("LegacyConnection: createChat %s %d" % (chatroom, exchange))
-		icqt.ICQConnection.createChat(self, chatroom, exchange)
+		try:
+			self.bos.createChat(chatroom, exchange).addCallback(self.bos.createdRoom)
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def leaveChat(self, chatroom):
 		debug.log("LegacyConnection: leaveChat %s" % (chatroom))
-		icqt.ICQConnection.leaveChat(self, chatroom)
+		try:
+			for c in self.bos.chats:
+				if c.name == chatroom:
+					c.leaveChat()
+					self.bos.chats.remove(c)
+					break
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def sendChat(self, chatroom, message):
 		debug.log("LegacyConnection: sendChat %s %s" % (chatroom, message))
-		icqt.ICQConnection.sendChat(self, chatroom, message)
+		try:
+			for c in self.bos.chats:
+				debug.log("Checking chat %s" % (c.name))
+				if c.name.lower() == chatroom.lower():
+					c.sendMessage(message)
+					debug.log("Found chat and sent message.")
+					break
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def sendInvite(self, chatroom, contact):
 		debug.log("LegacyConnection: sendInvite %s %s" % (chatroom, contact))
-		icqt.ICQConnection.sendInvite(self, chatroom, contact)
+		try:
+			for c in self.bos.chats:
+				if c.name.lower() == chatroom.lower():
+					self.bos.sendInvite(contact, c)
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def resourceOffline(self, resource):
 		debug.log("LegacyConnection: resourceOffline %s" % (resource))
-		icqt.ICQConnection.resourceOffline(self, resource)
+		from glue import icq2jid
+		try:
+			show = None
+			status = None
+			ptype = "unavailable"
+			for c in self.legacyList.ssicontacts.keys( ):
+				debug.log("LegacyConnection: sending offline for %s" % (c))
+				jid = icq2jid(c)
+
+				self.session.sendPresence(to=self.session.jabberID+"/"+resource, fro=jid, ptype=ptype, show=show, status=status)
+			self.session.sendPresence(to=self.session.jabberID+"/"+resource, fro=config.jid, ptype=ptype, show=show, status=status)
+		except AttributeError:
+			return
+
 
 	def updateAvatar(self, av=None):
 		""" Called whenever a new avatar needs to be set. Instance of avatar.Avatar is passed """
@@ -300,14 +413,492 @@ class LegacyConnection(icqt.ICQConnection):
 			imageData = av.getImageData()
 		else:
 			if not config.disableDefaultAvatar:
-				f = open("legacy/defaultJabberAvatar.png")
-				imageData = f.read()
-				f.close()
+				global defaultAvatarData
+				imageData = defaultAvatarData
 			else:
 				imageData = None
 
-		icqt.ICQConnection.changeAvatar(self, imageData)
+		self.changeAvatar(imageData)
+
+	def changeAvatar(self, imageData):
+		if imageData:
+			try:
+				self.myavatar = utils.convertToJPG(imageData)
+			except:
+				debug.log("LegacyConnection: changeAvatar, unable to convert avatar to JPEG, punting.")
+				return
+		if hasattr(self, "bos") and self.session.ready:
+			if not imageData:
+				if hasattr(self, "myavatar"):
+					del self.myavatar
+				if len(self.bos.ssiiconsum) > 0:
+					self.bos.startModifySSI()
+					for i in self.bos.ssiiconsum:
+						debug.log("LegacyConnection: Removing icon %s (u:%d g:%d) from group %s"%(i.name, i.buddyID, i.groupID, i.group.name))
+						de = self.bos.delItemSSI(i)
+					self.bos.endModifySSI()
+					return
+			if len(self.bos.ssiiconsum) > 0 and self.bos.ssiiconsum[0]:
+				debug.log("LegacyConnection: changeAvatar, replacing existing icon")
+				self.bos.ssiiconsum[0].updateIcon(imageData)
+				self.bos.startModifySSI()
+				self.bos.modifyItemSSI(self.bos.ssiiconsum[0])
+				self.bos.endModifySSI()
+			else:
+				debug.log("LegacyConnection: changeAvatar, adding new icon")
+				newBuddySum = oscar.SSIIconSum()
+				newBuddySum.updateIcon(imageData)
+				self.bos.startModifySSI()
+				self.bos.addItemSSI(newBuddySum)
+				self.bos.endModifySSI()
 
 	def doSearch(self, form, iq):
 		debug.log("LegacyConnection: doSearch")
-		return icqt.ICQConnection.doSearch(self, form, iq)
+		#TEST self.bos.sendInterestsRequest()
+		email = utils.getDataFormValue(form, "email")
+		first = utils.getDataFormValue(form, "first")
+		middle = utils.getDataFormValue(form, "middle")
+		last = utils.getDataFormValue(form, "last")
+		maiden = utils.getDataFormValue(form, "maiden")
+		nick = utils.getDataFormValue(form, "nick")
+		address = utils.getDataFormValue(form, "address")
+		city = utils.getDataFormValue(form, "city")
+		state = utils.getDataFormValue(form, "state")
+		zip = utils.getDataFormValue(form, "zip")
+		country = utils.getDataFormValue(form, "country")
+		interest = utils.getDataFormValue(form, "interest")
+                debug.log("LegacyConnection: doSearch %s" % (form.toXml()))
+		try:
+			d = defer.Deferred()
+			self.bos.sendDirectorySearch(email=email, first=first, middle=middle, last=last, maiden=maiden, nickname=nick, address=address, city=city, state=state, zip=zip, country=country, interest=interest).addCallback(self.gotSearchResults, iq, d).addErrback(self.gotSearchError, d)
+			return d
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
+
+	def gotSearchResults(self, results, iq, d):
+		debug.log("LegacyConnection: gotSearchResults %s %s" % (results, iq.toXml()))
+		from glue import icq2jid
+
+		x = None
+		for query in iq.elements():
+			if query.name == "query":
+				for child in query.elements():
+					if child.name == "x":
+						x = child
+						break
+				break
+
+		if x:
+			for r in results:
+				if r.has_key("screenname"):
+					r["jid"] = icq2jid(r["screenname"])
+				else:
+					r["jid"] = "Unknown"
+				item = x.addElement("item")
+				for k in ["jid","first","middle","last","maiden","nick","email","address","city","state","country","zip","region"]:
+					item.addChild(utils.makeDataFormElement(None, k, value=r.get(k,None)))
+		d.callback(iq)
+
+	def gotSearchError(self, error, d):
+		debug.log("LegacyConnection: gotSearchError %s" % (error))
+		#d.callback(vcard)
+
+	def getvCard(self, vcard, user):
+		debug.log("LegacyConnection: getvCard %s" % (user))
+		if (not user.isdigit()):
+			try:
+                        	d = defer.Deferred()
+				self.bos.getProfile(user).addCallback(self.gotAIMvCard, user, vcard, d).addErrback(self.gotnovCard, user, vcard, d)
+				return d
+			except AttributeError:
+				self.alertUser(lang.get("sessionnotactive", config.jid))
+		else:
+			try:
+				d = defer.Deferred()
+				#self.bos.getMetaInfo(user).addCallback(self.gotvCard, user, vcard, d)
+				self.userinfoID = (self.userinfoID+1)%256
+				self.userinfoCollection[self.userinfoID] = UserInfoCollector(self.userinfoID, d, vcard, user)
+				self.bos.getMetaInfo(user, self.userinfoID) #.addCallback(self.gotvCard, user, vcard, d)
+				return d
+			except AttributeError:
+				self.alertUser(lang.get("sessionnotactive", config.jid))
+
+	def gotAIMvCard(self, profile, user, vcard, d):
+		from glue import icq2jid
+
+		debug.log("LegacyConnection: gotAIMvCard: %s" % (profile))
+
+		cutprofile = oscar.dehtml(profile)
+		nickname = vcard.addElement("NICKNAME")
+		nickname.addContent(utils.utf8encode(user))
+		jabberid = vcard.addElement("JABBERID")
+		jabberid.addContent(icq2jid(user))
+		desc = vcard.addElement("DESC")
+		desc.addContent(utils.utf8encode(cutprofile))
+
+		d.callback(vcard)
+
+	def gotvCard(self, usercol):
+		from glue import icq2jid
+
+		debug.log("LegacyConnection: gotvCard")
+
+		if usercol != None and usercol.valid:
+			vcard = usercol.vcard
+			fn = vcard.addElement("FN")
+			fn.addContent(usercol.first + " " + usercol.last)
+			n = vcard.addElement("N")
+			given = n.addElement("GIVEN")
+			given.addContent(usercol.first)
+			family = n.addElement("FAMILY")
+			family.addContent(usercol.last)
+			middle = n.addElement("MIDDLE")
+			nickname = vcard.addElement("NICKNAME")
+			nickname.addContent(usercol.nick)
+			bday = vcard.addElement("BDAY")
+			bday.addContent(usercol.birthday)
+			desc = vcard.addElement("DESC")
+			desc.addContent(usercol.about)
+			try:
+				c = self.contacts.ssicontacts[usercol.userinfo]
+				desc.addContent("\n\n-----\n"+c['lanipaddr']+'/'+c['ipaddr']+':'+"%s"%(c['lanipport'])+' v.'+"%s"%(c['icqprotocol']))
+			except:
+				pass
+			url = vcard.addElement("URL")
+			url.addContent(usercol.homepage)
+
+			# Home address
+			adr = vcard.addElement("ADR")
+			adr.addElement("HOME")
+			street = adr.addElement("STREET")
+			street.addContent(usercol.homeAddress)
+			locality = adr.addElement("LOCALITY")
+			locality.addContent(usercol.homeCity)
+			region = adr.addElement("REGION")
+			region.addContent(usercol.homeState)
+			pcode = adr.addElement("PCODE")
+			pcode.addContent(usercol.homeZIP)
+			ctry = adr.addElement("CTRY")
+			ctry.addContent(usercol.homeCountry)
+			# home number
+			tel = vcard.addElement("TEL")
+			tel.addElement("VOICE")
+			tel.addElement("HOME")
+			telNumber = tel.addElement("NUMBER")
+			telNumber.addContent(usercol.homePhone)
+			tel = vcard.addElement("TEL")
+			tel.addElement("FAX")
+			tel.addElement("HOME")
+			telNumber = tel.addElement("NUMBER")
+			telNumber.addContent(usercol.homeFax)
+			tel = vcard.addElement("TEL")
+			tel.addElement("CELL")
+			tel.addElement("HOME")
+			number = tel.addElement("NUMBER")
+			number.addContent(usercol.cellPhone)
+			# email
+			email = vcard.addElement("EMAIL")
+			email.addElement("INTERNET")
+			email.addElement("PREF")
+			emailid = email.addElement("USERID")
+			emailid.addContent(usercol.email)
+
+			# work
+			adr = vcard.addElement("ADR")
+			adr.addElement("WORK")
+			street = adr.addElement("STREET")
+			street.addContent(usercol.workAddress)
+			locality = adr.addElement("LOCALITY")
+			locality.addContent(usercol.workCity)
+			region = adr.addElement("REGION")
+
+			region.addContent(usercol.workState)
+			pcode = adr.addElement("PCODE")
+			pcode.addContent(usercol.workZIP)
+			ctry = adr.addElement("CTRY")
+			ctry.addContent(usercol.workCountry)
+
+			tel = vcard.addElement("TEL")
+			tel.addElement("WORK")
+			tel.addElement("VOICE")
+			number = tel.addElement("NUMBER")
+			number.addContent(usercol.workPhone)
+			tel = vcard.addElement("TEL")
+			tel.addElement("WORK")
+			tel.addElement("FAX")
+			number = tel.addElement("NUMBER")
+			number.addContent(usercol.workFax)
+
+			jabberid = vcard.addElement("JABBERID")
+			jabberid.addContent(usercol.userinfo+"@"+config.jid)
+
+			usercol.d.callback(vcard)
+		elif usercol:
+			usercol.d.callback(usercol.vcard)
+		else:
+			self.session.sendErrorMessage(self.session.jabberID, uin+"@"+config.jid, "cancel", "undefined-condition", "", "Unable to retrieve user information")
+			# error of some kind
+
+	def gotnovCard(self, profile, user, vcard, d):
+		from glue import icq2jid
+		debug.log("LegacyConnection: novCard: %s" % (profile))
+
+		nickname = vcard.addElement("NICKNAME")
+		nickname.addContent(user)
+		jabberid = vcard.addElement("JABBERID")
+		jabberid.addContent(icq2jid(user))
+		desc = vcard.addElement("DESC")
+		desc.addContent("User is not online.")
+
+		d.callback(vcard)
+
+	def icq2uhandle(self, icqid):
+		retstr = icqid.replace(' ','')
+		return retstr.lower()
+
+	def updatePresence(self, userHandle, ptype): # Convenience
+		from glue import icq2jid
+		to = icq2jid(userHandle)
+		self.session.sendPresence(to=self.session.jabberID, fro=to, ptype=ptype)
+
+	def addContact(self, userHandle):
+		debug.log("LegacyConnection: Session \"%s\" - addContact(\"%s\")" % (self.session.jabberID, userHandle))
+		def cb(arg=None):
+			self.updatePresence(userHandle, "subscribed")
+
+		try:
+			for g in self.bos.ssigroups:
+				for u in g.users:
+					icqHandle = self.icq2uhandle(u.name)
+					if icqHandle == userHandle:
+						if not u.authorizationRequestSent and not u.authorized:
+							self.bos.sendAuthorizationRequest(userHandle, "Please authorize me!")
+							u.authorizationRequestSent = True
+							return
+						else:
+							cb()
+							return
+
+			savethisgroup = None
+			groupName = "PyICQ-t Buddies"
+			for g in self.bos.ssigroups:
+				if g.name == groupName:
+					debug.log("Located group %s" % (g.name))
+					savethisgroup = g
+
+			if savethisgroup is None:
+				debug.log("Adding new group")
+				newGroupID = self.generateGroupID()
+				newGroup = oscar.SSIGroup(groupName, newGroupID, 0)
+				self.bos.startModifySSI()
+				self.bos.addItemSSI(newGroup)
+				self.bos.endModifySSI()
+				savethisgroup = newGroup
+				self.bos.ssigroups.append(newGroup)
+
+			group = self.findGroupByName(groupName)
+			newUserID = self.generateBuddyID(group.groupID)
+			newUser = oscar.SSIBuddy(userHandle, group.groupID, newUserID)
+			savethisgroup.addUser(newUserID, newUser)
+
+
+			debug.log("Adding item to SSI")
+			self.bos.startModifySSI()
+			self.bos.addItemSSI(newUser)
+			self.bos.modifyItemSSI(savethisgroup)
+			self.bos.endModifySSI()
+
+			self.legacyList.updateSSIContact(userHandle)
+			self.updatePresence(userHandle, "subscribe")
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
+
+	def removeContact(self, userHandle):
+		debug.log("LegacyConnection: Session \"%s\" - removeContact(\"%s\")" % (self.session.jabberID, userHandle))
+		if userHandle in self.bos.authorizationRequests:
+			self.bos.sendAuthorizationResponse(userHandle, False, "")
+			self.bos.authorizationRequests.remove(userHandle)
+
+		def cb(arg=None):
+			self.updatePresence(userHandle, "unsubscribed")
+
+		try:
+			savetheseusers = []
+			for g in self.bos.ssigroups:
+				for u in g.users:
+					icqHandle = self.icq2uhandle(u.name)
+					debug.log("Comparing %s and %s" % (icqHandle, userHandle))
+					if icqHandle == userHandle:
+						debug.log("Located user %s" % (u.name))
+						savetheseusers.append(u)
+
+			if len(savetheseusers) == 0:
+				debug.log("Did not find user")
+				return
+
+			self.bos.startModifySSI()
+			for u in savetheseusers:
+				debug.log("LegacyConnection: Removing %s (u:%d g:%d) from group %s"%(u.name, u.buddyID, u.groupID, u.group.name))
+				de = self.bos.delItemSSI(u)
+				de.addCallback(self.SSIItemDeleted, u)
+			de.addCallback(cb)
+			self.bos.endModifySSI()
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
+
+	def authContact(self, userHandle):
+		debug.log("LegacyConnection: Session \"%s\" - authContact(\"%s\")" % (self.session.jabberID, userHandle))
+		try:
+			if userHandle in self.bos.authorizationRequests:
+				self.bos.sendAuthorizationResponse(userHandle, True, "OK")
+				self.bos.authorizationRequests.remove(userHandle)
+		except AttributeError:
+			self.alertUser(lang.get("sessionnotactive", config.jid))
+
+	def deauthContact(self, userHandle):
+		debug.log("LegacyConnection: Session \"%s\" - deauthContact(\"%s\")" % (self.session.jabberID, userHandle))
+		# I don't recall why these are the same
+		self.authContact(userHandle)
+
+	def SSIItemDeleted(self, x, user):
+		c = 0
+		for g in self.bos.ssigroups:
+			c += 1
+			for u in g.users:
+				if u.buddyID == user.buddyID and u.groupID == user.groupID:
+					g.users.remove(u)
+					del g.usersToID[u]
+
+	def errorCallback(self, result):
+		debug.log("LegacyConnection: errorCallback %s" % (result.getErrorMessage()))
+		errmsg = result.getErrorMessage()
+		errmsgs = errmsg.split("'")
+		message = "Authentication Error!" 
+		if errmsgs[1]:
+			message = message+"\n"+errmsgs[1]
+		if errmsgs[3]:
+			message = message+"\n"+errmsgs[3]
+		self.alertUser(message)
+
+		self.session.removeMe()
+
+	def findGroupByID(self, groupID):
+		for x in self.bos.ssigroups:
+			if x.groupID == groupID:
+				return x
+
+	def findGroupByName(self, groupName):
+		for x in self.bos.ssigroups:
+			if x.name == groupName:
+				return x
+
+	def generateGroupID(self):
+		pGroupID = len(self.bos.ssigroups)
+		while True:
+			pGroupID += 1
+			found = False
+			for x in self.bos.ssigroups:
+				if pGroupID == x.groupID:
+					found = True
+					break
+			if not found: break
+		return pGroupID
+
+	def generateBuddyID(self, groupID):
+		group = self.findGroupByID(groupID)
+		pBuddyID = len(group.users)
+		while True: # If all integers are taken we got a bigger problems
+			pBuddyID += 1
+			found = False
+			for x in group.users:
+				if pBuddyID == x.buddyID:
+					found = True
+					break
+			if not found: break
+		return pBuddyID
+
+	def alertUser(self, message):
+		tmpjid = config.jid
+		if self.session.registeredmunge:
+			tmpjid = tmpjid + "/registered"
+		self.session.sendMessage(to=self.session.jabberID, fro=tmpjid, body=message, mtype="error")
+
+
+
+
+
+class UserInfoCollector:
+	def __init__(self, id, d, vcard, userinfo):
+		 self.packetCounter = 0
+		 self.vcard = vcard
+		 self.d = d
+		 self.id = id
+		 self.userinfo = userinfo
+		 self.nick = None
+		 self.first = None
+		 self.last = None
+		 self.email = None
+		 self.homeCity = None
+		 self.homeState = None
+		 self.homePhone = None
+		 self.homeFax = None
+		 self.homeAddress = None
+		 self.cellPhone = None
+		 self.homeZIP = None
+		 self.homeCountry = None
+		 self.workCity = None
+		 self.workState = None
+		 self.workPhone = None
+		 self.workFax = None
+		 self.workAddress = None
+		 self.workZIP = None
+		 self.workCountry = None
+		 self.workCompany = None
+		 self.workDepartment = None
+		 self.workPosition = None
+		 self.workRole = None
+		 self.homepage = None
+		 self.about = None
+		 self.birthday = None
+		 self.valid = True
+
+	def gotUserInfo(self, id, type, userinfo):
+		 self.packetCounter += 1
+		 if type == 0xffff:
+			  self.valid = False
+			  self.packetCounter = 8 # we'll get no more packages
+		 if type == 0xc8:
+			  # basic user info
+			  self.nick = userinfo[0]
+			  self.first = userinfo[1]
+			  self.last = userinfo[2]
+			  self.email = userinfo[3]
+			  self.homeCity = userinfo[4]
+			  self.homeState = userinfo[5]
+			  self.homePhone = userinfo[6]
+			  self.homeFax = userinfo[7]
+			  self.homeAddress = userinfo[8]
+			  self.cellPhone = userinfo[9]
+			  self.homeZIP = userinfo[10]
+			  self.homeCountry = userinfo[11]
+		 elif type == 0xdc:
+			  self.homepage = userinfo[0]
+			  self.birthday = userinfo[1]
+		 elif type == 0xd2:
+			  self.workCity = userinfo[0]
+			  self.workState = userinfo[1]
+			  self.workPhone = userinfo[2]
+			  self.workFax = userinfo[3]
+			  self.workAddress = userinfo[4]
+			  self.workZIP = userinfo[5]
+			  self.workCountry = userinfo[6]
+			  self.workCompany = userinfo[7]
+			  self.workDepartment = userinfo[8]
+			  self.workPosition = userinfo[9]
+		 elif type == 0xe6:
+			  self.about = userinfo[0]
+
+		 if self.packetCounter >= 8:
+			  return True
+		 else:
+			  return False

@@ -18,8 +18,8 @@ def invalidError(text):
 	sys.exit(1)
 
 def importFile(conffile):
-	if conffile[0] != "/":
-		conffile = "../"+conffile
+	#if conffile[0] != "/":
+	#	conffile = "../"+conffile
 
 	try:
 		document = utils.parseFile(conffile)

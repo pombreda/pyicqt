@@ -1,3 +1,48 @@
+2006-01-28  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	* src/legacy/__init__.py:
+	Removed unnecessary functions.
+
+	* src/legacy/defaultAvatar.png:
+	* src/legacy/defaultJabberAvatar.png:
+	Moved icons from here . . .
+
+	* data/defaultAvatar.png:
+	To here.  =)
+
+	* PyICQt.py:
+	Added frontend script to handle starting up PyICQ properly.
+
+	* PyICQt:
+	Deprecated, and refers to new startup script.
+
+	* src/legacy/legacylist.py:
+	* src/legacy/glue.py:
+	Updated to alternate location for icon.
+
+	* src/xmlconfig.py:
+	* src/langs/__init__.py:
+	Updated to handle newer paths.
+
+	* src/main.py:
+	Moved main part to being it's own function.
+	Added note about not starting from this anymore.
+
+	* src/legacy/icqt.py:
+	Deprecated during code cleanup.
+
+	* src/legacy/glue.py:
+	Added half of icqt.py functionality to here.
+
+	* src/legacy/oscart.py:
+	Added as a separated-out piece of icqt.py.
+
+2006-01-27  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Fix for lack of icondata declaration.
+
 2006-01-22  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:
