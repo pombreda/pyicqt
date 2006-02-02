@@ -465,10 +465,13 @@ def main():
 	if hasattr(config, "webport") and config.webport:
 		try:
 			from nevow import appserver
-			import webadmin
-			site = appserver.NevowSite(webadmin.WebAdmin(pytrans=app.transportSvc))
+			#import webadmin
+			#site = appserver.NevowSite(webadmin.WebAdmin(pytrans=app.transportSvc))
+			import web
+			site = appserver.NevowSite(web.WebInterface(pytrans=app.transportSvc))
 			reactor.listenTCP(int(config.webport), site)
 			debug.log("Web admin interface activated.")
 		except:
 			debug.log("Unable to start web admin interface.  No Nevow package found.")
+			raise
 	reactor.run()
