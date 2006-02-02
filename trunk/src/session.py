@@ -324,7 +324,7 @@ class Session(jabw.JabberConnection):
 			r = self.resourceList[highestActive]
 			self.setStatus(r.show, r.status)
 		else:
-			debug.log("Session %s - calling removeMe in 0 seconds. Last resource gone offline")
+			debug.log("Session %s - calling removeMe in 0 seconds. Last resource gone offline" % (self.jabberID))
 			#reactor.callLater(0, self.removeMe)
 			self.removeMe()
 			#FIXME Which of the above?

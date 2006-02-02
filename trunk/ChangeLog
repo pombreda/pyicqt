@@ -1,3 +1,19 @@
+2006-02-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/legacylist.py:
+	Fixed poor choice of which iteration of contact to call.
+
+	* src/session.py:
+	Silly cosmetic patch.
+
+	* src/web/__init__.py:
+	* src/web/handler.py:
+	* data/www/images/pyicq.png:
+	* data/www/css/style.css:
+	* data/www/template.html:
+	* src/main.py:
+	Beginnings of reworked web interface.
+
 2006-01-28  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

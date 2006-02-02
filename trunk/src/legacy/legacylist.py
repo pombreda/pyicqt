@@ -138,12 +138,12 @@ class LegacyList:
 		c = self.session.contactList.findContact(icq2jid(contact))
 		if not c:
 			debug.log("Update setting default avatar for %s" %(contact))
-			jabContact = self.session.contactList.createContact(icq2jid(contact), "both")
-			jabContact.updateAvatar(glue.defaultAvatar, push=False)
+			c = self.session.contactList.createContact(icq2jid(contact), "both")
+			c.updateAvatar(glue.defaultAvatar, push=False)
 
 		if not self.xdbcontacts.has_key(contact.lower()):
 			if nick:
-				contact.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+				c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
 			else:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
