@@ -9,6 +9,8 @@ import os
 import os.path
 import sys
 from twisted.web import microdom
+from twisted.words.protocols.jabber import client, jid
+from twisted.internet import reactor
 
 class VersionNumber:
 	def __init__(self, vstring):

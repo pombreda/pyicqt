@@ -1,5 +1,7 @@
 0.7:
 
+* Web interface now uses Jabber authentication instead of custom.
+
 * Added cross-platform capable startup script.
 
 * Restructured code a tad.

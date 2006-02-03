@@ -332,11 +332,7 @@ class VCardFactory:
 			URL = vCard.addElement("URL")
 			URL.addContent(legacy.url)
 
-			f = open("legacy/defaultAvatar.png")
-			defaultAvatarData = f.read()
-			f.close()
-			defaultAvatar = avatar.AvatarCache().setAvatar(defaultAvatarData)
-
+			from legacy import defaultAvatar
 			PHOTO = defaultAvatar.makePhotoElement()
 			vCard.addChild(PHOTO)
 

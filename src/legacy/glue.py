@@ -198,7 +198,7 @@ class LegacyConnection:
 		return self.session.highestResource()
 
 	def sendMessage(self, target, resource, message, noerror, xhtml):
-		debug.log("LegacyConnection: sendMessage %s %s %s" % (dest, resource, body))
+		debug.log("LegacyConnection: sendMessage %s %s %s" % (target, resource, message))
 		from glue import jid2icq
 		try:
 			self.session.pytrans.statistics.stats['OutgoingMessages'] += 1
