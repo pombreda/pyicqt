@@ -1,3 +1,21 @@
+2006-02-02  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/__init__.py:
+	* src/misciq.py:
+	Fixed issue with calling wrong location of default avatar.
+
+	* src/web/xmppcred.py:
+	Added handlier for xmpp auth.
+
+	* src/web/handler.py:
+	Added call to jabber auth.
+	Cleaned up and improved web interface some.
+
+	* src/webadmin/__init__.py:
+	* src/webadmin/handler.py:
+	* src/webadmin:
+	Removed old tree.
+
 2006-02-01  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/legacylist.py:

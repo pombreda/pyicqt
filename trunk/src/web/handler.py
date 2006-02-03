@@ -6,14 +6,16 @@ from nevow import tags as T
 from twisted.protocols import http
 from twisted.web import microdom
 from twisted.internet import reactor
+from twisted.cred import portal, credentials
 import debug
 import config
 import legacy
 import sys, os
 import lang
+from xmppcred import XMPPRealm, XMPPChecker, IXMPPAvatar
 
-# Root Node
-class WebInterface(rend.Page):
+# Template Node
+class WebInterface_template(rend.Page):
 	addSlash = True
 	docFactory = loaders.xmlfile('data/www/template.html')
 
@@ -22,15 +24,57 @@ class WebInterface(rend.Page):
 
 	def renderHTTP(self, ctx):
 		request = inevow.IRequest(ctx)
+		username = request.getUser()
 		password = request.getPassword()
-		if password != config.websecret:
-			request.setHeader('WWW-Authenticate', 'Basic realm="PyICQ-t"')
-			request.setResponseCode(http.UNAUTHORIZED)
-			return "Authorization required."
+		p = portal.Portal(XMPPRealm())
+		p.registerChecker(XMPPChecker(config.mainServer, 5222))
+		creds = credentials.UsernamePassword(username, password)
+		return p.login(creds, None, IXMPPAvatar).addCallback(
+			self._loginSucceeded, ctx).addErrback(
+			self._loginFailed, ctx)
+
+	def _loginSucceeded(self, avatarInfo, ctx):
 		return rend.Page.renderHTTP(self, ctx)
 
+	def _loginFailed(self, result, ctx):
+		request = inevow.IRequest(ctx)
+		request.setHeader('WWW-Authenticate', 'Basic realm="PyICQ-t Web Interface"')
+		request.setResponseCode(http.UNAUTHORIZED)
+		return "Authorization required."
+
+	def render_version(self, context, data):
+		return [legacy.version]
+
+	def render_title(self, context, data):
+		return [legacy.name]
+
+	def render_menu(self, context, data):
+		request = inevow.IRequest(context)
+		username = request.getUser()
+
+		ret = T.table(border=0,cellspacing=3,cellpadding=3)
+		row = T.tr(valign="middle")
+		row[T.td(_class="menuentry",width="150",align="center",onclick="self.location='/account/'",onmouseover="this.className='menuentrypressed';",onmouseout="this.className='menuentry';")[T.a(_class="menuentry",href="/account/")["Account"]]]
+
+		if config.admins.count(username) > 0:
+			row[T.td(_class="menuentry",width="150",align="center",onclick="self.location='/status/'",onmouseover="this.className='menuentrypressed';",onmouseout="this.className='menuentry';")[T.a(_class="menuentry",href="/status/")["Status"]]]
+			row[T.td(_class="menuentry",width="150",align="center",onclick="self.location='/config/'",onmouseover="this.className='menuentrypressed';",onmouseout="this.className='menuentry';")[T.a(_class="menuentry",href="/config/")["Configuration"]]]
+			row[T.td(_class="menuentry",width="150",align="center",onclick="self.location='/controls/'",onmouseover="this.className='menuentrypressed';",onmouseout="this.className='menuentry';")[T.a(_class="menuentry",href="/controls/")["Controls"]]]
+
+		ret[row]
+
+		return ret
+
+	child_images = static.File('data/www/images/')
+	child_css = static.File('data/www/css/')
+
+
+# Root Node
+class WebInterface(WebInterface_template):
 	def childFactory(self, ctx, name):
-		debug.log("WebInterface: getDynamicChild %s %s" % (ctx, name))
+		debug.log("WebInterface: childFactory %s %s" % (ctx, name))
+		if name == "account":
+			return WebInterface_account(pytrans=self.pytrans)
 		if name == "status":
 			return WebInterface_status(pytrans=self.pytrans)
 		if name == "config":
@@ -48,23 +92,47 @@ information about the transport.  Eventually, this interface will do more,
 but for now, enjoy the statistics and such!</P>
 """)
 
-	def render_version(self, context, data):
-		return [legacy.version]
 
-	def render_title(self, context, data):
-		return [legacy.name]
+# Account Node
+class WebInterface_account(WebInterface_template):
+	def render_content(self, context, data):
+		return loaders.htmlstr("""
+<B>Your Account</B>
+<HR />
+<SPAN nevow:render="info" />
+<BR /><BR />
+<B>Roster</B>
+<HR />
+<SPAN nevow:render="roster" />
+""")
 
-	def child_images(self, ctx):
-		return static.File('data/www/images/')
+	def render_info(self, context, data):
+		request = inevow.IRequest(context)
+		username = request.getUser()
+		print "username = %s" % (username)
+		reg = self.pytrans.xdb.getRegistration(username)
+		if not reg:
+			return "You are not currently registered with the transport."
 
-	def child_css(self, ctx):
-		return static.File('data/www/css/')
+		return reg[0]
+
+	def render_roster(self, context, data):
+		request = inevow.IRequest(context)
+		username = request.getUser()
+		print "username = %s" % (username)
+
+		ret = T.table(border = 0,width = "100%",cellspacing=5,cellpadding=2)
+		roster = self.pytrans.xdb.getList("roster", username)
+		if not roster:
+			return ret
+		for item in roster:
+			row = T.tr[T.td[item[0]]]
+			ret[row]
+		return ret
+
 
 # Status Node
-class WebInterface_status(WebInterface):
-	def __init__(self, pytrans):
-		self.pytrans = pytrans
-
+class WebInterface_status(WebInterface_template):
 	def render_content(self, context, data):
 		return loaders.htmlstr("""
 <B>Transport Statistics</B>
@@ -113,11 +181,9 @@ class WebInterface_status(WebInterface):
 			ret[row]
 		return ret
 
-# Configuration Node
-class WebInterface_config(WebInterface):
-	def __init__(self, pytrans):
-		self.pytrans = pytrans
 
+# Configuration Node
+class WebInterface_config(WebInterface_template):
 	def render_content(self, context, data):
 		return loaders.htmlstr("""
 <B>Configuration</B>
@@ -138,10 +204,15 @@ class WebInterface_config(WebInterface):
 			table[row]
 		return table
 
+
 # Controls Node
-class WebInterface_controls(WebInterface):
-	def __init__(self, pytrans):
-		self.pytrans = pytrans
+class WebInterface_controls(WebInterface_template):
+	#def renderHTTP(self, ctx):
+	#	request = inevow.IRequest(ctx)
+	#	if request.args.get('shutdown'):
+	#		debug.log("WebInterface: Received shutdown")
+	#		reactor.stop()
+	#	return WebInterface_template.renderHTTP(self, ctx)
 
 	def render_content(self, context, data):
 		return loaders.htmlstr("""
@@ -150,18 +221,6 @@ class WebInterface_controls(WebInterface):
 <SPAN nevow:render="message" />
 <SPAN nevow:render="controls" />
 """)
-
-	def renderHTTP(self, ctx):
-		request = inevow.IRequest(ctx)
-		password = request.getPassword()
-		if password != config.websecret:
-			request.setHeader('WWW-Authenticate', 'Basic realm="PyICQ-t"')                  
-			request.setResponseCode(http.UNAUTHORIZED)
-			return "Authorization required."
-		if request.args.get('shutdown'):
-			debug.log("WebInterface: Received shutdown")
-			reactor.stop()
-		return rend.Page.renderHTTP(self, ctx)
 
 	def render_message(self, context, data):
 		request = inevow.IRequest(context)
