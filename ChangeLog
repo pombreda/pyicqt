@@ -1,3 +1,52 @@
+2006-02-04  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/twistwrap.py:
+	Added handler for dealing with multiple Twisted versions.(thanks james!)
+
+	* src/utils.py:
+	Removed functions that are now in twistwrap and updated for twistwrap.
+
+	* src/main.py:
+	* src/avatar.py:
+	* src/contact.py:
+	* src/disco.py:
+	* src/groupchat.py:
+	* src/jabw.py:
+	* src/misciq.py:
+	* src/register.py:
+	* src/sasl.py:
+	* src/session.py:
+	* src/xmlconfig.py:
+	* src/xdb/xmlfiles.py:
+	* src/xdb/legacyaimtransport.py:
+	* src/legacy/glue.py:
+	* src/legacy/legacyiq.py:
+	* src/legacy/legacylist.py:
+	Updated for twistwrap.
+
+	* src/exception.py:
+	* src/main.py:
+	Removed what turned out to be useless.
+
+	* src/main.py:
+	Moved sasl import to immediate location in which it is needed.
+
+	* src/groupchat.py:
+	* src/session.py:
+	* src/main.py:
+	* src/jabw.py:
+	* src/config.py:
+	* src/disco.py:
+	* config_example.xml:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/legacy/__init__.py:
+	* src/langs/en.py:
+	Removed groupchat support (ICQ does not support).. and invites.
+
+	* src/tlib/oscar.py:
+	Fixed problem with array handling for iconinfo.
+
 2006-02-03  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:

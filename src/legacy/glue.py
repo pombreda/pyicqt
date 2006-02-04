@@ -2,15 +2,11 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-if utils.checkTwisted():
-	from twisted.xish.domish import Element
-else:
-	from tlib.domish import Element
+from tlib.twistwrap import Element
 from twisted.internet import protocol, reactor, defer, task
 from tlib import oscar
 from tlib import socks5, sockserror
 from twisted.python import log
-import groupchat
 import icqt
 import config
 import debug
@@ -48,14 +44,6 @@ defaultICQAvatar = avatar.AvatarCache().setAvatar(defaultICQAvatarData)
 defaultAvatar = defaultAIMAvatar
 defaultAvatarData = defaultAIMAvatarData
 
-# This function should return true if the JID is a group JID, false otherwise
-def isGroupJID(jid):
-	#if (jid[0] == "#" or jid[0] == "%"):
-	if jid.find(config.confjid) > 0:
-		return True
-	else:
-		return False
-
 # This function translates an ICQ screen name to a JID
 def icq2jid(icqid):
 	if icqid:
@@ -67,30 +55,6 @@ def icq2jid(icqid):
 # This function translates a JID to an ICQ screen name
 def jid2icq(jid):
 	return unicode(jid[:jid.find('@')].replace('%','@'))
-
-# This function translates an ICQ chat room to a groupchat JID
-def icq2jidGroup(chatid, userid=None, exchange=None):
-	retstr = chatid.replace(' ', '_')
-	retstr = retstr.replace('@', '')
-	if exchange:
-		retstr = retstr + "%" + str(exchange)
-	retstr = retstr + "@" + config.confjid
-	if userid:
-		retstr = retstr + "/" + userid
-	return retstr
-
-# This function translates a groupchat JID to an ICQ chat room
-def jid2icqGroup(jid):
-	exchange = 4
-	groupid = unicode(jid[0:jid.find('@')].replace('_',' '))
-	if groupid.find('%') != -1:
-		exchange = int(groupid[groupid.find('%')+1:])
-		groupid = groupid[:groupid.find('%')]
-	if jid.find('/') != -1:
-		userid = unicode(jid[jid.find('/'):])
-	else:
-		userid = None
-	return (groupid,userid,exchange)
 
 # This function is called to handle legacy id translation to a JID
 translateAccount = icq2jid
@@ -115,36 +79,6 @@ def addCommands(pytrans):
 	import legacyiq
 	pytrans.ICQEmailLookup = legacyiq.EmailLookup(pytrans)
 	pytrans.ICQConfirmAccount = legacyiq.ConfirmAccount(pytrans)
-
-
-
-############################################################################
-# This class handles groupchats with the ICQ
-############################################################################
-class LegacyGroupchat(groupchat.BaseGroupchat):
-	def __init__(self, session, resource, ID=None, existing=False, switchboardSession=None):
-		groupchat.BaseGroupchat.__init__(self, session, resource, ID)
-		groupid,userid,exchange = jid2icqGroup(self.roomJID())
-		debug.log("LegacyGroupchat: \"%s\" \"%s\" created" % (self.roomJID(), groupid))
-		self.session.legacycon.createChat(groupid,exchange)
-
-	def removeMe(self):
-		groupid,userid,exchange = jid2icqGroup(self.roomJID())
-		debug.log("LegacyGroupchat: remove \"%s\" \"%s\"" % (self.roomJID(), groupid))
-		self.session.legacycon.leaveChat(groupid)
-		groupchat.BaseGroupchat.removeMe(self)
-		utils.mutilateMe(self)
-
-	def sendLegacyMessage(self, message, noerror):
-		groupid,userid,exchange = jid2icqGroup(self.roomJID())
-		debug.log("LegacyGroupchat: send message \"%s\" \"%s\" \"%s\"" % (self.roomJID(), groupid, message))
-		self.session.legacycon.sendChat(groupid, message)
-	
-	def sendContactInvite(self, contactJID):
-		groupid,userid,exchange = jid2icqGroup(self.roomJID())
-		contactid = jid2icq(contactJID)
-		debug.log("LegacyGroupchat: send invite \"%s\" \"%s\" \"%s\" \"%s\"" % (self.roomJID(), contactJID, groupid, contactid))
-		self.session.legacycon.sendInvite(groupid, contactid)
 
 
 
@@ -400,15 +334,6 @@ class LegacyConnection:
 					c.sendMessage(message)
 					debug.log("Found chat and sent message.")
 					break
-		except AttributeError:
-			self.alertUser(lang.get("sessionnotactive", config.jid))
-
-	def sendInvite(self, chatroom, contact):
-		debug.log("LegacyConnection: sendInvite %s %s" % (chatroom, contact))
-		try:
-			for c in self.bos.chats:
-				if c.name.lower() == chatroom.lower():
-					self.bos.sendInvite(contact, c)
 		except AttributeError:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 

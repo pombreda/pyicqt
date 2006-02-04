@@ -9,7 +9,6 @@
 if type(True) != bool: from bool import bool
 
 jid = "icq.localhost"
-confjid = "conference.icq.localhost"
 compjid = ""
 spooldir = ".."
 pid = ""

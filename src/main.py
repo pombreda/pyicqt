@@ -1,7 +1,6 @@
-# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyrigh 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-import exception
 import utils
 import debug
 import getopt
@@ -22,7 +21,7 @@ if __name__ == "__main__":
 	print "PyICQt.py from the root of the distribution instead."
 	sys.exit(0)
 
-from utils import VersionNumber
+from tlib.twistwrap import VersionNumber
 if VersionNumber(sys.version[:3]) < VersionNumber("2.2"):
 	print("You are using version %s of Python, at least 2.2 is required." % (sys.version[:3]))
 	sys.exit(0)
@@ -108,12 +107,7 @@ from twisted.internet import reactor, task
 from twisted.internet.defer import Deferred
 from twisted.web import proxy, server
 import twisted.python.log
-if utils.checkTwisted():
-	from twisted.words.protocols.jabber import component, jid
-	from twisted.xish.domish import Element
-else:
-	from tlib.jabber import component, jid
-	from tlib.domish import Element
+from tlib.twistwrap import component, jid, Element
 
 import xdb
 import avatar
@@ -124,8 +118,6 @@ import register
 import misciq
 import legacy
 import lang
-import groupchat
-import sasl
 import globals
 
 
@@ -138,11 +130,6 @@ class PyTransport(component.Service):
 		self.discovery = disco.ServerDiscovery(self)
 		self.discovery.addIdentity("gateway", legacy.id, legacy.name, config.jid)
 		self.discovery.addFeature(globals.XHTML, None, "USER")
-		if config.confjid and config.confjid != "":
-			self.discovery.addIdentity("gateway", legacy.id, legacy.name + " Chatrooms", config.confjid)
-			self.discovery.addIdentity("conference", "text", legacy.name + " Chatrooms", config.confjid)
-			self.discovery.addFeature("jabber:x:conference", None, config.confjid)
-			self.discovery.addFeature("jabber:iq:conference", None, config.confjid)
 
 		self.xdb = xdb.XDB(config.jid)
 		self.avatarCache = avatar.AvatarCache()
@@ -154,7 +141,6 @@ class PyTransport(component.Service):
 		self.vCardFactory = misciq.VCardFactory(self)
 		self.searchFactory = misciq.SearchFactory(self)
 		self.IqAvatarFactory = misciq.IqAvatarFactory(self)
-		#self.groupChatDisco = misciq.GroupChat(self)
 		self.statistics = misciq.Statistics(self)
 		self.connectUsers = misciq.ConnectUsers(self)
 		legacy.addCommands(self)
@@ -163,10 +149,6 @@ class PyTransport(component.Service):
 		self.xmlstream = None
 		self.sessions = {}
 		
-		# Groupchat ID handling
-		self.lastID = 0
-		self.reservedIDs = []
-
 		# Message IDs
 		self.messageID = 0
 		
@@ -197,18 +179,6 @@ class PyTransport(component.Service):
 		self.messageID += 1
 		return str(self.messageID)
 	
-	def makeID(self):
-		newID = "r" + str(self.lastID)
-		self.lastID += 1
-		if self.reservedIDs.count(newID) > 0:
-			# Ack, it's already used.. Try again
-			return self.makeID()
-		else:
-			return newID
-	
-	def reserveID(self, ID):
-		self.reservedIDs.append(ID)
-
 	def loopCall(self):
 		numsessions = len(self.sessions)
 
@@ -257,12 +227,6 @@ class PyTransport(component.Service):
 			bind = Element((None,"bind"))
 			#bind.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
 			bind.attributes["name"] = config.jid
-			self.send(bind)
-		if config.saslUsername and config.useJ2Component and config.confjid:
-			debug.log("PyTransport: J2C Binding to %s" % config.confjid)
-			bind = Element((None,"bind"))
-			#bind.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
-			bind.attributes["name"] = config.confjid
 			self.send(bind)
 		if config.saslUsername and config.useJ2Component:
 			self.j2bound = 1
@@ -426,6 +390,7 @@ class App:
 		if config.useXCP and config.compjid: jid = config.compjid
 
 		if config.saslUsername:
+			import sasl
 			self.c = sasl.buildServiceManager(jid, config.saslUsername, config.secret, "tcp:%s:%s" % (config.mainServer, config.port))
 		else:
 			self.c = component.buildServiceManager(jid, config.secret, "tcp:%s:%s" % (config.mainServer, config.port))

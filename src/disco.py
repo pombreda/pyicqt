@@ -2,12 +2,7 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-if utils.checkTwisted():
-	from twisted.xish.domish import Element
-	from twisted.words.protocols.jabber import jid
-else:
-	from tlib.domish import Element
-	from tlib.jabber import jid
+from tlib.twistwrap import Element, jid
 from twisted.internet.defer import Deferred
 from twisted.internet import reactor
 import sys
@@ -34,7 +29,6 @@ class ServerDiscovery:
 		self.deferredIqs = {} # A dict indexed by (jid, id) of deferreds to fire
 		
 		self.addFeature(globals.DISCO, None, config.jid)
-		self.addFeature(globals.DISCO, None, config.confjid)
 		self.addFeature(globals.DISCO, None, "USER")
 
 	def sendIq(self, el, timeout=15):

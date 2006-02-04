@@ -9,55 +9,7 @@ import os
 import os.path
 import sys
 from twisted.web import microdom
-
-class VersionNumber:
-	def __init__(self, vstring):
-		self.varray = [0]
-		index = 0 
-		flag = True
-		for c in vstring:
-			if c == '.':
-				self.varray.append(0)
-				index += 1
-				flag = True
-			elif c.isdigit() and flag:
-				self.varray[index] *= 10
-				self.varray[index] += int(c)
-			else:
-				flag = False
-        
-	def __cmp__(self, other):
-		i = 0
-		while True:
-			if i == len(other.varray):
-				if i < len(self.varray):
-					return 1
-				else:
-					return 0
-			if i == len(self.varray):
-				if i < len(other.varray):
-					return -1
-				else:
-					return 0
-			if self.varray[i] > other.varray[i]:
-				return 1
-			elif self.varray[i] < other.varray[i]:
-				return -1
-			i += 1
-
-checkTwistedCached = None
-def checkTwisted():
-	""" Returns False if we're using an old version that needs tlib, otherwise returns True """
-	global checkTwistedCached
-	if checkTwistedCached == None:
-		import twisted.copyright
-		checkTwistedCached = (VersionNumber(twisted.copyright.version) >= VersionNumber("2.0.0"))
-	return checkTwistedCached
-
-if checkTwisted():
-	from twisted.xish.domish import Element
-else:
-	from tlib.domish import Element
+from tlib.twistwrap import Element, SuxElementStream
 
 _controlCharPat = re.compile(
 	r"[\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f"
@@ -335,10 +287,6 @@ class TextParser:
 		return self.parseString(file(filename).read())
 
 	def parseString(self, data):
-		if checkTwisted():
-			from twisted.xish.domish import SuxElementStream
-		else:
-			from tlib.domish import SuxElementStream
 		es = SuxElementStream()
 		es.beExtremelyLenient = self.beExtremelyLenient
 		es.DocumentStartEvent = self.docStart

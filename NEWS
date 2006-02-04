@@ -1,10 +1,12 @@
 0.7:
 
+* Web interface now includes information about your account.
+
 * Web interface now uses Jabber authentication instead of custom.
 
 * Added cross-platform capable startup script.
 
-* Restructured code a tad.
+* Restructured code a fair amount.
 
 * Added Jabberd2 component protocol support.
 

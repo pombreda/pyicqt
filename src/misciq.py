@@ -2,12 +2,7 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-if utils.checkTwisted():
-	from twisted.xish.domish import Element
-	from twisted.words.protocols.jabber import jid
-else:
-	from tlib.domish import Element
-	from tlib.jabber import jid
+from tlib.twistwrap import Element, jid
 from twisted.internet import reactor, task
 
 import jabw
@@ -230,47 +225,6 @@ class AdHocCommands:
 
 		self.pytrans.send(iq)
 
-
-
-#class GroupChat:
-#	def __init__(self, pytrans):
-#		self.pytrans = pytrans
-#		self.pytrans.discovery.addFeature("aim-exchanges", self.incomingIq, config.confjid)
-#		self.pytrans.discovery.addNode("aim-exchanges", self.sendExchangeList, "chatroom_Exchanges", config.confjid, True)
-#
-#	def incomingIq(self, el):
-#		itype = el.getAttribute("type")
-#		fro = el.getAttribute("from")
-#		froj = jid.JID(fro)
-#		to = el.getAttribute("to")
-#		ID = el.getAttribute("id")
-#
-#		debug.log("HI????")
-#
-#	def sendExchangeList(self, el):
-#		to = el.getAttribute("from")
-#		ID = el.getAttribute("id")
-#		ulang = utils.getLang(el)
-#
-#		iq = Element((None, "iq"))
-#		iq.attributes["to"] = to
-#		iq.attributes["from"] = config.jid
-#		iq.attributes["id"] = ID
-#		iq.attributes["type"] = "result"
-#
-#		query = iq.addElement("query")
-#		query.attributes["xmlns"] = globals.DISCO_ITEMS
-#		query.attributes["node"] = "aim-exchanges"
-#
-#		i = 4
-#		while i <= 20:
-#			item = query.addElement("item")
-#			item.attributes["jid"] = config.jid
-#			item.attributes["node"] = "aim-exchanges/%.2d" % i
-#			item.attributes["name"] = "Exchange %.2d" % i
-#			i = i + 1
-#
-#		self.pytrans.send(iq)
 
 
 class VCardFactory:
