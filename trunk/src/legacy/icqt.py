@@ -231,52 +231,11 @@ class B(oscar.BOSConnection):
 			self.session.sendTypingNotification(to=self.session.jabberID, fro=sourcejid, typing=False)
 			self.session.sendChatStateNotification(to=self.session.jabberID, fro=sourcejid, state="active")
 
-	def receiveChatInvite(self, user, message, exchange, fullName, instance, shortName, inviteTime):
-		from glue import icq2jid, LegacyGroupchat
-		debug.log("B: receiveChatInvite from %s for room %s with message: %s" % (user.name,shortName,message))
-		groupchat = LegacyGroupchat(session=self.session, resource=self.session.highestResource(), ID=shortName.replace(' ','_')+"%"+str(exchange), existing=True)
-		groupchat.sendUserInvite(icq2jid(user.name))
-
-	def chatReceiveMessage(self, chat, user, message):
-		from glue import icq2jidGroup
-		debug.log("B: chatReceiveMessage to %s:%d from %s:%s" % (chat.name,chat.exchange,user.name,message))
-
-		if user.name.lower() == self.username.lower():
-			return
-
-		fro = icq2jidGroup(chat.name, user.name, None)
-		if not self.session.findGroupchat(fro):
-			fro = icq2jidGroup(chat.name, user.name, chat.exchange)
-		text = oscar.dehtml(message)
-		text = text.decode("utf-8", "replace")
-		text = text.strip()
-		self.session.sendMessage(to=self.session.jabberID, fro=fro, body=text, mtype="groupchat")
-		self.session.pytrans.statistics.stats['IncomingMessages'] += 1
-		self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'IncomingMessages', 1)
-
 	def errorMessage(self, message):
 		tmpjid = config.jid
 		if self.session.registeredmunge:
 			tmpjid = tmpjid + "/registered"
 		self.session.sendErrorMessage(to=self.session.jabberID, fro=tmpjid, etype="cancel", condition="recipient-unavailable",explanation=message)
-
-	def chatMemberJoined(self, chat, member):
-		from glue import icq2jidGroup
-		debug.log("B: chatMemberJoined %s joined %s" % (member.name,chat.name))
-		fro = icq2jidGroup(chat.name, member.name, chat.exchange)
-		ptype = None
-		show = None
-		status = None
-		self.session.sendPresence(to=self.session.jabberID, fro=fro, show=show, status=status, ptype=ptype)
-
-	def chatMemberLeft(self, chat, member):
-		from glue import icq2jidGroup
-		debug.log("B: chatMemberLeft %s left %s (members: %s)" % (member.name,chat.name,map(lambda x:x.name,chat.members)))
-		fro = icq2jidGroup(chat.name, member.name, chat.exchange)
-		ptype = "unavailable"
-		show = None
-		status = None
-		self.session.sendPresence(to=self.session.jabberID, fro=fro, show=show, status=status, ptype=ptype)
 
 	def receiveSendFileRequest(self, user, file, description, cookie):
 		debug.log("B: receiveSendFileRequest")
@@ -392,22 +351,6 @@ class B(oscar.BOSConnection):
 
 	def warnedUser(self, oldLevel, newLevel, username):
 		debug.log("B: warnedUser");
-
-	def createdRoom(self, (exchange, fullName, instance)):
-		debug.log("B: createdRoom: %s, %s, %s" % (exchange, fullName, instance))
-		self.joinChat(exchange, fullName, instance).addCallback(self.chatJoined)
-
-	def chatJoined(self, chat):
-		from glue import icq2jidGroup
-		debug.log("B: chatJoined room %s (members: %s)" % (chat.name,map(lambda x:x.name,chat.members)))
-		if chat.members is not None:
-			for m in chat.members:
-				fro = icq2jidGroup(chat.name, m.name, chat.exchange)
-				ptype = None
-				show = None
-				status = None
-				self.session.sendPresence(to=self.session.jabberID, fro=fro, show=show, status=status, ptype=ptype)
-		self.chats.append(chat)
 
 
 

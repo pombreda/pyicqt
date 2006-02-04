@@ -4,10 +4,7 @@
 import utils
 import config
 from twisted.internet import reactor
-if utils.checkTwisted():
-	from twisted.xish.domish import Element
-else:
-	from tlib.domish import Element
+from tlib.twistwrap import Element
 import config
 import debug
 import lang

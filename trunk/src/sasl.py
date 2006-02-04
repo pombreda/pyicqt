@@ -21,21 +21,12 @@ except ImportError:
 
 import debug
 import utils
-if utils.checkTwisted():
-	from twisted.words.protocols.jabber import component, jstrports, client
-	from twisted.xish import domish
-	from twisted.xish.domish import Element
-	from twisted.xish import xmlstream
-else:
-	from tlib.jabber import component, jstrports, client
-	from tlib import domish
-	from tlib.domish import Element
-	from tlib import xmlstream
+from tlib.twistwrap import component, jstrports, client, Element, elementStream, xmlstream
 from twisted.application import service
 
 class SASLXmlStream(xmlstream.XmlStream):
     def _reset(self):
-        self.stream = domish.elementStream()
+        self.stream = elementStream()
         self.stream.DocumentStartEvent = self.onDocumentStart
         self.stream.ElementEvent = self.onElement
         self.stream.DocumentEndEvent = self.onDocumentEnd
@@ -98,7 +89,7 @@ class SASLConnectComponentAuthenticator(SASLConnectAuthenticator):
 
     def streamStarted(self, rootelem):
         # Create handshake
-        hs = domish.Element(("jabber:component:accept", "handshake"))
+        hs = Element(("jabber:component:accept", "handshake"))
         hs.addContent(xmlstream.hashPassword(self.xmlstream.sid, self.password))
 
         # Setup observer to watch for handshake result

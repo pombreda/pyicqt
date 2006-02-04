@@ -2,10 +2,7 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-if utils.checkTwisted():
-	from twisted.xish.domish import Element
-else:
-	from tlib.domish import Element
+from tlib.twistwrap import Element
 from tlib import oscar
 from legacy import glue
 import config

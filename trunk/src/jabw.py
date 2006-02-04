@@ -2,12 +2,7 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-if utils.checkTwisted():
-	from twisted.xish.domish import Element
-	from twisted.words.protocols.jabber import jid
-else:
-	from tlib.domish import Element
-	from tlib.jabber import jid
+from tlib.twistwrap import Element, jid
 import debug
 import config
 import disco
@@ -285,8 +280,6 @@ class JabberConnection:
 		mID = el.getAttribute("id")
 		mtype = el.getAttribute("type")
 		body = ""
-		inviteTo = ""
-		inviteRoom = ""
 		autoResponse = 0
 		xhtml = None
 		error = None
@@ -306,16 +299,7 @@ class JabberConnection:
 			elif child.name == "noerror" and child.uri == "sapo:noerror":
 				noerror = True
 			elif child.name == "x":
-				if child.uri == "jabber:x:conference":
-					inviteTo = to
-					inviteRoom = child.getAttribute("jid") # The room the contact is being invited to
-				elif child.uri == "http://jabber.org/protocol/muc#user":
-					for child2 in child.elements():
-						if child2.name == "invite":
-							inviteTo = child2.getAttribute("to")
-							break
-					inviteRoom = to
-				elif child.uri == "jabber:x:event":
+				if child.uri == "jabber:x:event":
 					messageEvent = True
 					composing = False
 					for deepchild in child.elements():
@@ -327,11 +311,6 @@ class JabberConnection:
 					chatStates = True
 					chatStateEvent = child.name
 		
-		if(inviteTo and inviteRoom and not error):
-			debug.log("User: %s - JabberConnection parsed message groupchat invite packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, inviteTo, inviteRoom))
-			self.inviteReceived(source=froj.userhost(), resource=froj.resource, dest=inviteTo, destr="", roomjid=inviteRoom)
-			return
-
 		if error:
 			body = error
 			xhtml = None
@@ -420,10 +399,6 @@ class JabberConnection:
 	
 	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml, autoResponse=0):
 		""" Override this method to be notified when a message is received """
-		pass
-	
-	def inviteReceived(self, source, resource, dest, destr, roomjid):
-		""" Override this method to be notified when an invitation is received """
 		pass
 	
 	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status, url=None):
