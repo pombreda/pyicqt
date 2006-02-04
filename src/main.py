@@ -267,6 +267,8 @@ class PyTransport(component.Service):
 		if config.saslUsername and config.useJ2Component:
 			self.j2bound = 1
 
+		self.sendInvitations()
+
 	def send(self, obj):
 		if self.j2bound == 1 and type(obj) == Element:
 			to = obj.getAttribute("to")
@@ -387,6 +389,14 @@ class PyTransport(component.Service):
 					# Send this subscription
 					s.onPresence(el)
 
+	def sendInvitations(self):              
+		if config.enableAutoInvite:
+			for jid in self.xdb.getRegistrationList():
+				debug.log("Inviting %s..." % (jid))
+				jabw.sendPresence(self, jid, config.jid, ptype="probe")
+				jabw.sendPresence(self, jid, "%s/registered" % (config.jid), ptype="probe")
+
+
 
 class App:
 	def __init__(self):
@@ -425,14 +435,6 @@ class App:
 
 		reactor.addSystemEventTrigger('before', 'shutdown', self.shuttingDown)
 
-		self.sendInvitations()
-
-	def sendInvitations(self):              
-		if config.enableAutoInvite:
-			for jid in self.transportSvc.xdb.getRegistrationList():
-				debug.log("Inviting %s..." % (jid))
-				jabw.sendPresence(self.transportSvc,jid, config.jid, ptype="probe")
-
 	def alreadyRunning(self):
 		print "There is already a transport instance running with this configuration."
 		print "Exiting..."
@@ -465,13 +467,10 @@ def main():
 	if hasattr(config, "webport") and config.webport:
 		try:
 			from nevow import appserver
-			#import webadmin
-			#site = appserver.NevowSite(webadmin.WebAdmin(pytrans=app.transportSvc))
 			import web
 			site = appserver.NevowSite(web.WebInterface(pytrans=app.transportSvc))
 			reactor.listenTCP(int(config.webport), site)
-			debug.log("Web admin interface activated.")
+			debug.log("Web interface activated.")
 		except:
-			debug.log("Unable to start web admin interface.  No Nevow package found.")
-			raise
+			debug.log("Unable to start web interface.  Either Nevow is not installed or you need a more recent version of Twisted.  (>= 2.0.0)")
 	reactor.run()

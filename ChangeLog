@@ -1,3 +1,55 @@
+2006-02-03  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	Removed unnecessary imports.
+
+	* src/main.py:
+	Cleanup for web interface stuff.
+
+	* src/INSTALL:
+	Minor cleanup to indicate web interface is not usable under Twisted 1.*.
+
+	* src/config.py:
+	* config_example.xml:
+	Removed websecret which is no longer necessary.
+
+	* src/contact.py:
+	* src/utils.py:
+	* src/tlib/domish.py:
+	* src/tlib/oscar.py:
+	* src/legacy/oscart.py:
+	* src/legacy/glue.py:
+	* src/legacy/legacylist.py:
+	* src/jabw.py:
+	* src/main.py:
+	* src/debug.py:
+	* src/session.py:
+	Applied Robert Quattlebaum's many patches.  Includes:
+	iTunes URL support
+	encoding fixes
+	less presence spam when another resource comes online
+	better (ie, actually functional) xhtml support
+	misc other things
+
+	* src/legacy/glue.py:
+	* data/defaultAIMAvatar.png:
+	* data/defaultICQAvatar.png:
+	* data/defaultAvatar.png:
+	Added separate icons for icq and aim contacts.
+
+	* src/legacy/oscart.py:
+	* src/legacy/icqt.py:
+	Moved back to the previous name.
+
+	* src/utils.py:
+	Shut up xmlify debug info.
+
+	* src/legacy/glue.py:
+	Added xmlify's to icq returned vcard information.
+
+	* src/langs/ru.py:
+	Added sessionnotactive string.
+
 2006-02-02  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/__init__.py:

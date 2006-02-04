@@ -43,6 +43,9 @@ class _Serializer:
     def getValue(self):
         return self.cio.getvalue()
 
+    def hasPrefix(self, uri):
+        return self.prefixes.has_key(uri)
+
     def getPrefix(self, uri):
         if not self.prefixes.has_key(uri):
             self.prefixes[uri] = "xn%d" % (self.prefixCounter)
@@ -55,12 +58,14 @@ class _Serializer:
 
         # Shortcut, check to see if elem is actually a chunk o' serialized XML
         if isinstance(elem, SerializedXML):
-            write(elem.encode("utf-8"))
+            try: write(elem.encode("utf-8","replace"))
+            except: write(u"[UTF8 ENCODING ERROR]".encode("utf-8","replace"))
             return
 
         # Shortcut, check to see if elem is actually a string (aka Cdata)
         if isinstance(elem, types.StringTypes):
-            write(escapeToXml(elem).encode("utf-8"))
+            try: write(escapeToXml(elem).encode("utf-8","replace"))
+            except: write(repr(escapeToXml(elem)).encode("utf-8","replace"))
             return
 
         # Further optimizations
@@ -72,24 +77,27 @@ class _Serializer:
         
         # Seralize element name
         if defaultUri == uri:
-            if parent == None or defaultUri == parent.defaultUri:
+            if defaultUri==None or (parent != None and defaultUri == parent.defaultUri):
                 write("<%s" % (name))
             else:
                 write("<%s xmlns='%s' " % (name, defaultUri))
         else:
             prefix = self.getPrefix(uri)
-            if parent == None or elem.defaultUri == parent.defaultUri:
+            if parent != None and elem.defaultUri == parent.defaultUri:
                 write("<%s:%s xmlns:%s='%s'" % (prefix, name, prefix, uri))
             else:
-               write("<%s:%s xmlns:%s='%s' xmlns='%s'" % (prefix, name, prefix, uri, defaultUri))
+                write("<%s:%s xmlns:%s='%s' xmlns='%s'" % (prefix, name, prefix, uri, defaultUri))
 
         # Serialize attributes
         for k,v in elem.attributes.items():
             # If the attribute name is a list, it's a qualified attribute
             if isinstance(k, types.TupleType):
-                write((" %s:%s='%s'" % (self.getPrefix(k[0]), k[1], escapeToXml(v, 1))).encode("utf-8"))
+                if self.hasPrefix(uri):
+                    write((" %s:%s='%s'" % (self.getPrefix(k[0]), k[1], escapeToXml(v, 1))).encode("utf-8","replace"))
+                else:
+                    write((" xmlns:%s='%s' %s:%s='%s'" % (self.getPrefix(k[0]), k[0],self.getPrefix(k[0]), k[1], escapeToXml(v, 1))).encode("utf-8","replace"))
             else:
-                write((" %s='%s'" % ( k, escapeToXml(v, 1))).encode("utf-8"))
+                write((" %s='%s'" % ( k, escapeToXml(v, 1))).encode("utf-8","replace"))
 
         # Shortcut out if this is only going to return
         # the element (i.e. no children)
@@ -119,7 +127,8 @@ class _ListSerializer:
 
     def getValue(self):
         d = "".join(self.writelist)
-        return d.encode("utf-8")
+        try: return d.encode("utf-8","replace")
+        except: return d.encode("ascii","replace")
 
     def getPrefix(self, uri):
         if not self.prefixes.has_key(uri):
@@ -149,16 +158,16 @@ class _ListSerializer:
         
         # Seralize element name
         if defaultUri == uri:
-            if parent == None or defaultUri == parent.defaultUri:
+            if parent != None and defaultUri == parent.defaultUri:
                 write("<%s" % (name))
             else:
                 write("<%s xmlns='%s' " % (name, defaultUri))
         else:
             prefix = self.getPrefix(uri)
-            if parent == None or elem.defaultUri == parent.defaultUri:
+            if parent != None and elem.defaultUri == parent.defaultUri:
                 write("<%s:%s xmlns:%s='%s'" % (prefix, name, prefix, uri))
             else:
-               write("<%s:%s xmlns:%s='%s' xmlns='%s'" % (prefix, name, prefix, uri, defaultUri))
+                write("<%s:%s xmlns:%s='%s' xmlns='%s'" % (prefix, name, prefix, uri, defaultUri))
 
         # Serialize attributes
         for k,v in elem.attributes.items():
@@ -481,7 +490,7 @@ class SuxElementStream(sux.XMLParser):
         for k, v in attributes.items():
             p, n = _splitPrefix(k)
             if p == None:
-                attribs[n] = v
+                attribs[n] = unescapeFromXml(v)
             else:
                 attribs[(self.findUri(p)), n] = unescapeFromXml(v)
 

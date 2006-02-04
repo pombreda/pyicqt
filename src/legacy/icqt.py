@@ -117,6 +117,7 @@ class B(oscar.BOSConnection):
 		show = None
 		status = user.status
 		encoding = user.statusencoding
+		url = user.url
 		#status = re.sub("<[^>]*>","",status) # Removes any HTML tags
 		status = oscar.dehtml(status) # Removes any HTML tags
 		if encoding:
@@ -151,8 +152,8 @@ class B(oscar.BOSConnection):
 		if user.flags.count("away"):
 			self.getAway(user.name).addCallback(self.sendAwayPresence, user)
 		else:
-			c.updatePresence(show=show, status=status, ptype=ptype)
-			self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion)
+			c.updatePresence(show=show, status=status, ptype=ptype, url=url)
+			self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
 	def gotBuddyIcon(self, iconinfo):
 		contact = iconinfo[0]
@@ -190,13 +191,18 @@ class B(oscar.BOSConnection):
 			encoding = config.encoding
 		debug.log("B: using encoding %s" % (encoding))
 		text = text.decode(encoding, "replace")
+		xhtml = utils.prepxhtml(text)
 		if not user.name[0].isdigit():
 			text = oscar.dehtml(text)
 		text = text.strip()
-		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype="chat", xhtml=utils.prepxhtml(multiparts[0][0]))
+		mtype = "chat"
+		if "auto" in flags:
+			mtype = "headline"
+
+		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype=mtype, xhtml=xhtml)
 		self.session.pytrans.statistics.stats['IncomingMessages'] += 1
 		self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'IncomingMessages', 1)
-		if self.awayMessage:
+		if self.awayMessage and not "auto" in flags:
 			if not self.awayResponses.has_key(user.name) or self.awayResponses[user.name] < (time.time() - 900):
 				self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
 				self.awayResponses[user.name] = time.time
@@ -248,6 +254,12 @@ class B(oscar.BOSConnection):
 		self.session.pytrans.statistics.stats['IncomingMessages'] += 1
 		self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'IncomingMessages', 1)
 
+	def errorMessage(self, message):
+		tmpjid = config.jid
+		if self.session.registeredmunge:
+			tmpjid = tmpjid + "/registered"
+		self.session.sendErrorMessage(to=self.session.jabberID, fro=tmpjid, etype="cancel", condition="recipient-unavailable",explanation=message)
+
 	def chatMemberJoined(self, chat, member):
 		from glue import icq2jidGroup
 		debug.log("B: chatMemberJoined %s joined %s" % (member.name,chat.name))
@@ -288,6 +300,7 @@ class B(oscar.BOSConnection):
 		ptype = None
 		show = "away"
 		status = oscar.dehtml(msg[1]) # Removes any HTML tags
+		url = user.url
 
 		if status != None:
 			charset = "iso-8859-1"
@@ -324,7 +337,7 @@ class B(oscar.BOSConnection):
 				status=idle_time
 
 		c.updatePresence(show=show, status=status, ptype=ptype)
-		self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion)
+		self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
 	def gotSelfInfo(self, user):
 		debug.log("B: gotSelfInfo: %s" % (user.__dict__))
@@ -367,7 +380,7 @@ class B(oscar.BOSConnection):
 		if self.session.registeredmunge:
 			tmpjid=config.jid+"/registered"
 		if self.session.pytrans:
-			self.session.sendPresence(to=self.session.jabberID, fro=tmpjid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly)
+			self.session.sendPresence(to=self.session.jabberID, fro=tmpjid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly, url=self.icqcon.savedURL)
 		if not self.icqcon.savedShow or self.icqcon.savedShow == "online":
 			self.icqcon.setAway(None)
 		else:

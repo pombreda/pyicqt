@@ -45,25 +45,33 @@ if config.debugOn:
 	if len(config.debugLog) > 0:
 		reopenFile(True)
 		def log(data, wtime=True):
-			text = ""
-			if wtime:
-				text += time.strftime("[%Y-%m-%d %H:%M:%S] ")
-			text += data + "\n"
-			if config.tracebackDebug:
-				rollingStock.push(text)
-			else:
-				debugFile.write(text)
+			try:
+				text = ""
+				if wtime:
+					text += time.strftime("[%Y-%m-%d %H:%M:%S] ")
+				text += data + "\n"
+				if config.tracebackDebug:
+					rollingStock.push(text)
+				else:
+					debugFile.write(text)
+					debugFile.flush()
+			except:
+				debugFile.write("There was an error writing a log entry.  Entry skipped.")
 				debugFile.flush()
 	else:
 		def log(data, wtime=True):
-			text = ""
-			if wtime:
-				text += time.strftime("[%Y-%m-%d %H:%M:%S] ")
-			text += data
-			if config.tracebackDebug:
-				rollingStock.push(text)
-			else:
-				print text
+			try:
+				text = ""
+				if wtime:
+					text += time.strftime("[%Y-%m-%d %H:%M:%S] ")
+				text += data
+				if config.tracebackDebug:
+					rollingStock.push(text)
+				else:
+					print text
+					sys.stdout.flush()
+			except:
+				print "There was an error writing a log entry.  Entry skipped."
 				sys.stdout.flush()
 	log("Debug logging enabled.")
 else:

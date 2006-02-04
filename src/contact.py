@@ -26,6 +26,7 @@ class Contact:
 		self.avatar = None
 		self.show = ""
 		self.status = ""
+		self.url = ""
 		self.ptype = "unavailable"
 	
 	def removeMe(self):
@@ -143,11 +144,12 @@ class Contact:
 			self.nickname = nickname
 			if push: self.sendPresence()
 	
-	def updatePresence(self, show, status, ptype, force=False, tojid=None):
+	def updatePresence(self, show, status, ptype, force=False, tojid=None, url=None):
 		updateFlag = (self.show != show or self.status != status or self.ptype != ptype or force)
 		self.show = show
 		self.status = status
 		self.ptype = ptype
+		self.url = url
 		if updateFlag:
 			self.sendPresence(tojid)
 	
@@ -169,7 +171,7 @@ class Contact:
 		caps.attributes["ver"] = legacy.version
 		if not tojid:
 			tojid=self.contactList.session.jabberID
-		self.contactList.session.sendPresence(to=tojid, fro=self.jid, ptype=self.ptype, show=self.show, status=self.status, avatarHash=avatarHash, nickname=self.nickname, payload=[caps])
+		self.contactList.session.sendPresence(to=tojid, fro=self.jid, ptype=self.ptype, show=self.show, status=self.status, avatarHash=avatarHash, nickname=self.nickname, payload=[caps], url=self.url)
 	
 	def updateRoster(self, ptype):
 		self.contactList.session.sendRosterImport(jid=self.jid, ptype=ptype, sub=self.sub, groups=self.groups)
@@ -202,10 +204,10 @@ class ContactList:
 		self.session = None
 		self.legacyList = None
 	
-	def resendLists(self):
+	def resendLists(self, tojid=None):
 		for jid in self.contacts:
 			if self.contacts[jid].status != "unavailable":
-				self.contacts[jid].sendPresence()
+				self.contacts[jid].sendPresence(tojid)
 		debug.log("ContactList: \"%s\" resent lists" % (self.session.jabberID))
 	
 	def createContact(self, jid, sub):

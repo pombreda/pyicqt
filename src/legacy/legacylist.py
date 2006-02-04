@@ -30,7 +30,10 @@ class LegacyList:
 			else:
 				if not config.disableDefaultAvatar:
 					debug.log("Setting default avatar for %s" %(c))
-					jabContact.updateAvatar(glue.defaultAvatar, push=False)
+					if c[0].isdigit():
+						jabContact.updateAvatar(glue.defaultICQAvatar, push=False)
+					else:
+						jabContact.updateAvatar(glue.defaultAIMAvatar, push=False)
 
 	def removeMe(self):
 		self.session = None
@@ -119,9 +122,12 @@ class LegacyList:
 				if config.disableDefaultAvatar:
 					c.updateAvatar(None, push=True)
 				else:
-					c.updateAvatar(glue.defaultAvatar, push=True)
+					if contact[0].isdigit():
+						c.updateAvatar(glue.defaultICQAvatar, push=True)
+					else:
+						c.updateAvatar(glue.defaultAIMAvatar, push=True)
 
-	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None):
+	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None, url=None):
 		from glue import icq2jid
 
 		debug.log("LegacyList: updating contact %s" % (contact.lower()))
@@ -129,6 +135,7 @@ class LegacyList:
 			'presence': presence,
 			'show': show,
 			'status': status,
+			'url': url,
                         'ipaddr' : ipaddr,
                         'lanipaddr' : lanipaddr,
                         'lanipport' : lanipport,
@@ -139,7 +146,10 @@ class LegacyList:
 		if not c:
 			debug.log("Update setting default avatar for %s" %(contact))
 			c = self.session.contactList.createContact(icq2jid(contact), "both")
-			c.updateAvatar(glue.defaultAvatar, push=False)
+			if contact[0].isdigit():
+				c.updateAvatar(glue.defaultICQAvatar, push=False)
+			else:
+				c.updateAvatar(glue.defaultAIMAvatar, push=False)
 
 		if not self.xdbcontacts.has_key(contact.lower()):
 			if nick:

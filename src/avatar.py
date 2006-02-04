@@ -90,7 +90,7 @@ class AvatarCache:
 		debug.log("AvatarCache: Setting avatar \"%s\"" % (key))
 		prev_umask = os.umask(SPOOL_UMASK)
 		try:
-			f = open(self.dir(key) + key, 'w')
+			f = open(self.dir(key) + key, 'wb')
 			f.write(imageData)
 			f.close()
 		except IOError, e:
@@ -110,7 +110,7 @@ class AvatarCache:
 			filename = self.dir(key) + key
 			if os.path.isfile(filename):
 				debug.log("AvatarCache: Getting avatar \"%s\"" % (key))
-				f = open(filename)
+				f = open(filename, 'rb')
 				data = f.read()
 				f.close()
 				return data

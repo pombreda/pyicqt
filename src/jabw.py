@@ -48,7 +48,7 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None):
 
 	pytrans.send(el)
 
-def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[]):
+def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[], url=None):
 	if ptype == "subscribe":
 		(user,host,res) = jid.parse(to)
 		to = "%s@%s" % (user, host)
@@ -67,39 +67,43 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 	if priority:
 		s = el.addElement("priority")
 		s.addContent(priority)
+	if url:
+		s = el.addElement("x")
+		s.attributes["xmlns"] = "jabber:x:oob"
+		s = el.addElement("url")
+		s.addContent(url)
 
-	x = el.addElement("x")
-	x.attributes["xmlns"] = "vcard-temp:x:update"
-	if avatarHash:
-		p = x.addElement("photo")
-		p.addContent(avatarHash)
-	if nickname:
-		n = x.addElement("nickname")
-		n.addContent(nickname)
-
-	if avatarHash:
-		xx = el.addElement("x")
-		xx.attributes["xmlns"] = "jabber:x:avatar"
-		h = xx.addElement("hash")
-		h.addContent(avatarHash)
-
-	if payload:
-		for p in payload:
-			el.addChild(p)
+	if ptype != "probe":
+		x = el.addElement("x")
+		x.attributes["xmlns"] = "vcard-temp:x:update"
+		if avatarHash:
+			p = x.addElement("photo")
+			p.addContent(avatarHash)
+		if nickname:
+			n = x.addElement("nickname")
+			n.addContent(nickname)
+		if avatarHash:
+			xx = el.addElement("x")
+			xx.attributes["xmlns"] = "jabber:x:avatar"
+			h = xx.addElement("hash")
+			h.addContent(avatarHash)
+		if payload:
+			for p in payload:
+				el.addChild(p)
 
 	pytrans.send(el)
 
 
-def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None):
-	el = Element((None, "message"))
+def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None, el=Element((None, "message"))):
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
 	el.attributes["type"] = "error"
 	error = el.addElement("error")
 	error.attributes["type"] = etype
 	error.attributes["code"] = str(utils.errorCodeMap[condition])
-	desc = error.addElement(condition)
-	desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+	if condition:
+		desc = error.addElement(condition)
+		desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
 	text = error.addElement("text")
 	text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
 	text.addContent(explanation)
@@ -120,6 +124,7 @@ class JabberConnection:
 	def __init__(self, pytrans, jabberID):
 		self.pytrans = pytrans
 		self.jabberID = jabberID
+		self.last_el = dict()
 		self.typingUser = False # Whether this user can accept typing notifications.
 		self.chatStateUser = False # Whether this user can accept chat state notifications.
 		self.messageIDs = dict() # The ID of the last message the user sent to a particular contact. Indexed by contact JID
@@ -187,14 +192,30 @@ class JabberConnection:
 		vCard.attributes["xmlns"] = "vcard-temp"
 		return self.pytrans.discovery.sendIq(el)
 
-	def sendErrorMessage(self, to, fro, etype, condition, explanation, body=None):
-		debug.log("User: %s - JabberConnection sending error response." % (self.jabberID))
-		sendErrorMessage(self.pytrans, to, fro, etype, condition, explanation, body)
+	def sendErrorMessage(self, to, fro, etype, explanation, condition=None, body=None):
+		try:debug.log(u"User: %s - JabberConnection sending error response."%(self.jabberID))
+		except:pass
+		try:debug.log(u"to: %s"%(to))
+		except:pass
+		try:debug.log(u"from: %s"%(fro))
+		except:pass
+		try:debug.log(u"condition: %s"%(condition))
+		except:pass
+		try:debug.log(u"explanation: %s"%(explanation))
+		except:pass
+
+		if self.last_el.has_key(to) and self.last_el[to].attributes.has_key("from"):
+			debug.log(u"Using pre-existing element")
+			sendErrorMessage(self.pytrans, to=to, fro=self.last_el[to].attributes["to"], etype=etype, condition=condition, explanation=explanation, body=body, el=self.last_el[to])
+			del self.last_el[to]
+		else:
+			debug.log(u"**NOT** Using pre-existing element")
+			sendErrorMessage(self.pytrans, to=to, fro=fro, etype=etype, condition=condition, explanation=explanation, body=body)
 	
-	def sendPresence(self, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[]):
+	def sendPresence(self, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[], url=None):
 		""" Sends a Jabber presence packet """
 		debug.log("User: %s - JabberConnection sending presence \"%s\"\"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, to, fro, show, status, priority, ptype, not not avatarHash, nickname))
-		sendPresence(self.pytrans, to, fro, show, status, priority, ptype, avatarHash, nickname, payload)
+		sendPresence(self.pytrans, to, fro, show, status, priority, ptype, avatarHash, nickname, payload, url=url)
 	
 	def sendRosterImport(self, jid, ptype, sub, name="", groups=[]):
 		""" Sends a special presence packet. This will work with all clients, but clients that support roster-import will give a better user experience
@@ -260,12 +281,15 @@ class JabberConnection:
 			debug.log("PyTransport: Failed stringprep on <presence from=\"%s\" to=\"%s\"/> - %s" % (fro, to, str(e)))
 			return
 
+		self.last_el[froj.userhost()] = el
 		mID = el.getAttribute("id")
 		mtype = el.getAttribute("type")
 		body = ""
 		inviteTo = ""
 		inviteRoom = ""
+		autoResponse = 0
 		xhtml = None
+		error = None
 		messageEvent = False
 		noerror = False
 		composing = None
@@ -275,6 +299,8 @@ class JabberConnection:
 			debug.log("child: %s" % child.name)
 			if child.name == "body":
 				body = child.__str__()
+			elif child.name == "error":
+				error = child.__str__()
 			elif child.name == "html":
 				xhtml = child.toXml()
 			elif child.name == "noerror" and child.uri == "sapo:noerror":
@@ -301,10 +327,16 @@ class JabberConnection:
 					chatStates = True
 					chatStateEvent = child.name
 		
-		if(inviteTo and inviteRoom):
+		if(inviteTo and inviteRoom and not error):
 			debug.log("User: %s - JabberConnection parsed message groupchat invite packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, inviteTo, inviteRoom))
 			self.inviteReceived(source=froj.userhost(), resource=froj.resource, dest=inviteTo, destr="", roomjid=inviteRoom)
 			return
+
+		if error:
+			body = error
+			xhtml = None
+			autoResponse = 1
+			debug.log("Got an error jabber packet, formulating an autoresponse")
 
 		# Check message event stuff
 		if body and chatStates:
@@ -325,8 +357,8 @@ class JabberConnection:
 # 			body = utils.utf8(body)
 			# Save the message ID for later
 			self.messageIDs[to] = mID
-			debug.log("User: %s - JabberConnection parsed message packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (self.jabberID, froj.userhost(), to, froj.resource, mtype, body))
-			self.messageReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, mtype, body, noerror, xhtml)
+			debug.log("User: %s - JabberConnection parsed message packet \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" AR=%d" % (self.jabberID, froj.userhost(), to, froj.resource, mtype, body, autoResponse))
+			self.messageReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, mtype, body, noerror, xhtml, autoResponse=autoResponse)
 	
 	def onPresence(self, el):
 		""" Handles incoming presence packets """
@@ -348,6 +380,7 @@ class JabberConnection:
 			priority = None
 			avatarHash = ""
 			nickname = ""
+			url = None
 			for child in el.elements():
 				if child.name == "status":
 					status = child.__str__()
@@ -355,6 +388,16 @@ class JabberConnection:
 					show = child.__str__()
 				elif child.name == "priority":
 					priority = child.__str__()
+				elif child.defaultUri == "http://jabber.org/protocol/tune":
+					for child2 in child.elements():
+						if child2.defaultUri == "jabber:x:oob":
+							for child3 in child2.elements():
+								if child3.name == "url":
+									url=child3.__str__()
+				elif child.defaultUri == "jabber:x:oob":
+					for child2 in child.elements():
+						if child2.name == "url":
+							url=child2.__str__()
 				elif child.defaultUri == "vcard-temp:x:update":
 					avatarHash = " "
 					for child2 in child.elements():
@@ -375,7 +418,7 @@ class JabberConnection:
 	
 	
 	
-	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml):
+	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml, autoResponse=0):
 		""" Override this method to be notified when a message is received """
 		pass
 	
@@ -383,7 +426,7 @@ class JabberConnection:
 		""" Override this method to be notified when an invitation is received """
 		pass
 	
-	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status):
+	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status, url=None):
 		""" Override this method to be notified when presence is received """
 		pass
 	
