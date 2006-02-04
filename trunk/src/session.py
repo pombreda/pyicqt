@@ -60,6 +60,7 @@ class Session(jabw.JabberConnection):
 
 		self.show = None
 		self.status = None
+		self.url = None
 		
 		self.resourceList = {}
 		self.groupchats = []
@@ -166,17 +167,18 @@ class Session(jabw.JabberConnection):
 		if not self.nickname:
 			j = jid.JID(self.jabberID)
 			self.nickname = j.user
-		self.setStatus(self.show, self.status)
+		self.setStatus(self.show, self.status, self.url)
 
 	def updateDescription(self, description):
 		self.description = description
 		if not self.description:
 			self.description = "I am a PyICQ-t user with no profile set."
 
-	def setStatus(self, show, status):
+	def setStatus(self, show, status, url=None):
 		self.show = show
 		self.status = status
-		self.legacycon.setStatus(self.nickname, show, status)
+		self.url = url
+		self.legacycon.setStatus(self.nickname, show, status, url)
 	
 	def sendNotReadyError(self, source, resource, dest, body):
 		self.sendErrorMessage(source + '/' + resource, dest, "wait", "not-allowed", lang.get("waitforlogin", self.lang), body)
@@ -212,7 +214,7 @@ class Session(jabw.JabberConnection):
 			else:
 				self.doVCardUpdate()
 
-	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml):
+	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml, autoResponse=0):
 		if dest == config.jid:
 			if body.lower().startswith("end"):
 				debug.log("Session: Received 'end' request. Killing session %s" % (self.jabberID))
@@ -234,7 +236,7 @@ class Session(jabw.JabberConnection):
 				groupchat.sendMessage(body, noerror)
 		else:
 			debug.log("Session: messageReceived(), passing onto legacycon.sendMessage()")
-			self.legacycon.sendMessage(dest, resource, body, noerror, xhtml)
+			self.legacycon.sendMessage(dest, resource, body, noerror, xhtml, autoResponse=autoResponse)
 	
 	def inviteReceived(self, source, resource, dest, destr, roomjid):
 		if not self.ready:
@@ -259,7 +261,7 @@ class Session(jabw.JabberConnection):
 		""" The user has sent a chat state notification to a contact on the legacy service """
 		self.legacycon.chatStateNotification(dest, resource, state)
 	
-	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status):
+	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status, url=None):
 		# Checks resources and priorities so that the highest priority resource always appears as the
 		# legacy services status. If there are no more resources then the session is deleted
 		# Additionally checks if the presence is to a groupchat room
@@ -295,10 +297,10 @@ class Session(jabw.JabberConnection):
 		
 		else:
 			# Not for groupchat
-			self.handleResourcePresence(source, resource, to, tor, priority, ptype, show, status)
+			self.handleResourcePresence(source, resource, to, tor, priority, ptype, show, status, url)
 
 		
-	def handleResourcePresence(self, source, resource, to, tor, priority, ptype, show, status):
+	def handleResourcePresence(self, source, resource, to, tor, priority, ptype, show, status, url):
 		if ptype and ptype != "unavailable": return # Ignore presence errors, probes, etc
 		if to.find('@') > 0: return # Ignore presence packets sent to users
 
@@ -312,9 +314,9 @@ class Session(jabw.JabberConnection):
 		else:
 			if not existing:
 				debug.log("Session %s - resource \"%s\" has come online" % (self.jabberID, resource))
-				self.contactList.resendLists()
+				self.contactList.resendLists("%s/%s"%(source,resource))
 			debug.log("Session %s - resource \"%s\" setting \"%s\" \"%s\" \"%s\"" % (self.jabberID, resource, show, status, priority)) 
-			self.resourceList[resource] = SessionResource(show, status, priority)
+			self.resourceList[resource] = SessionResource(show, status, priority, url)
 
 		highestActive = self.highestResource()
 
@@ -322,7 +324,7 @@ class Session(jabw.JabberConnection):
 			# If we're the highest active resource, we should update the legacy service
 			debug.log("Session %s - updating status on legacy service, resource %s" % (self.jabberID, highestActive))
 			r = self.resourceList[highestActive]
-			self.setStatus(r.show, r.status)
+			self.setStatus(r.show, r.status, r.url)
 		else:
 			debug.log("Session %s - calling removeMe in 0 seconds. Last resource gone offline" % (self.jabberID))
 			#reactor.callLater(0, self.removeMe)
@@ -365,10 +367,11 @@ class Session(jabw.JabberConnection):
 
 class SessionResource:
 	""" A convienence class to allow comparisons of Jabber resources """
-	def __init__(self, show=None, status=None, priority=None):
+	def __init__(self, show=None, status=None, priority=None, url=None):
 		self.show = show
 		self.status = status
 		self.priority = 0
+		self.url = url
 		try:
 			self.priority = int(priority)
 		except TypeError: pass

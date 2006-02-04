@@ -9,8 +9,6 @@ import os
 import os.path
 import sys
 from twisted.web import microdom
-from twisted.words.protocols.jabber import client, jid
-from twisted.internet import reactor
 
 class VersionNumber:
 	def __init__(self, vstring):
@@ -92,7 +90,7 @@ excluded = {}
 for c in _excluded: excluded[c] = None
 
 def xmlify(s):
-	debug.log("xmlify: class is %s: %s" % (s.__class__, s))
+	#debug.log("xmlify: class is %s: %s" % (s.__class__, s))
 	if s.__class__ == str:
 		try:
 			us = unicode(s)
@@ -104,20 +102,115 @@ def xmlify(s):
 	else:
 		return ""
 
-def prepxhtml(s):
+def xhtml_to_aimhtml(s):
 	try:
-		debug.log("prepxhtml: Got %s" % s)
-		s = re.sub('<html.*>','<html>',s) # Don't ask...
+		debug.log("xhtml_to_aimhtml: Got %s" % s)
+
+		# Convert the spans to fonts!
+		s = re.sub("<(/?)span",r"<\1font",s)
+
+		# SIMHTML doesn't support spans
+		s = re.sub("</?span[^>]*>","",s)
+
+		# AIMHTML might croke on these
+		s = re.sub("<br/>","<br>",s)
+
+		debug.log("xhtml_to_aimhtml: Made %s" % s)
+		return s
+	except:
+		debug.log("xhtml_to_aimhtml: Failed.")
+		return None
+
+def lower_element(match):
+	s=match.group()
+	return string.lower(s)
+
+def font_to_span(match):
+	s = re.sub("<font ([^>]*)>",r"\1",match.group())
+	style=""
+
+	m=re.search("style=['\"]([^'\">]*)['\"]",s);
+	if m: style = style + "%s; "%(m.group(1))
+ 
+	m=re.search("color=['\"]?([^'\" ]*)",s);
+	if m: style = style + "color: %s; "%(m.group(1))
+
+	m=re.search("face=['\"]([^'\">]*)['\"]",s);
+	if m: style = style + "font-family: %s; "%(m.group(1))
+
+	m=re.search("ptsize=['\"]?([0-9]*)",s)
+	if m:
+		style = style + "font-size: %dpt; "%(int(m.group(1)))
+	else:
+		m=re.search("absz=['\"]?([0-9]*)",s)
+		if m:
+			style = style + "font-size: %dpt; "%(int(m.group(1))*12/16+1)
+		else:
+			m=re.search("size=['\"]?([0-9]*)",s)
+			if m:
+				style = style + "font-size: %dpt; "%(int(m.group(1))*2+6)
+
+	return "<span style='%s'>"%style
+
+def prepxhtml(s):
+	# We need to convert the horrible mess that is AIM's
+	# type of html into well-formed xhtml. Yikes!
+	try:
+		s=s.encode("utf-8","replace")
+
+		debug.log("prepxhtml: Got %s" % repr(s))
+
+		s = re.sub(">+",">",s)
+		s = re.sub("<+","<",s)
+
+		# Fix dangling ampersands
+		s = re.sub("&([^; =&<>\"'\n]*[ =&<>\"'\n])",r"&amp;\1",s)
+
+		all_regex = re.compile('</?[^>]*>'); 
+		try: s=all_regex.sub(lower_element, s);
+		except: debug.log("perpxhtml: Unable to do lowercase stuff")
+
+		font_regex = re.compile('<font [^>]*>',re.X);
+		try: s=font_regex.sub(font_to_span, s);
+		except: debug.log("perpxhtml: Unable to do font-to-span stuff")
+
+		s = re.sub("</?(html|HTML)[^>]*>","",s)
+
+		#s = re.sub("<font [^>]*color=[\"']([^\"']*)[\"'][^>]*>(.*?)</font>",r"<span style='color: \1'>\2</span>",s)
+		#s = re.sub("<FONT [^>]*color=[\"']([^\"']*)[\"'][^>]*>(.*?)</FONT>",r"<span style='color: \1'>\2</span>",s)
+
+		# Get rid of tags not supported by xhtml
+		#s = re.sub("</?(font|FONT)[^>]*>","",s)
+		s = re.sub("<(/?)font",r"<\1span",s)
+
+		s = re.sub("<(body|BODY) ?","<body xmlns='http://www.w3.org/1999/xhtml' ",s);
+		#s = re.sub("</BODY>","</body>",s);
+		#s = re.sub("<BR/?>","<br/>",s);
+		#s = re.sub("<P ?([^>]*)>",r"<p \1>",s);
+		#s = re.sub("</P>",r"</p>",s);
+		#s = re.sub("<A ?([^>]*)>",r"<a \1>",s);
+		#s = re.sub("</A>",r"</a>",s);
+		#s = re.sub("<B ?([^>]*)>",r"<b \1>",s);
+		#s = re.sub("</B>",r"</b>",s);
+		#s = re.sub("<I ?([^>]*)>",r"<i \1>",s);
+		#s = re.sub("</I>",r"</i>",s);
+		#s = re.sub("<STRONG ?([^>]*)>",r"<strong \1>",s);
+		#s = re.sub("</STRONG>",r"</strong>",s);
+
+		# Attempt to reparse so we can make well-formed XML
 		ms = microdom.parseString(s, beExtremelyLenient=True)
 		ret = ms.toxml()
-		#ms = parseText(s, beExtremelyLenient=True)
-		#ret = ms.toXml()
+
+		# Remove the xml header
 		ret = re.sub('<\?xml.*\?>', '', ret)
-		ret = re.sub('<html>','<html xmlns="http://jabber.org/protocol/xhtml-im">',ret)
-		debug.log("prepxhtml: Made %s" % ret)
-		return ret
+
+		# Make sure our root tag is properly namespaced
+		ret = "<html xmlns=\"http://jabber.org/protocol/xhtml-im\">%s</html>"%ret;
+
+		debug.log("prepxhtml: Made %s" % repr(ret))
+		return ret.encode("utf-8","replace")
 	except:
-		debug.log("prepxhtml: Failed")
+		debug.log("prepxhtml: Failed.")
 		return None
 	
 def utf8encode(text):

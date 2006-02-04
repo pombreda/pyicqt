@@ -33,9 +33,6 @@
 	<!-- The authentication token to use when connecting to the Jabber server -->
 	<secret>secret</secret>
 
-	<!-- The authentication token to use when connection to the web interface -->
-	<websecret>letmein</websecret>
-
 	<!-- The default language to use (for error/status messages) -->
 	<lang>en</lang>
 

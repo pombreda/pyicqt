@@ -11,7 +11,7 @@ from tlib import oscar
 from tlib import socks5, sockserror
 from twisted.python import log
 import groupchat
-import oscart
+import icqt
 import config
 import debug
 import sys, warnings, pprint
@@ -26,7 +26,7 @@ import avatar
 name = "ICQ Transport"
 
 # The transport's version
-version = "0.6"
+version = "pre-0.7"
 
 # URL of the transport's web site
 url = "http://pyicq-t.blathersource.org"
@@ -34,11 +34,19 @@ url = "http://pyicq-t.blathersource.org"
 # This should be set to the identity of the gateway
 id = "icq"
 
-# Load the default avatar
-f = open(os.path.join("data", "defaultAvatar.png"))
-defaultAvatarData = f.read()
+# Load the default AIM and ICQ avatars
+f = open(os.path.join("data", "defaultAIMAvatar.png"))
+defaultAIMAvatarData = f.read()
 f.close()
-defaultAvatar = avatar.AvatarCache().setAvatar(defaultAvatarData)
+defaultAIMAvatar = avatar.AvatarCache().setAvatar(defaultAIMAvatarData)
+
+f = open(os.path.join("data", "defaultICQAvatar.png"))
+defaultICQAvatarData = f.read()
+f.close()
+defaultICQAvatar = avatar.AvatarCache().setAvatar(defaultICQAvatarData)
+
+defaultAvatar = defaultAIMAvatar
+defaultAvatarData = defaultAIMAvatarData
 
 # This function should return true if the JID is a group JID, false otherwise
 def isGroupJID(jid):
@@ -154,6 +162,7 @@ class LegacyConnection:
 		self.legacyList = legacylist.LegacyList(self.session)
 		self.savedShow = None
 		self.savedFriendly = None
+		self.savedURL = None
 		self.reactor = reactor
 		self.userinfoCollection = {}
 		self.userinfoID = 0
@@ -162,12 +171,12 @@ class LegacyConnection:
 		hostport = (config.icqServer, int(config.icqPort))
 		debug.log("LegacyConnection: client creation for %s" % (self.session.jabberID))
 		if config.socksProxyServer and config.socksProxyPort:
-			self.oa = oscart.OA
+			self.oa = icqt.OA
 			self.creator = socks5.ProxyClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
 			debug.log("LegacyConnection: connect via socks proxy")
 			self.creator.connectSocks5Proxy(config.icqServer, int(config.icqPort), config.socksProxyServer, int(config.socksProxyPort), "ICQCONN")
 		else:
-			self.oa = oscart.OA
+			self.oa = icqt.OA
 			self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
 			debug.log("LegacyConnection: connect direct tcp")
 			self.creator.connectTCP(*hostport)
@@ -197,8 +206,16 @@ class LegacyConnection:
 		""" Returns highest priority resource """
 		return self.session.highestResource()
 
-	def sendMessage(self, target, resource, message, noerror, xhtml):
-		debug.log("LegacyConnection: sendMessage %s %s %s" % (target, resource, message))
+	def setURL(self, URL=None):
+		debug.log("LegacyConnection: setURL %s" % (URL))
+		try:
+			self.bos.setURL(utils.utf8encode(URL))
+		except AttributeError:
+			#self.alertUser(lang.get("sessionnotactive", config.jid)
+			pass
+
+	def sendMessage(self, target, resource, message, noerror, xhtml, autoResponse=0):
+		debug.log("LegacyConnection: sendMessage %s %s %s AR=%d" % (target, resource, message, autoResponse))
 		from glue import jid2icq
 		try:
 			self.session.pytrans.statistics.stats['OutgoingMessages'] += 1
@@ -213,13 +230,14 @@ class LegacyConnection:
 					charset = "unicode"
 				debug.log("LegacyConnection: sendMessage encoding %s" % encoding)
 				#self.bos.sendMessage(uin, [[message.encode(encoding, "replace"),charset]], offline=1)
-				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=1)
+				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=1, autoResponse=autoResponse)
 			else:
-				if xhtml:
-					self.bos.sendMessage(uin, xhtml, offline=1)
+				if xhtml and not config.disableXHTML:
+					xhtml = utils.xhtml_to_aimhtml(xhtml)
+					self.bos.sendMessage(uin, xhtml, offline=1, autoResponse=autoResponse)
 				else:
 					htmlized = oscar.html(message)
-					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=1)
+					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=1, autoResponse=autoResponse)
 		except AttributeError:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 
@@ -233,8 +251,9 @@ class LegacyConnection:
 				show = self.legacyList.ssicontacts[c]['show']
 				status = self.legacyList.ssicontacts[c]['status']
 				ptype = self.legacyList.ssicontacts[c]['presence']
+				url = self.LegacyList.ssicontacts[c]['url']
 				#FIXME, needs to be contact based updatePresence
-				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype)
+				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype, url=url)
 		except AttributeError:
 			return
 
@@ -256,7 +275,7 @@ class LegacyConnection:
 			#self.alertUser(lang.get("sessionnotactive", config.jid))
 			pass
 
- 	def setStatus(self, nickname, show, friendly):
+ 	def setStatus(self, nickname, show, friendly, url=None):
 		debug.log("LegacyConnection: setStatus %s %s" % (show, friendly))
 
 		if show=="away" and not friendly:
@@ -270,18 +289,22 @@ class LegacyConnection:
 
 		self.savedShow = show
 		self.savedFriendly = friendly
+		self.savedURL = url
 
 		if not self.session.ready:
 			return
 
 		if not show or show == "online" or show == "Online" or show == "chat":
 			self.setICQStatus(show)
-			self.setAway()
-			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None)
+			# FIXME, this should be setBack maybe?
+			#self.setAway()
+			self.setURL(url)
+			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None, url=url)
 		else:
 			self.setICQStatus(show)
 			self.setAway(friendly)
-			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=show, status=friendly)
+			self.setURL(url)
+			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=show, status=friendly, url=url)
 
 	def setProfile(self, profileMessage=None):
 		debug.log("LegacyConnection: setProfile %s" % (profileMessage))
@@ -404,7 +427,6 @@ class LegacyConnection:
 			self.session.sendPresence(to=self.session.jabberID+"/"+resource, fro=config.jid, ptype=ptype, show=show, status=status)
 		except AttributeError:
 			return
-
 
 	def updateAvatar(self, av=None):
 		""" Called whenever a new avatar needs to be set. Instance of avatar.Avatar is passed """
@@ -530,11 +552,11 @@ class LegacyConnection:
 
 		cutprofile = oscar.dehtml(profile)
 		nickname = vcard.addElement("NICKNAME")
-		nickname.addContent(utils.utf8encode(user))
+		nickname.addContent(utils.xmlify(user))
 		jabberid = vcard.addElement("JABBERID")
 		jabberid.addContent(icq2jid(user))
 		desc = vcard.addElement("DESC")
-		desc.addContent(utils.utf8encode(cutprofile))
+		desc.addContent(utils.xmlify(cutprofile))
 
 		d.callback(vcard)
 
@@ -546,91 +568,91 @@ class LegacyConnection:
 		if usercol != None and usercol.valid:
 			vcard = usercol.vcard
 			fn = vcard.addElement("FN")
-			fn.addContent(usercol.first + " " + usercol.last)
+			fn.addContent(utils.xmlify(usercol.first + " " + usercol.last))
 			n = vcard.addElement("N")
 			given = n.addElement("GIVEN")
-			given.addContent(usercol.first)
+			given.addContent(utils.xmlify(usercol.first))
 			family = n.addElement("FAMILY")
-			family.addContent(usercol.last)
+			family.addContent(utils.xmlify(usercol.last))
 			middle = n.addElement("MIDDLE")
 			nickname = vcard.addElement("NICKNAME")
-			nickname.addContent(usercol.nick)
+			nickname.addContent(utils.xmlify(usercol.nick))
 			bday = vcard.addElement("BDAY")
-			bday.addContent(usercol.birthday)
+			bday.addContent(utils.xmlify(usercol.birthday))
 			desc = vcard.addElement("DESC")
-			desc.addContent(usercol.about)
+			desc.addContent(utils.xmlify(usercol.about))
 			try:
 				c = self.contacts.ssicontacts[usercol.userinfo]
-				desc.addContent("\n\n-----\n"+c['lanipaddr']+'/'+c['ipaddr']+':'+"%s"%(c['lanipport'])+' v.'+"%s"%(c['icqprotocol']))
+				desc.addContent(utils.xmlify("\n\n-----\n"+c['lanipaddr']+'/'+c['ipaddr']+':'+"%s"%(c['lanipport'])+' v.'+"%s"%(c['icqprotocol'])))
 			except:
 				pass
 			url = vcard.addElement("URL")
-			url.addContent(usercol.homepage)
+			url.addContent(utils.xmlify(usercol.homepage))
 
 			# Home address
 			adr = vcard.addElement("ADR")
 			adr.addElement("HOME")
 			street = adr.addElement("STREET")
-			street.addContent(usercol.homeAddress)
+			street.addContent(utils.xmlify(usercol.homeAddress))
 			locality = adr.addElement("LOCALITY")
-			locality.addContent(usercol.homeCity)
+			locality.addContent(utils.xmlify(usercol.homeCity))
 			region = adr.addElement("REGION")
-			region.addContent(usercol.homeState)
+			region.addContent(utils.xmlify(usercol.homeState))
 			pcode = adr.addElement("PCODE")
-			pcode.addContent(usercol.homeZIP)
+			pcode.addContent(utils.xmlify(usercol.homeZIP))
 			ctry = adr.addElement("CTRY")
-			ctry.addContent(usercol.homeCountry)
+			ctry.addContent(utils.xmlify(usercol.homeCountry))
 			# home number
 			tel = vcard.addElement("TEL")
 			tel.addElement("VOICE")
 			tel.addElement("HOME")
 			telNumber = tel.addElement("NUMBER")
-			telNumber.addContent(usercol.homePhone)
+			telNumber.addContent(utils.xmlify(usercol.homePhone))
 			tel = vcard.addElement("TEL")
 			tel.addElement("FAX")
 			tel.addElement("HOME")
 			telNumber = tel.addElement("NUMBER")
-			telNumber.addContent(usercol.homeFax)
+			telNumber.addContent(utils.xmlify(usercol.homeFax))
 			tel = vcard.addElement("TEL")
 			tel.addElement("CELL")
 			tel.addElement("HOME")
 			number = tel.addElement("NUMBER")
-			number.addContent(usercol.cellPhone)
+			number.addContent(utils.xmlify(usercol.cellPhone))
 			# email
 			email = vcard.addElement("EMAIL")
 			email.addElement("INTERNET")
 			email.addElement("PREF")
 			emailid = email.addElement("USERID")
-			emailid.addContent(usercol.email)
+			emailid.addContent(utils.xmlify(usercol.email))
 
 			# work
 			adr = vcard.addElement("ADR")
 			adr.addElement("WORK")
 			street = adr.addElement("STREET")
-			street.addContent(usercol.workAddress)
+			street.addContent(utils.xmlify(usercol.workAddress))
 			locality = adr.addElement("LOCALITY")
-			locality.addContent(usercol.workCity)
+			locality.addContent(utils.xmlify(usercol.workCity))
 			region = adr.addElement("REGION")
 
-			region.addContent(usercol.workState)
+			region.addContent(utils.xmlify(usercol.workState))
 			pcode = adr.addElement("PCODE")
-			pcode.addContent(usercol.workZIP)
+			pcode.addContent(utils.xmlify(usercol.workZIP))
 			ctry = adr.addElement("CTRY")
-			ctry.addContent(usercol.workCountry)
+			ctry.addContent(utils.xmlify(usercol.workCountry))
 
 			tel = vcard.addElement("TEL")
 			tel.addElement("WORK")
 			tel.addElement("VOICE")
 			number = tel.addElement("NUMBER")
-			number.addContent(usercol.workPhone)
+			number.addContent(utils.xmlify(usercol.workPhone))
 			tel = vcard.addElement("TEL")
 			tel.addElement("WORK")
 			tel.addElement("FAX")
 			number = tel.addElement("NUMBER")
-			number.addContent(usercol.workFax)
+			number.addContent(utils.xmlify(usercol.workFax))
 
 			jabberid = vcard.addElement("JABBERID")
-			jabberid.addContent(usercol.userinfo+"@"+config.jid)
+			jabberid.addContent(utils.xmlify(usercol.userinfo+"@"+config.jid))
 
 			usercol.d.callback(vcard)
 		elif usercol:
@@ -644,7 +666,7 @@ class LegacyConnection:
 		debug.log("LegacyConnection: novCard: %s" % (profile))
 
 		nickname = vcard.addElement("NICKNAME")
-		nickname.addContent(user)
+		nickname.addContent(utils.xmlify(user))
 		jabberid = vcard.addElement("JABBERID")
 		jabberid.addContent(icq2jid(user))
 		desc = vcard.addElement("DESC")

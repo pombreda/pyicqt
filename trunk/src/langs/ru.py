@@ -10,3 +10,5 @@ class ru: # Russian - Sergey Kirienko (abonentu@pisem.net)
 	notregistered = u"Извините. Вы не зарегистрированы в этой службе. Зарегистрирутесь и попробуйте снова. В крайнем случае обратитесь к администратору вашего сервера Jabber."
 	waitforlogin = u"Сообщение пока не может быть доставлено. Подождите, пока служба выполнит регистрацию."
 	gatewaytranslator = u"Введите номер ICQ пользователя."
+	# added by Oleg Motienko (motienko@gmail.com)
+	sessionnotactive = u"?~Rа?~Hа ICQ ?~Aе?~A?~Aи?~O ?~Aей???~A не ак?~Bивна."

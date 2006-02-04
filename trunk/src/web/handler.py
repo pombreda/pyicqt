@@ -12,7 +12,16 @@ import config
 import legacy
 import sys, os
 import lang
+import string
+import avatar
 from xmppcred import XMPPRealm, XMPPChecker, IXMPPAvatar
+
+# Avatars Node
+class WebInterface_avatars(rend.Page):
+	def childFactory(self, ctx, name):
+		avatarData = avatar.AvatarCache().getAvatarData(name)
+		return static.Data(avatarData, "image/png")
+
 
 # Template Node
 class WebInterface_template(rend.Page):
@@ -42,14 +51,14 @@ class WebInterface_template(rend.Page):
 		request.setResponseCode(http.UNAUTHORIZED)
 		return "Authorization required."
 
-	def render_version(self, context, data):
+	def render_version(self, ctx, data):
 		return [legacy.version]
 
-	def render_title(self, context, data):
+	def render_title(self, ctx, data):
 		return [legacy.name]
 
-	def render_menu(self, context, data):
-		request = inevow.IRequest(context)
+	def render_menu(self, ctx, data):
+		request = inevow.IRequest(ctx)
 		username = request.getUser()
 
 		ret = T.table(border=0,cellspacing=3,cellpadding=3)
@@ -67,6 +76,7 @@ class WebInterface_template(rend.Page):
 
 	child_images = static.File('data/www/images/')
 	child_css = static.File('data/www/css/')
+	child_avatars = WebInterface_avatars()
 
 
 # Root Node
@@ -95,7 +105,7 @@ but for now, enjoy the statistics and such!</P>
 
 # Account Node
 class WebInterface_account(WebInterface_template):
-	def render_content(self, context, data):
+	def render_content(self, ctx, data):
 		return loaders.htmlstr("""
 <B>Your Account</B>
 <HR />
@@ -106,34 +116,71 @@ class WebInterface_account(WebInterface_template):
 <SPAN nevow:render="roster" />
 """)
 
-	def render_info(self, context, data):
-		request = inevow.IRequest(context)
+	def render_info(self, ctx, data):
+		request = inevow.IRequest(ctx)
 		username = request.getUser()
-		print "username = %s" % (username)
 		reg = self.pytrans.xdb.getRegistration(username)
 		if not reg:
 			return "You are not currently registered with the transport."
 
 		return reg[0]
 
-	def render_roster(self, context, data):
-		request = inevow.IRequest(context)
+	def render_roster(self, ctx, data):
+		request = inevow.IRequest(ctx)
 		username = request.getUser()
-		print "username = %s" % (username)
 
-		ret = T.table(border = 0,width = "100%",cellspacing=5,cellpadding=2)
+		ret = T.table(border = 0,cellspacing=5,cellpadding=2)
+		row = T.tr(height=25)[
+			T.th["UIN/Screen Name"],
+			T.th["Nickname"],
+			T.th["Network"],
+			T.th["Avatar"],
+			T.th["Status"]
+		]
+		ret[row]
 		roster = self.pytrans.xdb.getList("roster", username)
 		if not roster:
 			return ret
 		for item in roster:
-			row = T.tr[T.td[item[0]]]
+			if item[0][0].isdigit():
+				network = "ICQ"
+			else:
+				network = "AIM"
+			avatar = "-"
+			if item[1].has_key("localhash"):
+				avatar = T.a(href = ("/avatars/%s"%item[1]["localhash"]))[
+					T.img(border = 0, height = 25, src = ("/avatars/%s"%item[1]["localhash"]))
+				]
+			nickname = "-"
+			if item[1].has_key("nickname"):
+				nickname = item[1]["nickname"]
+			else:
+				if self.pytrans.sessions.has_key(username) and self.pytrans.sessions[username].ready:
+					c = self.pytrans.sessions[username].contactList.getContact("%s@%s" % (item[0],config.jid))
+					if c.nickname and c.nickname != "":
+						nickname = c.nickname
+			status = "-"
+			if self.pytrans.sessions.has_key(username) and self.pytrans.sessions[username].ready:
+				c = self.pytrans.sessions[username].contactList.getContact("%s@%s" % (item[0],config.jid))
+				status = c.ptype
+				if not status:
+					status = c.show
+					if not status:
+						status = "available"
+			row = T.tr(height=25)[
+				T.td(height=25, align = "middle")[item[0]],
+				T.td(height=25, align = "middle")[nickname],
+				T.td(height=25, align = "middle")[network],
+				T.td(height=25, align = "middle")[avatar],
+				T.td(height=25, align = "middle")[status]
+			]
 			ret[row]
 		return ret
 
 
 # Status Node
 class WebInterface_status(WebInterface_template):
-	def render_content(self, context, data):
+	def render_content(self, ctx, data):
 		return loaders.htmlstr("""
 <B>Transport Statistics</B>
 <HR />
@@ -144,7 +191,7 @@ class WebInterface_status(WebInterface_template):
 <SPAN nevow:render="sessions" />
 """)
 
-	def render_statistics(self, context, data):
+	def render_statistics(self, ctx, data):
 		ret = T.table(border = 0,width = "100%",cellspacing=5,cellpadding=2)
 		for key in self.pytrans.statistics.stats:
 			label = lang.get("statistics_%s" % key, config.lang)
@@ -158,7 +205,7 @@ class WebInterface_status(WebInterface_template):
 			ret[row]
 		return ret
 
-	def render_sessions(self, context, data):
+	def render_sessions(self, ctx, data):
 		if len(self.pytrans.sessions) <= 0:
 			return "No active sessions."
 
@@ -184,14 +231,14 @@ class WebInterface_status(WebInterface_template):
 
 # Configuration Node
 class WebInterface_config(WebInterface_template):
-	def render_content(self, context, data):
+	def render_content(self, ctx, data):
 		return loaders.htmlstr("""
 <B>Configuration</B>
 <HR />
 <SPAN nevow:render="config" />
 """)
 
-	def render_config(self, context, data):
+	def render_config(self, ctx, data):
 		table = T.table(border=0)
 		for key in config.__dict__.keys():
 			if key[0] == "_":
@@ -214,7 +261,7 @@ class WebInterface_controls(WebInterface_template):
 	#		reactor.stop()
 	#	return WebInterface_template.renderHTTP(self, ctx)
 
-	def render_content(self, context, data):
+	def render_content(self, ctx, data):
 		return loaders.htmlstr("""
 <B>Controls</B>
 <HR />
@@ -222,14 +269,14 @@ class WebInterface_controls(WebInterface_template):
 <SPAN nevow:render="controls" />
 """)
 
-	def render_message(self, context, data):
-		request = inevow.IRequest(context)
+	def render_message(self, ctx, data):
+		request = inevow.IRequest(ctx)
 		if request.args.get('shutdown'):
 			return T.b["Server is now shut down.  Attempts to reload this page will fail."]
 		return ""
 
-	def render_controls(self, context, data):
-		request = inevow.IRequest(context)
+	def render_controls(self, ctx, data):
+		request = inevow.IRequest(ctx)
 		if request.args.get('shutdown'):
 			return ""
 		return T.form(method="POST")[
