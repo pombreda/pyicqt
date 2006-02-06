@@ -30,6 +30,7 @@ debugOn = bool(False)
 debugLog = ""
 extendedDebugOn = bool(False)
 disableRegister = bool(False)
+disableXHTML = bool(False)
 enableAutoInvite = bool(False)
 tracebackDebug = bool(False)
 socksProxyServer = ""

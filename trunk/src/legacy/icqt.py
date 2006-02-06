@@ -11,6 +11,7 @@ import lang
 import re
 import time
 import binascii
+import md5
 
 
 
@@ -22,6 +23,7 @@ class B(oscar.BOSConnection):
 		self.chats = list()
 		self.ssigroups = list()
 		self.ssiiconsum = list()
+		self.requesticon = {}
 		self.awayResponses = {}
 		self.icqcon = icqcon
 		self.authorizationRequests = [] # buddies that need authorization
@@ -139,10 +141,10 @@ class B(oscar.BOSConnection):
 			else:
 				status=idle_time
 
-		if user.iconhash != None:
-			if self.icqcon.legacyList.diffAvatar(user.name, binascii.hexlify(user.iconhash)):
+		if user.iconmd5sum != None:
+			if self.icqcon.legacyList.diffAvatar(user.name, binascii.hexlify(user.iconmd5sum)):
 				debug.log("Retrieving buddy icon for %s" % user.name)
-				self.retrieveBuddyIcon(user.name, user.iconhash, user.icontype).addCallback(self.gotBuddyIcon)
+				self.retrieveBuddyIconFromServer(user.name, user.iconmd5sum, user.icontype).addCallback(self.gotBuddyIconFromServer)
 			else:
 				debug.log("Buddy icon is the same, using what we have for %s" % user.name)
 
@@ -155,13 +157,13 @@ class B(oscar.BOSConnection):
 			c.updatePresence(show=show, status=status, ptype=ptype, url=url)
 			self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
-	def gotBuddyIcon(self, iconinfo):
+	def gotBuddyIconFromServer(self, iconinfo):
 		contact = iconinfo[0]
 		icontype = iconinfo[1]
 		iconhash = iconinfo[2]
 		iconlen = iconinfo[3]
 		icondata = iconinfo[4]
-		debug.log("B: gotBuddyIcon for %s: hash: %s, len: %d" % (contact, binascii.hexlify(iconhash), iconlen))
+		debug.log("B: gotBuddyIconFromServer for %s: hash: %s, len: %d" % (contact, binascii.hexlify(iconhash), iconlen))
 		if iconlen > 0 and iconlen != 90: # Some ICQ clients send crap
 			self.icqcon.legacyList.updateAvatar(contact, icondata, iconhash)
 
@@ -205,14 +207,19 @@ class B(oscar.BOSConnection):
 		if self.awayMessage and not "auto" in flags:
 			if not self.awayResponses.has_key(user.name) or self.awayResponses[user.name] < (time.time() - 900):
 				self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
-				self.awayResponses[user.name] = time.time
+				self.awayResponses[user.name] = time.time()
 
-		if user.iconhash != None:
-			if self.icqcon.legacyList.diffAvatar(user.name, binascii.hexlify(user.iconhash)):
-				debug.log("Retrieving buddy icon for %s" % user.name)
-				self.retrieveBuddyIcon(user.name, user.iconhash, user.icontype).addCallback(self.gotBuddyIcon)
+		if user.iconcksum != None:
+			if self.icqcon.legacyList.diffAvatar(user.name, binascii.hexlify(user.iconcksum)):
+				debug.log("User %s has a buddy icon we want, will ask for it next message." % user.name)
+				self.requesticon[user.name] = 1
 			else:
-				debug.log("Buddy icon is the same, using what we have for %s" % user.name)
+				debug.log("User %s has a icon that we already have." % user.name)
+
+		if "iconrequest" in flags and hasattr(self.icqcon, "myavatar"):
+			debug.log("User %s wants our icon, so we're sending it." % user.name)
+			icondata = self.icqcon.myavatar
+			self.sendIconDirect(user.name, icondata, wantAck=1)
 
 	def receiveWarning(self, newLevel, user):
 		debug.log("B: receiveWarning [%s] from %s" % (newLevel,hasattr(user,'name') and user.name or None))
@@ -306,15 +313,20 @@ class B(oscar.BOSConnection):
 		debug.log("B: receivedSelfInfo: %s" % (user.__dict__))
 		self.name = user.name
 
-	def requestBuddyIcon(self, iconhash):
-		debug.log("B: requestBuddyIcon: %s" % binascii.hexlify(iconhash))
+	def receivedIconUploadRequest(self, iconhash):
+		debug.log("B: receivedIconUploadRequest: %s" % binascii.hexlify(iconhash))
 		if hasattr(self.icqcon, "myavatar"):
 			debug.log("B: I have an icon, sending it on, %d" % len(self.icqcon.myavatar))
-			self.uploadBuddyIcon(self.icqcon.myavatar, len(self.icqcon.myavatar)).addCallback(self.uploadedBuddyIcon)
-			del self.icqcon.myavatar
+			self.uploadBuddyIconToServer(self.icqcon.myavatar, len(self.icqcon.myavatar)).addCallback(self.uploadedBuddyIconToServer)
+			#del self.icqcon.myavatar
 
-	def uploadedBuddyIcon(self, iconchecksum):
-		debug.log("B: sentBuddyIcon: %s" % (iconchecksum))
+	def receivedIconDirect(self, user, icondata):
+		debug.log("B: receivedIconDirectRequest for %s [%d]" % (user.name, user.iconlen))
+		if user.iconlen > 0 and user.iconlen != 90: # Some ICQ clients send crap
+			self.icqcon.legacyList.updateAvatar(user.name, icondata, user.iconhash)
+
+	def uploadedBuddyIconToServer(self, iconchecksum):
+		debug.log("B: uploadedBuddyIconToServer: %s" % (iconchecksum))
 
 	def gotBuddyList(self, l):
 		debug.log("B: gotBuddyList: %s" % (str(l)))

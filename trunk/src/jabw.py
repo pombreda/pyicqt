@@ -33,7 +33,7 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None):
 	xx = el.addElement("active")
 	xx.attributes["xmlns"] = "http://jabber.org/protocol/chatstates"
 
-	if xhtml:
+	if xhtml and not config.disableXHTML:
 		try:
 			el.addChild(utils.parseText(xhtml))
 		except:

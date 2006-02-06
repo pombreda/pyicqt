@@ -17,6 +17,7 @@ import re
 import time
 import binascii
 import avatar
+import md5
 
 # The name of the transport
 name = "ICQ Transport"
@@ -155,6 +156,20 @@ class LegacyConnection:
 			self.session.pytrans.statistics.stats['OutgoingMessages'] += 1
 			self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
 			uin = jid2icq(target)
+			wantIcon = 0
+			if self.bos.requesticon.has_key(uin):
+				debug.log("LegacyConnection: sendMessage: We are going to ask for their icon.")
+				wantIcon = 1
+
+			iconSum = None
+			iconLen = None
+			iconStamp = None
+			if hasattr(self, "myavatar"):
+				iconSum = oscar.getIconSum(self.myavatar)
+				iconLen = len(self.myavatar)
+				iconStamp = time.time()
+				debug.log("LegacyConnection: sendMessage: We are going to send info about our icon, length %d." % iconLen)
+
 			debug.log("LegacyConnection: sendMessage %s %s" % (uin, message))
 			if uin[0].isdigit():
 				encoding = config.encoding
@@ -164,16 +179,17 @@ class LegacyConnection:
 					charset = "unicode"
 				debug.log("LegacyConnection: sendMessage encoding %s" % encoding)
 				#self.bos.sendMessage(uin, [[message.encode(encoding, "replace"),charset]], offline=1)
-				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=1, autoResponse=autoResponse)
+				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 			else:
 				if xhtml and not config.disableXHTML:
 					xhtml = utils.xhtml_to_aimhtml(xhtml)
-					self.bos.sendMessage(uin, xhtml, offline=1, autoResponse=autoResponse)
+					self.bos.sendMessage(uin, xhtml, offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 				else:
 					htmlized = oscar.html(message)
-					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=1, autoResponse=autoResponse)
+					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 		except AttributeError:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
+			raise
 
 	def newResourceOnline(self, resource):
 		from glue import icq2jid
@@ -230,8 +246,7 @@ class LegacyConnection:
 
 		if not show or show == "online" or show == "Online" or show == "chat":
 			self.setICQStatus(show)
-			# FIXME, this should be setBack maybe?
-			#self.setAway()
+			self.setBack(friendly)
 			self.setURL(url)
 			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=None, url=url)
 		else:
@@ -371,6 +386,11 @@ class LegacyConnection:
 		if imageData:
 			try:
 				self.myavatar = utils.convertToJPG(imageData)
+				self.myavatarlen = len(self.myavatar)
+				m=md5.new()
+				m.update(self.myavatar)
+				self.myavatarsum = m.digest()
+				self.myavatarstamp = time.time()
 			except:
 				debug.log("LegacyConnection: changeAvatar, unable to convert avatar to JPEG, punting.")
 				return
