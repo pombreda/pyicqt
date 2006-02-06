@@ -1,3 +1,14 @@
+2006-02-06  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/twistwrap.py:
+	Patched to work with newer Twisted stuff (thanks Asterix!)
+
+	* src/legacy/legacylist.py:
+	Added support for binary based hashes.
+
+	* src/legacy/icqt.py:
+	Fixed incoming direct icon support.
+
 2006-02-05  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
@@ -6,6 +17,7 @@
 	Fixed up direct icon support.
 
 	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
 	Readded setBack stuff since it works with ICQ.
 
 2006-02-04  Daniel Henninger  <jadestorm@nc.rr.com>

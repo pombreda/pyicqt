@@ -58,8 +58,7 @@ warnings.filters.append(("ignore", None, UserWarning, re.compile("twisted.words.
 try:
 	log.msg("Trying to import XML DOM")
 	from twisted.words.xish.domish import SuxElementStream, Element, unescapeFromXml, elementStream
-	from twisted.words.jabber import xmlstream
-	from twisted.words.protocols.jabber import jid, component, client, jstrports
+	from twisted.words.protocols.jabber import jid, component, client, jstrports, xmlstream
 	jid.intern = jid.internJID # This got renamed for some reason
 	log.msg("Using Twisted >= 2.0, Words >= 0.3, Words DOM")
 except ImportError:
