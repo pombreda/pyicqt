@@ -10,6 +10,7 @@ import avatar
 import debug
 import binascii
 import os.path
+import md5
 
 class LegacyList:
 	def __init__(self, session):
@@ -72,24 +73,33 @@ class LegacyList:
 				return True
 		return False
 
-	def diffAvatar(self, contact, iconHash):
-		return True
+	def diffAvatar(self, contact, md5Hash=None, numHash=None):
 		if self.xdbcontacts.has_key(contact.lower()):
-			if self.xdbcontacts[contact.lower()].has_key("ssihash"):
-				if self.xdbcontacts[contact.lower()]["ssihash"] == iconHash:
+			if self.xdbcontacts[contact.lower()].has_key("md5hash"):
+				if md5Hash and self.xdbcontacts[contact.lower()]["md5hash"] == md5Hash:
+					return False
+				if numHash and self.xdbcontacts[contact.lower()]["numhash"] == numHash:
 					return False
 		return True
 
-	def updateIconHashes(self, contact, ssiHash, localHash):
-		debug.log("updateIconHashes: %s %s %s" % (contact.lower(), binascii.hexlify(ssiHash), localHash))
-		self.xdbcontacts[contact.lower()]['ssihash'] = ssiHash
-		self.xdbcontacts[contact.lower()]['localhash'] = localHash
+	def updateIconHashes(self, contact, shaHash, md5Hash, numHash):
+		debug.log("updateIconHashes: %s %s %s %d" % (contact.lower(), binascii.hexlify(shaHash), md5Hash, numHash))
+		if self.xdbcontacts[contact.lower()].has_key('ssihash'):
+			del self.xdbcontacts[contact.lower()]['ssihash']
+		if self.xdbcontacts[contact.lower()].has_key('localhash'):
+			del self.xdbcontacts[contact.lower()]['localhash']
+		self.xdbcontacts[contact.lower()]['md5hash'] = md5Hash
+		self.xdbcontacts[contact.lower()]['numhash'] = str(numHash)
+		self.xdbcontacts[contact.lower()]['shahash'] = shaHash
 		self.session.pytrans.xdb.setListEntry("roster", self.session.jabberID, contact.lower(), payload=self.xdbcontacts[contact.lower()])
 
-	def updateAvatar(self, contact, iconData=None, iconHash=None):
+	def updateAvatar(self, contact, iconData=None, md5Hash=None, numHash=None):
 		from glue import icq2jid
 
-		debug.log("updateAvatar: %s %s" % (contact.lower(), binascii.hexlify(iconHash)))
+		if md5Hash:
+			debug.log("updateAvatar: %s %s" % (contact.lower(), binascii.hexlify(md5Hash)))
+		elif numHash:
+			debug.log("updateAvatar: %s (binary hash)" % (contact.lower()))
 
 		c = self.session.contactList.findContact(icq2jid(contact))
 		if not c:
@@ -97,7 +107,7 @@ class LegacyList:
 			jabContact = self.session.contactList.createContact(icq2jid(contact), "both")
 			c = jabContact
 
-		if iconData and iconHash:
+		if iconData and (md5Hash or numHash):
 			debug.log("Update setting custom avatar for %s" %(contact))
 			try:
 				# Debugging, keeps original icon pre-convert
@@ -110,7 +120,13 @@ class LegacyList:
 					pass
 				avatarData = avatar.AvatarCache().setAvatar(utils.convertToPNG(iconData))
 				c.updateAvatar(avatarData, push=True)
-				self.updateIconHashes(contact.lower(), binascii.hexlify(iconHash), avatarData.getImageHash())
+				if not md5Hash:
+					m = md5.new()
+					m.update(iconData)
+					md5Hash = m.digest()
+				if not numHash:
+					numHash = oscar.getIconSum(iconData)
+				self.updateIconHashes(contact.lower(), binascii.hexlify(md5Hash), avatarData.getImageHash(), numHash)
 			except:
 				debug.log("Whoa there, this image doesn't want to work.  Lets leave it where it was...")
 		else:

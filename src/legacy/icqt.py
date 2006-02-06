@@ -142,7 +142,7 @@ class B(oscar.BOSConnection):
 				status=idle_time
 
 		if user.iconmd5sum != None:
-			if self.icqcon.legacyList.diffAvatar(user.name, binascii.hexlify(user.iconmd5sum)):
+			if self.icqcon.legacyList.diffAvatar(user.name, md5Hash=binascii.hexlify(user.iconmd5sum)):
 				debug.log("Retrieving buddy icon for %s" % user.name)
 				self.retrieveBuddyIconFromServer(user.name, user.iconmd5sum, user.icontype).addCallback(self.gotBuddyIconFromServer)
 			else:
@@ -165,7 +165,7 @@ class B(oscar.BOSConnection):
 		icondata = iconinfo[4]
 		debug.log("B: gotBuddyIconFromServer for %s: hash: %s, len: %d" % (contact, binascii.hexlify(iconhash), iconlen))
 		if iconlen > 0 and iconlen != 90: # Some ICQ clients send crap
-			self.icqcon.legacyList.updateAvatar(contact, icondata, iconhash)
+			self.icqcon.legacyList.updateAvatar(contact, icondata, md5Hash=iconhash)
 
 	def offlineBuddy(self, user):
 		from glue import icq2jid 
@@ -209,8 +209,8 @@ class B(oscar.BOSConnection):
 				self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
 				self.awayResponses[user.name] = time.time()
 
-		if user.iconcksum != None:
-			if self.icqcon.legacyList.diffAvatar(user.name, binascii.hexlify(user.iconcksum)):
+		if "icon" in flags:
+			if self.icqcon.legacyList.diffAvatar(user.name, numHash=user.iconcksum):
 				debug.log("User %s has a buddy icon we want, will ask for it next message." % user.name)
 				self.requesticon[user.name] = 1
 			else:
@@ -323,7 +323,7 @@ class B(oscar.BOSConnection):
 	def receivedIconDirect(self, user, icondata):
 		debug.log("B: receivedIconDirectRequest for %s [%d]" % (user.name, user.iconlen))
 		if user.iconlen > 0 and user.iconlen != 90: # Some ICQ clients send crap
-			self.icqcon.legacyList.updateAvatar(user.name, icondata, user.iconhash)
+			self.icqcon.legacyList.updateAvatar(user.name, icondata, numHash=user.iconcksum)
 
 	def uploadedBuddyIconToServer(self, iconchecksum):
 		debug.log("B: uploadedBuddyIconToServer: %s" % (iconchecksum))
