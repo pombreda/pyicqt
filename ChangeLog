@@ -1,3 +1,13 @@
+2006-02-05  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	Fixed up direct icon support.
+
+	* src/legacy/glue.py:
+	Readded setBack stuff since it works with ICQ.
+
 2006-02-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/twistwrap.py:
@@ -46,6 +56,16 @@
 
 	* src/tlib/oscar.py:
 	Fixed problem with array handling for iconinfo.
+
+	* src/tlib/oscar.py:
+	* src/legacy/icqt.py:
+	* src/legacy/glue.py:
+	Added direct buddy icon support, but can't find a client to test.
+
+	* src/config.py:
+	* src/jabw.py:
+	* config_example.xml:
+	Added disableXHTML stuff.
 
 2006-02-03  Daniel Henninger  <jadestorm@nc.rr.com>
 

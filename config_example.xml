@@ -69,6 +69,10 @@
 	<!-- (uncomment to enable) -->
 	<!-- <enableAutoInvite/> -->
 
+	<!-- Disable xhtml support (messages with fonts and colors) -->
+	<!-- (uncomment to disable) -->
+	<!-- <disableXHTML/> -->
+
 	<!-- Disable use of default avatar if none is specified -->
 	<!-- (uncomment to disable) -->
 	<!-- <disableDefaultAvatar/> -->
