@@ -10,11 +10,13 @@ from twisted.cred import portal, credentials
 import debug
 import config
 import legacy
-import sys, os
+import sys, os, os.path
 import lang
 import string
 import avatar
 from xmppcred import XMPPRealm, XMPPChecker, IXMPPAvatar
+
+X = os.path.sep
 
 # Avatars Node
 class WebInterface_avatars(rend.Page):
@@ -26,7 +28,7 @@ class WebInterface_avatars(rend.Page):
 # Template Node
 class WebInterface_template(rend.Page):
 	addSlash = True
-	docFactory = loaders.xmlfile('data/www/template.html')
+	docFactory = loaders.xmlfile('data'.X.'www'.'template.html')
 
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
@@ -74,8 +76,8 @@ class WebInterface_template(rend.Page):
 
 		return ret
 
-	child_images = static.File('data/www/images/')
-	child_css = static.File('data/www/css/')
+	child_images = static.File('data'.X.'www'.X.'images'.X)
+	child_css = static.File('data'.X.'www'.X.'css'.X)
 	child_avatars = WebInterface_avatars()
 
 
@@ -83,13 +85,16 @@ class WebInterface_template(rend.Page):
 class WebInterface(WebInterface_template):
 	def childFactory(self, ctx, name):
 		debug.log("WebInterface: childFactory %s %s" % (ctx, name))
+		request = inevow.IRequest(ctx)
+		username = request.getUser()
+
 		if name == "account":
 			return WebInterface_account(pytrans=self.pytrans)
-		if name == "status":
+		if name == "status" and config.admins.count(username) > 0:
 			return WebInterface_status(pytrans=self.pytrans)
-		if name == "config":
+		if name == "config" and config.admins.count(username) > 0:
 			return WebInterface_config(pytrans=self.pytrans)
-		if name == "controls":
+		if name == "controls" and config.admins.count(username) > 0:
 			return WebInterface_controls(pytrans=self.pytrans)
 		else:
 			pass
@@ -147,7 +152,7 @@ class WebInterface_account(WebInterface_template):
 			else:
 				network = "AIM"
 			avatar = "-"
-			if item[1].has_key("localhash"):
+			if not config.disableAvatars and item[1].has_key("shahash"):
 				avatar = T.a(href = ("/avatars/%s"%item[1]["localhash"]))[
 					T.img(border = 0, height = 25, src = ("/avatars/%s"%item[1]["localhash"]))
 				]

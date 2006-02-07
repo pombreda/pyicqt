@@ -44,3 +44,5 @@ useJ2Component = bool(False)
 saslUsername = ""
 avatarsOnlyOnChat = bool(False)
 disableDefaultAvatar = bool(False)
+disableAvatars = bool(False)
+disableWebPresence = bool(False)

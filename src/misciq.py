@@ -286,9 +286,10 @@ class VCardFactory:
 			URL = vCard.addElement("URL")
 			URL.addContent(legacy.url)
 
-			from legacy import defaultAvatar
-			PHOTO = defaultAvatar.makePhotoElement()
-			vCard.addChild(PHOTO)
+			if not config.disableAvatars:
+				from legacy import defaultAvatar
+				PHOTO = defaultAvatar.makePhotoElement()
+				vCard.addChild(PHOTO)
 
 			self.pytrans.send(iq)
 		else:

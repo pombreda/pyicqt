@@ -132,15 +132,15 @@ class PyTransport(component.Service):
 		self.discovery.addFeature(globals.XHTML, None, "USER")
 
 		self.xdb = xdb.XDB(config.jid)
-		self.avatarCache = avatar.AvatarCache()
+		if not config.disableAvatars: self.avatarCache = avatar.AvatarCache()
 		self.registermanager = register.RegisterManager(self)
 		self.adHocCommands = misciq.AdHocCommands(self)
 		self.gatewayTranslator = misciq.GatewayTranslator(self)
 		self.versionTeller = misciq.VersionTeller(self)
 		self.pingService = misciq.PingService(self)
 		self.vCardFactory = misciq.VCardFactory(self)
-		self.searchFactory = misciq.SearchFactory(self)
-		self.IqAvatarFactory = misciq.IqAvatarFactory(self)
+		#self.searchFactory = misciq.SearchFactory(self)
+		if not config.disableAvatars: self.IqAvatarFactory = misciq.IqAvatarFactory(self)
 		self.statistics = misciq.Statistics(self)
 		self.connectUsers = misciq.ConnectUsers(self)
 		legacy.addCommands(self)
@@ -366,8 +366,8 @@ class App:
 	def __init__(self):
 		# Check that there isn't already a PID file
 		if config.pid:
-			if os.path.isfile(utils.doPath(config.pid)):
-				pf = open(utils.doPath(config.pid))
+			if os.path.isfile(config.pid):
+				pf = open(config.pid)
 				pid = int(str(pf.readline().strip()))
 				pf.close()
 				if os.name == "posix":
@@ -382,7 +382,7 @@ class App:
 
 			# Create a PID file
 			pid = str(os.getpid())
-			pf = file(utils.doPath(config.pid),'w')
+			pf = file(config.pid,'w')
 			pf.write("%s\n" % pid);
 			pf.close()
 
@@ -409,7 +409,7 @@ class App:
 		self.transportSvc.removeMe()
 		if config.pid:
 			def cb(ignored=None):
-				os.remove(utils.doPath(config.pid))
+				os.remove(config.pid)
 			d = Deferred()
 			d.addCallback(cb)
 			reactor.callLater(3.0, d.callback, None)

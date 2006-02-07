@@ -11,6 +11,8 @@ import sys
 from twisted.web import microdom
 from tlib.twistwrap import Element, SuxElementStream
 
+X = os.path.sep
+
 _controlCharPat = re.compile(
 	r"[\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f"
 	r"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f]")
@@ -206,33 +208,34 @@ def b64enc(s):
 def b64dec(s):
 	return base64.decodestring(s)
 
-try:
-	import Image
-	import StringIO
+if not config.disableAvatars:
+	try:
+		import Image
+		import StringIO
 
-	def convertToPNG(imageData):
-		inbuff = StringIO.StringIO(imageData)
-		outbuff = StringIO.StringIO()
-		Image.open(inbuff).save(outbuff, "PNG")
-		outbuff.seek(0)
-		imageData = outbuff.read()
-		return imageData
+		def convertToPNG(imageData):
+			inbuff = StringIO.StringIO(imageData)
+			outbuff = StringIO.StringIO()
+			Image.open(inbuff).save(outbuff, "PNG")
+			outbuff.seek(0)
+			imageData = outbuff.read()
+			return imageData
 
-	def convertToJPG(imageData):
-		inbuff = StringIO.StringIO(imageData)
-		outbuff = StringIO.StringIO()
-		img = Image.open(inbuff)
-		if img.size[0] > 64 or img.size[1] > 64:
-			img.thumbnail((64,64))
-		elif img.size[0] < 15 or img.size[1] < 15:
-			img.thumbnail((15,15))
-		img.convert().save(outbuff, "JPEG")
-		outbuff.seek(0)
-		imageData = outbuff.read()
-		return imageData
-except ImportError:
-	print "ERROR! PyICQ-t requires the Python Imaging Library to function with avatars.  Either install the Python Imaging Library, or disable avatars using the <disableAvatars/> option in your config file. (this is not implemented just yet btw)"
-	sys.exit(-1)
+		def convertToJPG(imageData):
+			inbuff = StringIO.StringIO(imageData)
+			outbuff = StringIO.StringIO()
+			img = Image.open(inbuff)
+			if img.size[0] > 64 or img.size[1] > 64:
+				img.thumbnail((64,64))
+			elif img.size[0] < 15 or img.size[1] < 15:
+				img.thumbnail((15,15))
+			img.convert().save(outbuff, "JPEG")
+			outbuff.seek(0)
+			imageData = outbuff.read()
+			return imageData
+	except ImportError:
+		print "ERROR! PyICQ-t requires the Python Imaging Library to function with avatars.  Either install the Python Imaging Library, or disable avatars using the <disableAvatars/> option in your config file. (this is not implemented just yet btw)"
+		sys.exit(-1)
 
 
 errorCodeMap = {
@@ -259,12 +262,6 @@ errorCodeMap = {
 	"undefined-condition"		:	500,
 	"unexpected-request"		:	400
 }
-
-def doPath(path):
-	if path and path[0] == "/":
-		return path
-	else:
-		return "../" + path
 
 def parseText(text, beExtremelyLenient=False):
 	t = TextParser(beExtremelyLenient)
@@ -351,8 +348,8 @@ def getDataFormValue(form, var):
 
 class NotesToMyself:
 	def __init__(self, noteList):
-		pre = doPath(config.spooldir) + "/" + config.jid + "/"
-		self.filename = pre + "/notes_to_myself"
+		pre = os.path.abspath(config.spooldir) + X + config.jid + X
+		self.filename = pre + X + "notes_to_myself"
 		self.notes = []
                 
 		if os.path.exists(self.filename):

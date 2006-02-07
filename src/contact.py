@@ -151,6 +151,7 @@ class Contact:
 			self.sendPresence(tojid)
 	
 	def updateAvatar(self, avatar=None, push=True):
+		if config.disableAvatars: return
 		if self.avatar == avatar: return
 		self.avatar = avatar
 		if push: self.sendPresence()
@@ -160,7 +161,7 @@ class Contact:
 	
 	def sendPresence(self, tojid=None):
 		avatarHash = ""
-		if self.avatar:
+		if self.avatar and not config.disableAvatars:
 			avatarHash = self.avatar.getImageHash()
 		caps = Element((None, "c"))
 		caps.attributes["xmlns"] = "http://jabber.org/protocol/caps"
@@ -177,7 +178,7 @@ class Contact:
 		if self.nickname:
 			NICKNAME = vCard.addElement("NICKNAME")
 			NICKNAME.addContent(self.nickname)
-		if self.avatar:
+		if self.avatar and not config.disableAvatars:
 			PHOTO = self.avatar.makePhotoElement()
 			vCard.addChild(PHOTO)
 		user = jid.split('@')[0]

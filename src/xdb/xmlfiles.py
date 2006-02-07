@@ -10,6 +10,7 @@ import os.path
 import debug
 import config
 
+X = os.path.sep
 SPOOL_UMASK = 0077
 XDBNS_PREFIX = "jabber:iq:"
 XDBNS_REGISTER = XDBNS_PREFIX+"register"
@@ -21,21 +22,21 @@ class XDB:
 	"""
 	def __init__(self, name):
 		""" Creates an XDB object. """
-		self.name = utils.doPath(config.spooldir) + '/' + name
+		self.name = os.path.join(os.path.abspath(config.spooldir), name)
 		if not os.path.exists(self.name):
 			os.makedirs(self.name)
 	
 	def __getFile(self, file):
 		file = utils.mangle(file)
 		hash = file[0:2]
-		document = utils.parseFile(self.name + "/" + hash + "/" + file + ".xml")
+		document = utils.parseFile(self.name + X + hash + X + file + ".xml")
 		return document
 	
 	def __writeFile(self, file, text):
 		file = utils.mangle(file)
 		prev_umask = os.umask(SPOOL_UMASK)
 		hash = file[0:2]
-		pre = self.name + "/" + hash + "/"
+		pre = self.name + X + hash + X
 		if not os.path.exists(pre):
 			os.makedirs(pre)
 		f = open(pre + file + ".xml", "w")
@@ -48,8 +49,8 @@ class XDB:
 		files = []
 		for dir in os.listdir(self.name):
 			if len(dir) != 2: continue
-			if os.path.isdir(self.name + "/" + dir):
-				files.extend(os.listdir(self.name + "/" + dir))
+			if os.path.isdir(self.name + X + dir):
+				files.extend(os.listdir(self.name + X + dir))
 		files = [utils.unmangle(x) for x in files]
 		files = [x[:-4] for x in files]
 		while files.count(''):
@@ -93,7 +94,7 @@ class XDB:
 	
 	def remove(self, file):
 		""" Removes an XDB file """
-		file = self.name + "/" + file[0:2] + "/" + file + ".xml"
+		file = self.name + X + file[0:2] + X + file + ".xml"
 		file = utils.mangle(file)
 		try:
 			os.remove(file)
@@ -338,7 +339,7 @@ def housekeep():
 
 
 def doSpoolPrepCheck():
-	pre = utils.doPath(config.spooldir) + "/" + config.jid + "/"
+	os.path.abspath(config.spooldir) + X + config.jid + X
 
 	print "Checking spool files and stringprepping any if necessary...",
 
@@ -352,7 +353,7 @@ def doSpoolPrepCheck():
 				file = utils.mangle(file)
 				if not os.path.isdir(pre + "BAD"):
 					os.makedirs(pre + "BAD")
-				shutil.move(pre + file, pre + "BAD/" + file)
+				shutil.move(pre + file, pre + "BAD" + X + file)
 				continue
 			if file != filej:
 				file = utils.mangle(file)
@@ -369,22 +370,22 @@ def doHashDirUpgrade():
 	print "Upgrading your XDB structure to use hashed directories for speed...",
 
 	# Do avatars...
-	pre = utils.doPath(config.spooldir) + "/" + config.jid + "/avatars/"
+	pre = os.path.join(os.path.abspath(config.spooldir), config.jid) + X + "avatars" + X
 	if os.path.exists(pre):
 		for file in os.listdir(pre):
 			if os.path.isfile(pre + file):
-				pre2 = pre + file[0:3] + "/"
+				pre2 = pre + file[0:3] + X
 				if not os.path.exists(pre2):
 					os.makedirs(pre2)
 				shutil.move(pre + file, pre2 + file)
 	
 	# Do spool files...
-	pre = utils.doPath(config.spooldir) + "/" + config.jid + "/"
+	pre = os.path.join(os.path.abspath(config.spooldir), config.jid) + X
 	if os.path.exists(pre):
 		for file in os.listdir(pre):
 			if os.path.isfile(pre + file) and file.find(".xml"):
 				hash = file[0:2]
-				pre2 = pre + hash + "/"
+				pre2 = pre + hash + X
 				if not os.path.exists(pre2):
 					os.makedirs(pre2)
 
