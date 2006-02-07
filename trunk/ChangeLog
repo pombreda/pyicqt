@@ -39,6 +39,9 @@
 	* src/langs/en.py:
 	Removed useless lang string.
 
+	* src/xmlconfig.py:
+	Fix for lack of crashing with bad config option.
+
 2006-02-06  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/twistwrap.py:
