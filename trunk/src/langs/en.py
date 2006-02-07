@@ -68,7 +68,6 @@ class en: # English - James Bunton <mailto:james@delx.cjb.net>/Daniel Henninger 
 	statistics_FailedMessageCount_Desc = u"The number of messages that didn't make it to the ICQ recipient and were bounced."
 	statistics_AvatarCount_Desc = u"How many avatars have been transferred to and from the ICQ network."
 	statistics_FailedAvatarCount_Desc = u"The number of avatar transfers that have failed."
-	chatroom_Exchanges = u"ICQ Chatroom Exchanges"
 en_US = en # en-US is the same as en, so are the others
 en_AU = en
 en_GB = en

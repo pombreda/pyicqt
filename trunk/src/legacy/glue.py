@@ -31,19 +31,23 @@ url = "http://pyicq-t.blathersource.org"
 # This should be set to the identity of the gateway
 id = "icq"
 
-# Load the default AIM and ICQ avatars
-f = open(os.path.join("data", "defaultAIMAvatar.png"))
-defaultAIMAvatarData = f.read()
-f.close()
-defaultAIMAvatar = avatar.AvatarCache().setAvatar(defaultAIMAvatarData)
+if not config.disableAvatars:
+	# Load the default AIM and ICQ avatars
+	f = open(os.path.join("data", "defaultAIMAvatar.png"))
+	defaultAIMAvatarData = f.read()
+	f.close()
+	defaultAIMAvatar = avatar.AvatarCache().setAvatar(defaultAIMAvatarData)
 
-f = open(os.path.join("data", "defaultICQAvatar.png"))
-defaultICQAvatarData = f.read()
-f.close()
-defaultICQAvatar = avatar.AvatarCache().setAvatar(defaultICQAvatarData)
+	f = open(os.path.join("data", "defaultICQAvatar.png"))
+	defaultICQAvatarData = f.read()
+	f.close()
+	defaultICQAvatar = avatar.AvatarCache().setAvatar(defaultICQAvatarData)
 
-defaultAvatar = defaultAIMAvatar
-defaultAvatarData = defaultAIMAvatarData
+	defaultAvatar = defaultAIMAvatar
+	defaultAvatarData = defaultAIMAvatarData
+else:
+	defaultAvatar = None
+	defaultAvatarData = None
 
 # This function translates an ICQ screen name to a JID
 def icq2jid(icqid):
@@ -370,6 +374,7 @@ class LegacyConnection:
 
 	def updateAvatar(self, av=None):
 		""" Called whenever a new avatar needs to be set. Instance of avatar.Avatar is passed """
+		if config.disableAvatars: return
 		imageData = ""
 		if av:
 			imageData = av.getImageData()
@@ -383,6 +388,7 @@ class LegacyConnection:
 		self.changeAvatar(imageData)
 
 	def changeAvatar(self, imageData):
+		if config.disableAvatars: return
 		if imageData:
 			try:
 				self.myavatar = utils.convertToJPG(imageData)

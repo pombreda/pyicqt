@@ -1,3 +1,44 @@
+2006-02-07  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/utils.py:
+	* src/avatar.py:
+	* src/debug.py:
+	* src/main.py:
+	* src/xdb/xmlfiles.py:
+	* src/xdb/legacyaimtransport.py:
+	Retired doPath.
+
+	* src/xdb/legacyjittransport.py:
+	Added driver for old JIT format.
+
+	* src/legacy/icqt.py:
+	* config_example.xml:
+	Added check for avatarsOnlyOnChat.
+
+	* config_example.xml:
+	* src/config.py:
+	* src/legacy/icqt.py:
+	* src/legacy/glue.py:
+	* src/legacy/legacylist.py:
+	* src/utils.py:
+	* src/session.py:
+	* src/jabw.py:
+	* src/contact.py:
+	* src/web/handler.py:
+	* src/misciq.py:
+	Added ability to disable avatars entirely.
+
+	* INSTALL:
+	Updated to reflect newer instructions.
+
+	* src/config.py:
+	* src/legacy/icqt.py:
+	* config_example.xml:
+	Added ability to disable web presence indicator.
+
+	* src/langs/en.py:
+	Removed useless lang string.
+
 2006-02-06  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/twistwrap.py:
@@ -8,6 +49,9 @@
 
 	* src/legacy/icqt.py:
 	Fixed incoming direct icon support.
+
+	* src/web/handler.py:
+	Added admin checks.
 
 2006-02-05  Daniel Henninger  <jadestorm@nc.rr.com>
 

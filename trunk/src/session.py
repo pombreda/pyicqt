@@ -127,7 +127,7 @@ class Session(jabw.JabberConnection):
 					vCard = e
 					break
 			else:
-				self.legacycon.updateAvatar() # Default avatar
+				if not config.disableAvatars: self.legacycon.updateAvatar() # Default avatar
 				return
 			avatarSet = False
 			for e in vCard.elements():
@@ -135,19 +135,19 @@ class Session(jabw.JabberConnection):
 					self.updateDescription(e.__str__())
 				if e.name == "NICKNAME":
 					self.updateNickname(e.__str__())
-				if e.name == "PHOTO":
+				if e.name == "PHOTO" and not config.disableAvatars:
 					imageData = avatar.parsePhotoEl(e)
 					if not imageData:
 						errback() # Possibly it wasn't in a supported format?
 					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
 					self.legacycon.updateAvatar(self.avatar)
 					avatarSet = True
-			if not avatarSet:
+			if not avatarSet and not config.disableAvatars:
 				self.legacycon.updateAvatar() # Default avatar
 
 		def errback(args=None):
 			debug.log("Session %s - error fetching avatar from vCard" % (self.jabberID))
-			self.legacycon.updateAvatar()
+			if not config.disableAvatars: self.legacycon.updateAvatar()
 
 		debug.log("Session %s - Fetching user's vCard" % (self.jabberID))
 		d = self.sendVCardRequest(to=self.jabberID, fro=config.jid)
@@ -181,6 +181,7 @@ class Session(jabw.JabberConnection):
 		self.updateNickname(nickname)
 
 	def avatarHashReceived(self, source, dest, avatarHash):
+		if config.disableAvatars: return
 		if dest.find('@') > 0: return # Ignore presence packets sent to users
 
 		if avatarHash == " ": # Setting no avatar

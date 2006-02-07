@@ -2,16 +2,18 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element
+from tlib.twistwrap import Element, jid
+import shutil
+import sys
 import os
 import os.path
-import config
 import debug
+import config
 
 X = os.path.sep
-SPOOL_UMASK = 0177
-XDBNS_PREFIX = "aimtrans:"
-XDBNS_REGISTER = XDBNS_PREFIX+"data"
+SPOOL_UMASK = 0077
+XDBNS_PREFIX = "jabber:iq:"
+XDBNS_REGISTER = XDBNS_PREFIX+"register"
 
 class XDB:
 	"""
@@ -19,7 +21,7 @@ class XDB:
 	"""
 	def __init__(self, name):
 		""" Creates an XDB object. """
-                self.name = os.path.join(os.path.abspath(config.spooldir), name)
+		self.name = os.path.join(os.path.abspath(config.spooldir), name)
 		if not os.path.exists(self.name):
 			os.makedirs(self.name)
 	
@@ -31,11 +33,24 @@ class XDB:
 	def __writeFile(self, file, text):
 		file = utils.mangle(file)
 		prev_umask = os.umask(SPOOL_UMASK)
-		f = open(self.name + X + file + ".xml", "w")
+		pre = self.name + X
+		if not os.path.exists(pre):
+			os.makedirs(pre)
+		f = open(pre + file + ".xml", "w")
 		f.write(text)
 		f.close()
 		os.umask(prev_umask)
 	
+	def files(self):
+		""" Returns a list containing the files in the current XDB database """
+		files = []
+		files.extend(os.listdir(self.name))
+		files = [utils.unmangle(x) for x in files]
+		files = [x[:-4] for x in files]
+		while files.count(''):
+			files.remove('')
+
+		return files
 	
 	def request(self, file, xdbns):
 		""" Requests a specific xdb namespace from the XDB 'file' """
@@ -46,15 +61,7 @@ class XDB:
 					return child
 		except:
 			return None
-
-	def files(self):
-		""" Returns a list containing the files in the current XDB database """         
-		files=os.listdir(self.name);
-		for i in range(len(files)):
-			files[i]=utils.unmangle(files[i])
-			files[i]=files[i][:len(files[i])-4]
-		return files
-
+	
 	def set(self, file, xdbns, element):
 		""" Sets a specific xdb namespace in the XDB 'file' to element """
 		try:
@@ -91,22 +98,18 @@ class XDB:
 
 	def formRegEntry(self, username, password):
 		""" Returns a domish.Element representation of the data passed. This element will be written to the XDB spool file """
-		reginfo = Element((None, "aimtrans"))
-
-		logoninfo = reginfo.addElement("logon")
-		logoninfo.attributes["id"] = username
-		logoninfo.attributes["pass"] = password
-
-		return reginfo
-
 		reginfo = Element((None, "query"))
 		reginfo.attributes["xmlns"] = XDBNS_REGISTER
 
 		userEl = reginfo.addElement("username")
 		userEl.addContent(username)
 
-		passEl = reginfo.addElement("password")
-		passEl.addContent(password)
+		if config.xdbDriver_xmlfiles.get("format","") == "encrypted":
+			passEl = reginfo.addElement("encpassword")
+			passEl.addContent(utils.encryptPassword(password))
+		else:
+			passEl = reginfo.addElement("password")
+			passEl.addContent(password)
 
 		return reginfo
 
@@ -115,12 +118,14 @@ class XDB:
 		and out of it and return them """
 		username = ""
 		password = ""
-
 		for child in base.elements():
 			try:
-				if child.name == "logon":
-					username = child.getAttribute("id")
-					password = child.getAttribute("pass")
+				if child.name == "username":
+					username = child.__str__()
+				elif child.name == "encpassword":
+					password = utils.decryptPassword(child.__str__())
+				elif child.name == "password":
+					password = child.__str__()
 			except AttributeError:
 				continue
 
@@ -182,10 +187,11 @@ class XDB:
 		attributes = None
 		for child in result.elements():
 			try:
-				if child.name == "buddies":
-					for child2 in child.elements():
-						if child2.getAttribute("name") == legacyID:
-							attributes = {}
+				if child.getAttribute("jid") == legacyID:
+					attributes = {}
+					for a in child.attributes:
+						if a == "jid": continue
+						attributes[a] = child.getAttribute(a)
 			except AttributeError:
 				continue
 
@@ -210,14 +216,15 @@ class XDB:
 		entities = []
 		for child in result.elements():
 			try:
-				if child.name == "buddies":
-					for child2 in child.elements():
-						if child2.hasAttribute("name"):
-							entity = []
-							entity.append(child2.getAttribute("name"))
-							attributes = {}
-							entity.append(attributes)
-							entities.append(entity)
+				if child.hasAttribute("jid"):
+					entity = []
+					entity.append(child.getAttribute("jid"))
+					attributes = {}
+					for a in child.attributes:
+						if a == "jid": continue
+						attributes[a] = child.getAttribute(a)
+					entity.append(attributes)
+					entities.append(entity)
 			except AttributeError:
 				continue
 
@@ -230,31 +237,22 @@ class XDB:
 		xdbns = XDBNS_PREFIX+type
 		list = self.request(jabberID, xdbns)
 		if list == None:
-			list = Element((None, "aimtrans"))
+			list = Element((None, "query"))
 			list.attributes["xmlns"] = xdbns
 
-		buddies = None
+		# Remove the existing element
 		for child in list.elements():
 			try:
-				if child.name == "buddies":
-					buddies = child
-					break
+				if child.getAttribute("jid") == legacyID:
+					list.children.remove(child)
 			except AttributeError:
 				continue
 
-		if buddies == None:
-			buddies = list.addElement("buddies")
+		newentry = list.addElement("item")
+		newentry["jid"] = legacyID
+		for p in payload.keys():
+			newentry[p] = payload[p]
 
-		# Remove the existing element
-		for child in buddies.elements():
-			try:
-				if child.getAttribute("name") == legacyID:
-					buddies.children.remove(child)
-			except AttributeError:
-				continue
-
-		newentry = buddies.addElement("item")
-		newentry["name"] = legacyID
 		self.set(jabberID, xdbns, list)
 
 	def removeListEntry(self, type, jabberID, legacyID):
@@ -264,26 +262,14 @@ class XDB:
 		xdbns = XDBNS_PREFIX+type
 		list = self.request(jabberID, xdbns)
 		if list == None:
-			list = Element((None, "aimtrans"))
+			list = Element((None, "query"))
 			list.attributes["xmlns"] = xdbns
 
-		buddies = None
+		# Remove the element
 		for child in list.elements():
 			try:
-				if child.name == "buddies":
-					buddies = child
-					break
-			except AttributeError:
-				continue
-
-		if buddies == None:
-			buddies = list.addElement("buddies")
-
-		# Remove the existing element
-		for child in buddies.elements():
-			try:
-				if child.getAttribute("name") == legacyID:
-					buddies.children.remove(child)
+				if child.getAttribute("jid") == legacyID:
+					list.children.remove(child)
 			except AttributeError:
 				continue
 

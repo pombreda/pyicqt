@@ -27,7 +27,7 @@ def reopenFile(first=False):
 		if debugFile: debugFile.close()
 
 		try:
-			debugFile = open(utils.doPath(config.debugLog), 'a')
+			debugFile = open(config.debugLog, 'a')
 		except:
 			print "Error opening debug log debugFile. Exiting..."
 			os.abort()

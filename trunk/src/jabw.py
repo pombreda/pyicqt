@@ -71,13 +71,13 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 	if ptype != "probe":
 		x = el.addElement("x")
 		x.attributes["xmlns"] = "vcard-temp:x:update"
-		if avatarHash:
+		if avatarHash and not config.disableAvatars:
 			p = x.addElement("photo")
 			p.addContent(avatarHash)
 		if nickname:
 			n = x.addElement("nickname")
 			n.addContent(nickname)
-		if avatarHash:
+		if avatarHash and not config.disableAvatars:
 			xx = el.addElement("x")
 			xx.attributes["xmlns"] = "jabber:x:avatar"
 			h = xx.addElement("hash")
@@ -377,7 +377,7 @@ class JabberConnection:
 					for child2 in child.elements():
 						if child2.name == "url":
 							url=child2.__str__()
-				elif child.defaultUri == "vcard-temp:x:update":
+				elif child.defaultUri == "vcard-temp:x:update" and not config.disableAvatars:
 					avatarHash = " "
 					for child2 in child.elements():
 						if child2.name == "photo":
@@ -387,7 +387,7 @@ class JabberConnection:
 
 			if not ptype:
 				# ptype == None
-				if avatarHash:
+				if avatarHash and not config.disableAvatars:
 					self.avatarHashReceived(froj.userhost(), toj.userhost(), avatarHash)
 				if nickname:
 					self.nicknameReceived(froj.userhost(), toj.userhost(), nickname)

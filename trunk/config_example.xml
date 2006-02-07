@@ -97,6 +97,7 @@
 	<!-- Available methods are: -->
 	<!-- xmlfiles: single xml files in the spool directory in hashed dirs (default)-->
 	<!-- legacyaimtransport: compatible with c-based aim transport, less functionality -->
+	<!-- legacyjittransport: compatible with JIT transport, less functionality -->
 	<!-- mysql: registration information stored in a MySQL database -->
 	<!--<xdbDriver>xmlfiles</xdbDriver>-->
 
@@ -116,8 +117,14 @@
 	<!--</xdbDriver_xmlfiles>-->
 
 	<!-- Only grab avatars when a chat is initiated. -->
-	<!-- NOT IMPLEMENTED YET -->
 	<!-- <avatarsOnlyOnChat/> -->
+
+	<!-- Disable all avatar functionality. Might be necessary if you -->
+	<!-- do not have PIL installed. -->
+	<!-- <disableAvatars/> -->
+
+	<!-- Disable web presence indicator. -->
+	<!-- <disableWebPresence/> -->
 
 	<!-- Use Jabber.com's XCP component protocol extensions. -->
 	<!-- <useXCP/> -->

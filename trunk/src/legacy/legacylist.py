@@ -8,9 +8,13 @@ from legacy import glue
 import config
 import avatar
 import debug
+import os
+import os.path
 import binascii
 import os.path
 import md5
+
+X = os.path.sep
 
 class LegacyList:
 	def __init__(self, session):
@@ -21,17 +25,18 @@ class LegacyList:
 		for c in self.xdbcontacts:
 			from glue import icq2jid
 			jabContact = self.session.contactList.createContact(icq2jid(c), "both")
-			if self.xdbcontacts[c].has_key("ssihash") and self.xdbcontacts[c].has_key("localhash"):
-				debug.log("Setting custom avatar for %s" %(c))
-				avatarData = avatar.AvatarCache().getAvatar(self.xdbcontacts[c]["localhash"])
-				jabContact.updateAvatar(avatarData, push=False)
-			else:
-				if not config.disableDefaultAvatar:
-					debug.log("Setting default avatar for %s" %(c))
-					if c[0].isdigit():
-						jabContact.updateAvatar(glue.defaultICQAvatar, push=False)
-					else:
-						jabContact.updateAvatar(glue.defaultAIMAvatar, push=False)
+			if not config.disableAvatars:
+				if self.xdbcontacts[c].has_key("ssihash") and self.xdbcontacts[c].has_key("localhash"):
+					debug.log("Setting custom avatar for %s" %(c))
+					avatarData = avatar.AvatarCache().getAvatar(self.xdbcontacts[c]["localhash"])
+					jabContact.updateAvatar(avatarData, push=False)
+				else:
+					if not config.disableDefaultAvatar:
+						debug.log("Setting default avatar for %s" %(c))
+						if c[0].isdigit():
+							jabContact.updateAvatar(glue.defaultICQAvatar, push=False)
+						else:
+							jabContact.updateAvatar(glue.defaultAIMAvatar, push=False)
 
 	def removeMe(self):
 		self.session = None
@@ -83,6 +88,7 @@ class LegacyList:
 		return True
 
 	def updateIconHashes(self, contact, shaHash, md5Hash, numHash):
+		if config.disableAvatars: return
 		debug.log("updateIconHashes: %s %s %s %d" % (contact.lower(), binascii.hexlify(shaHash), md5Hash, numHash))
 		if self.xdbcontacts[contact.lower()].has_key('ssihash'):
 			del self.xdbcontacts[contact.lower()]['ssihash']
@@ -94,6 +100,7 @@ class LegacyList:
 		self.session.pytrans.xdb.setListEntry("roster", self.session.jabberID, contact.lower(), payload=self.xdbcontacts[contact.lower()])
 
 	def updateAvatar(self, contact, iconData=None, md5Hash=None, numHash=None):
+		if config.disableAvatars: return
 		from glue import icq2jid
 
 		if md5Hash:
@@ -112,7 +119,7 @@ class LegacyList:
 			try:
 				# Debugging, keeps original icon pre-convert
 				try:
-					f = open(utils.doPath(config.spooldir)+"/"+config.jid+"/avatarsdebug/"+contact+".icondata", 'w')
+					f = open(os.path.abspath(config.spooldir)+X+config.jid+X+"avatarsdebug"+X+contact+".icondata", 'w')
 					f.write(iconData)
 					f.close()
 				except:
@@ -159,10 +166,11 @@ class LegacyList:
 		if not c:
 			debug.log("Update setting default avatar for %s" %(contact))
 			c = self.session.contactList.createContact(icq2jid(contact), "both")
-			if contact[0].isdigit():
-				c.updateAvatar(glue.defaultICQAvatar, push=False)
-			else:
-				c.updateAvatar(glue.defaultAIMAvatar, push=False)
+			if not config.disableAvatars:
+				if contact[0].isdigit():
+					c.updateAvatar(glue.defaultICQAvatar, push=False)
+				else:
+					c.updateAvatar(glue.defaultAIMAvatar, push=False)
 
 		if not self.xdbcontacts.has_key(contact.lower()):
 			if nick:

@@ -1,10 +1,18 @@
 0.7:
 
+* Web interface now only functions under Twisted 2.*.
+
+* Support for "available" status messages.
+
+* Fixed to work with newer Twisted releases.
+
+* Partial support for iChat "iTunes URLs".
+
 * Web interface now includes information about your account.
 
 * Web interface now uses Jabber authentication instead of custom.
 
-* Added cross-platform capable startup script.
+* Added cross-platform capable startup script. (python PyICQt.py)
 
 * Restructured code a fair amount.
 
@@ -37,8 +45,6 @@
 * Email notification support added.
 
 * Added ability to daemonize from command line option.
-
-* Directory search functionality added.
 
 * Support for Avatars/Buddy Icons.
 

@@ -30,7 +30,8 @@ class B(oscar.BOSConnection):
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
 		self.capabilities = [oscar.CAP_ICON, oscar.CAP_UTF]
-		self.statusindicators = oscar.STATUS_WEBAWARE
+		if not config.disableWebPresence:
+			self.statusindicators = oscar.STATUS_WEBAWARE
 		self.unreadmessages = 0
 		if config.crossChat:
 			self.capabilities.append(oscar.CAP_CROSS_CHAT)
@@ -141,7 +142,7 @@ class B(oscar.BOSConnection):
 			else:
 				status=idle_time
 
-		if user.iconmd5sum != None:
+		if user.iconmd5sum != None and not config.disableAvatars and not config.avatarsOnlyOnChat:
 			if self.icqcon.legacyList.diffAvatar(user.name, md5Hash=binascii.hexlify(user.iconmd5sum)):
 				debug.log("Retrieving buddy icon for %s" % user.name)
 				self.retrieveBuddyIconFromServer(user.name, user.iconmd5sum, user.icontype).addCallback(self.gotBuddyIconFromServer)
@@ -158,6 +159,7 @@ class B(oscar.BOSConnection):
 			self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
 	def gotBuddyIconFromServer(self, iconinfo):
+		if config.disableAvatars: return
 		contact = iconinfo[0]
 		icontype = iconinfo[1]
 		iconhash = iconinfo[2]
@@ -209,14 +211,14 @@ class B(oscar.BOSConnection):
 				self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
 				self.awayResponses[user.name] = time.time()
 
-		if "icon" in flags:
+		if "icon" in flags and not config.disableAvatars:
 			if self.icqcon.legacyList.diffAvatar(user.name, numHash=user.iconcksum):
 				debug.log("User %s has a buddy icon we want, will ask for it next message." % user.name)
 				self.requesticon[user.name] = 1
 			else:
 				debug.log("User %s has a icon that we already have." % user.name)
 
-		if "iconrequest" in flags and hasattr(self.icqcon, "myavatar"):
+		if "iconrequest" in flags and hasattr(self.icqcon, "myavatar") and not config.disableAvatars:
 			debug.log("User %s wants our icon, so we're sending it." % user.name)
 			icondata = self.icqcon.myavatar
 			self.sendIconDirect(user.name, icondata, wantAck=1)
@@ -314,6 +316,7 @@ class B(oscar.BOSConnection):
 		self.name = user.name
 
 	def receivedIconUploadRequest(self, iconhash):
+		if config.disableAvatars: return
 		debug.log("B: receivedIconUploadRequest: %s" % binascii.hexlify(iconhash))
 		if hasattr(self.icqcon, "myavatar"):
 			debug.log("B: I have an icon, sending it on, %d" % len(self.icqcon.myavatar))
@@ -321,6 +324,7 @@ class B(oscar.BOSConnection):
 			#del self.icqcon.myavatar
 
 	def receivedIconDirect(self, user, icondata):
+		if config.disableAvatars: return
 		debug.log("B: receivedIconDirectRequest for %s [%d]" % (user.name, user.iconlen))
 		if user.iconlen > 0 and user.iconlen != 90: # Some ICQ clients send crap
 			self.icqcon.legacyList.updateAvatar(user.name, icondata, numHash=user.iconcksum)
@@ -356,7 +360,7 @@ class B(oscar.BOSConnection):
 			self.icqcon.setAway(None)
 		else:
 			self.icqcon.setAway(self.icqcon.savedFriendly)
-		if hasattr(self.icqcon, "myavatar"):
+		if hasattr(self.icqcon, "myavatar") and not config.disableAvatars:
 			self.icqcon.changeAvatar(self.icqcon.myavatar)
 		self.icqcon.setICQStatus(self.icqcon.savedShow)
 		self.requestOffline()
