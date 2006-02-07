@@ -26,7 +26,9 @@ def importFile(conffile):
 		tag = child.name
 		cdata = child.__str__()
 		children = [x for x in child.elements()]
-		if type(getattr(config, tag)) == dict:
+		if not hasattr(config, tag):
+			debug.log("Ignoring unrecognized configuration option %s" % (tag))
+		elif type(getattr(config, tag)) == dict:
 			# For options like <settings><username>blar</username><password>foo</password></settings>
 			try:
 				if not cdata.isspace():
