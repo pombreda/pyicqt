@@ -104,9 +104,9 @@ class LegacyList:
 		from glue import icq2jid
 
 		if md5Hash:
-			debug.log("updateAvatar: %s %s" % (contact.lower(), binascii.hexlify(md5Hash)))
+			debug.log("updateAvatar: %s [M]%s" % (contact.lower(), binascii.hexlify(md5Hash)))
 		elif numHash:
-			debug.log("updateAvatar: %s (binary hash)" % (contact.lower()))
+			debug.log("updateAvatar: %s [N]%d" % (contact.lower(), numHash))
 
 		c = self.session.contactList.findContact(icq2jid(contact))
 		if not c:

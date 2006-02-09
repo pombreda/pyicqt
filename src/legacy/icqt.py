@@ -349,7 +349,8 @@ class B(oscar.BOSConnection):
 		self.setProfile(self.session.description)
 		self.setIdleTime(0)
 		self.clientReady()
-		self.activateEmailNotification()
+		if not config.disableMailNotifications:
+			self.activateEmailNotification()
 		self.session.ready = True
 		tmpjid=config.jid
 		if self.session.registeredmunge:
