@@ -1,3 +1,18 @@
+2006-02-09  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/config.py:
+	* config_example.xml:
+	* src/legacy/icqt.py:
+	Added ability to disable email notifications.
+
+2006-02-08  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/xdb/xmlfiles.py:
+	Fixed stupid bug where I wasn't assigning pre to anything.
+
+	* src/legacy/legacylist.py:
+	Made it so I can see the numeric hash.
+
 2006-02-07  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/utils.py:

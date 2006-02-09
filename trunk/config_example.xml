@@ -73,6 +73,10 @@
 	<!-- (uncomment to disable) -->
 	<!-- <disableXHTML/> -->
 
+	<!-- Disable mail notifications -->
+	<!-- (uncomment to disable) -->
+	<!-- <disableMailNotifications/> -->
+
 	<!-- Disable use of default avatar if none is specified -->
 	<!-- (uncomment to disable) -->
 	<!-- <disableDefaultAvatar/> -->

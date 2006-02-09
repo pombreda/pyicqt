@@ -339,7 +339,7 @@ def housekeep():
 
 
 def doSpoolPrepCheck():
-	os.path.abspath(config.spooldir) + X + config.jid + X
+	pre = os.path.abspath(config.spooldir) + X + config.jid + X
 
 	print "Checking spool files and stringprepping any if necessary...",
 
