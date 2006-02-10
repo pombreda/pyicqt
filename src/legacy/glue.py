@@ -1,6 +1,7 @@
 # Copyright 2004 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+import imgmanip
 import utils
 from tlib.twistwrap import Element
 from twisted.internet import protocol, reactor, defer, task
@@ -391,7 +392,7 @@ class LegacyConnection:
 		if config.disableAvatars: return
 		if imageData:
 			try:
-				self.myavatar = utils.convertToJPG(imageData)
+				self.myavatar = imgmanip.convertToJPG(imageData)
 				self.myavatarlen = len(self.myavatar)
 				m=md5.new()
 				m.update(self.myavatar)

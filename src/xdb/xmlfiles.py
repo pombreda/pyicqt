@@ -130,6 +130,8 @@ class XDB:
 					username = child.__str__()
 				elif child.name == "encpassword":
 					password = utils.decryptPassword(child.__str__())
+				elif child.name == "encryptedpassword":
+					password = utils.decryptPassword(child.__str__())
 				elif child.name == "password":
 					password = child.__str__()
 			except AttributeError:

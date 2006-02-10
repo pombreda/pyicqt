@@ -1,7 +1,7 @@
 # Copyright 2005 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-import utils
+import imgmanip
 from tlib.twistwrap import Element
 from tlib import oscar
 from legacy import glue
@@ -125,7 +125,7 @@ class LegacyList:
 				except:
 					# This isn't important
 					pass
-				avatarData = avatar.AvatarCache().setAvatar(utils.convertToPNG(iconData))
+				avatarData = avatar.AvatarCache().setAvatar(imgmanip.convertToPNG(iconData))
 				c.updateAvatar(avatarData, push=True)
 				if not md5Hash:
 					m = md5.new()
