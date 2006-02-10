@@ -1,3 +1,16 @@
+2006-02-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/xdb/xmlfiles.py:
+	Fixed reading of differently named variable.
+
+	* src/imgmanip.py:
+	Pulled image pieces out into this.
+
+	* src/legacy/glue.py:
+	* src/legacy/legacylist.py:
+	* src/utils.py:
+	Adjusted to account for move of image pieces.
+
 2006-02-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/config.py:
