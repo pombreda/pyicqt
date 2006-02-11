@@ -188,13 +188,13 @@ class Contact:
 class ContactList:
 	""" Represents the Jabber contact list """
 	def __init__(self, session):
-		debug.log("ContactList: \"%s\" creating" % (session.jabberID))
+		debug.log("ContactList: \"%r\" creating" % (session.jabberID))
 		self.session = session
 		self.contacts = {}
 	
 	def removeMe(self):
 		""" Cleanly removes the object """
-		debug.log("ContactList: \"%s\" removed" % (self.session.jabberID))
+		debug.log("ContactList: \"%r\" removed" % (self.session.jabberID))
 		for jid in self.contacts:
 			self.contacts[jid].updatePresence("", "", "unavailable")
 			self.contacts[jid].removeMe()
@@ -206,13 +206,13 @@ class ContactList:
 		for jid in self.contacts:
 			if self.contacts[jid].status != "unavailable":
 				self.contacts[jid].sendPresence(tojid)
-		debug.log("ContactList: \"%s\" resent lists" % (self.session.jabberID))
+		debug.log("ContactList: \"%r\" resent lists" % (self.session.jabberID))
 	
 	def createContact(self, jid, sub):
 		""" Creates a contact object. Use this to initialise the contact list
 		Returns a Contact object which you can call sync* methods on to synchronise
 		the user's legacy contact list with their Jabber list """
-		debug.log("ContactList: \"%s\" created contact \"%s\" \"%s\"" % (self.session.jabberID, jid, sub))
+		debug.log("ContactList: \"%r\" created contact \"%r\" \"%r\"" % (self.session.jabberID, jid, sub))
 		c = Contact(jid, sub, self)
 		self.contacts[jid] = c
 		return c

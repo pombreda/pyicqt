@@ -19,7 +19,7 @@ class RegisterManager:
 		debug.log("RegisterManager: Created")
 	
 	def removeRegInfo(self, jabberID):
-		debug.log("RegisterManager: removeRegInfo(\"%s\")" % (jabberID))
+		debug.log("RegisterManager: removeRegInfo(\"%r\")" % (jabberID))
 		try:
 			# If the session is active then send offline presences
 			session = self.pytrans.sessions[jabberID]
@@ -28,11 +28,11 @@ class RegisterManager:
 			pass
 		
 		self.pytrans.xdb.removeRegistration(jabberID)
-		debug.log("RegisterManager: removeRegInfo(\"%s\") - done" % (jabberID))
+		debug.log("RegisterManager: removeRegInfo(\"%r\") - done" % (jabberID))
 	
 	
 	#def setRegInfo(self, jabberID, username, password):
-	#	debug.log("RegisterManager: setRegInfo(\"%s\", \"%s\", \"%s\")" % (jabberID, username, password))
+	#	debug.log("RegisterManager: setRegInfo(\"%r\", \"%r\", \"%r\")" % (jabberID, username, password))
 	#	if(len(password) == 0):
 	#		(blah1, password, blah3) = self.getRegInfo(jabberID)
 
@@ -40,26 +40,26 @@ class RegisterManager:
 	#	self.pytrans.xdb.set(jid.JID(jabberID).full(), legacy.namespace, reginfo)
 	
 	#def getRegInfo(self, jabberID):
-	#	debug.log("RegisterManager: getRegInfo(\"%s\")" % (jabberID))
+	#	debug.log("RegisterManager: getRegInfo(\"%r\")" % (jabberID))
 	#	#result = self.pytrans.xdb.request(jid.JID(jabberID).full(), legacy.namespace)
 	#	result = self.pytrans.xdb.request(jid.JID(jabberID).userhost(), legacy.namespace)
 	#	if(result == None):
-	#		debug.log("RegisterManager: getRegInfo(\"%s\") - not registered!" % (jabberID))
+	#		debug.log("RegisterManager: getRegInfo(\"%r\") - not registered!" % (jabberID))
 	#		return None
 	#	
 	#	username, password = legacy.getAttributes(result)
 	#	
 	#	if(username and password and len(username) > 0 and len(password) > 0):
-	#		debug.log("RegisterManager: getRegInfo(\"%s\") - returning reg info \"%s\" \"%s\"!" % (jabberID, username, password))
+	#		debug.log("RegisterManager: getRegInfo(\"%r\") - returning reg info \"%r\" \"%r\"!" % (jabberID, username, password))
 	#		return (username, password)
 	#	else:
-	#		debug.log("RegisterManager: getRegInfo(\"%s\") - invalid registration data! %s %s" % (jabberID, username, password))
+	#		debug.log("RegisterManager: getRegInfo(\"%r\") - invalid registration data! %r %r" % (jabberID, username, password))
 	#		return None
 	
 	def incomingRegisterIq(self, incoming):
 		# Check what type the Iq is..
 		itype = incoming.getAttribute("type")
-		debug.log("RegisterManager: In-band registration type \"%s\" received" % (itype))
+		debug.log("RegisterManager: In-band registration type \"%r\" received" % (itype))
 		if(itype == "get"):
 			self.sendRegistrationFields(incoming)
 		elif(itype == "set"):
@@ -67,7 +67,7 @@ class RegisterManager:
 		
 	def sendRegistrationFields(self, incoming):
 		# Construct a reply with the fields they must fill out
-		debug.log("RegisterManager: sendRegistrationFields() for \"%s\" \"%s\"" % (incoming.getAttribute("from"), incoming.getAttribute("id")))
+		debug.log("RegisterManager: sendRegistrationFields() for \"%r\" \"%r\"" % (incoming.getAttribute("from"), incoming.getAttribute("id")))
 		reply = Element((None, "iq"))
 		reply.attributes["from"] = config.jid
 		reply.attributes["to"] = incoming.getAttribute("from")
@@ -93,7 +93,7 @@ class RegisterManager:
 	
 	def updateRegistration(self, incoming):
 		# Grab the username and password
-		debug.log("RegisterManager: updateRegistration() for \"%s\" \"%s\"" % (incoming.getAttribute("from"), incoming.getAttribute("id")))
+		debug.log("RegisterManager: updateRegistration() for \"%r\" \"%r\"" % (incoming.getAttribute("from"), incoming.getAttribute("id")))
 		source = jid.JID(incoming.getAttribute("from")).userhost()
 		ulang = utils.getLang(incoming)
 		username = None
@@ -109,14 +109,14 @@ class RegisterManager:
 							password = child.__str__()
 						elif(child.name == "remove"):
 							# The user wants to unregister the transport! Gasp!
-							debug.log("RegisterManager: Session \"%s\" is about to be unregistered" % (source))
+							debug.log("RegisterManager: Session \"%r\" is about to be unregistered" % (source))
 							try:
 								self.removeRegInfo(source)
 								self.successReply(incoming)
 							except:
 								self.xdbErrorReply(incoming)
 								return
-							debug.log("RegisterManager: Session \"%s\" has been unregistered" % (source))
+							debug.log("RegisterManager: Session \"%r\" has been unregistered" % (source))
 							return
 					except AttributeError, TypeError:
 						continue # Ignore any errors, we'll check everything below
@@ -130,7 +130,7 @@ class RegisterManager:
 				self.successReply(incoming)
 				debug.log("RegisterManager: Sent off a result Iq")
 				(user, host, res) = jid.parse(incoming.getAttribute("from"))
-				debug.log("RegisterManager: Sending subscribe presence %s@%s/%s %s" % (user, host, res, config.jid))
+				debug.log("RegisterManager: Sending subscribe presence %r@%r/%r %r" % (user, host, res, config.jid))
 				jabw.sendPresence(self.pytrans, to=user + "@" + host, fro=config.jid, ptype="subscribe")
 				if(config.registerMessage):
 					jabw.sendMessage(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, body=config.registerMessage)

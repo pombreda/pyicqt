@@ -1,3 +1,22 @@
+2006-02-11  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Applied fixes for dealing with reactors better.
+
+	* src/avatar.py:
+	* src/contact.py:
+	* src/disco.py:
+	* src/jabw.py:
+	* src/main.py:
+	* src/misciq.py:
+	* src/register.py:
+	* src/sasl.py:
+	* src/session.py:
+	* src/utils.py:
+	* src/xmlconfig.py:
+	Applied Florian's patch to use %r instead of %s.
+	Fixes crashes during printing of unprintable chars.
+
 2006-02-10  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/xdb/xmlfiles.py:

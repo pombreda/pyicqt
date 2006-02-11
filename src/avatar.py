@@ -85,14 +85,14 @@ class AvatarCache:
 		Returns an Avatar object. """
 		avatar = Avatar(imageData, self)
 		key = avatar.getImageHash()
-		debug.log("AvatarCache: Setting avatar \"%s\"" % (key))
+		debug.log("AvatarCache: Setting avatar \"%r\"" % (key))
 		prev_umask = os.umask(SPOOL_UMASK)
 		try:
 			f = open(self.dir(key) + key, 'wb')
 			f.write(imageData)
 			f.close()
 		except IOError, e:
-			debug.warn("AvatarCache: IOError writing to avatar \"%s\" - %s" % (key, str(e)))
+			debug.warn("AvatarCache: IOError writing to avatar \"%r\" - %r" % (key, str(e)))
 		os.umask(prev_umask)
 		return avatar
 	
@@ -107,12 +107,12 @@ class AvatarCache:
 		try:
 			filename = self.dir(key) + key
 			if os.path.isfile(filename):
-				debug.log("AvatarCache: Getting avatar \"%s\"" % (key))
+				debug.log("AvatarCache: Getting avatar \"%r\"" % (key))
 				f = open(filename, 'rb')
 				data = f.read()
 				f.close()
 				return data
 			else:
-				debug.log("AvatarCache: Avatar not found \"%s\"" % (key))
+				debug.log("AvatarCache: Avatar not found \"%r\"" % (key))
 		except IOError, e:
-			debug.warn("AvatarCache: IOError reading avatar \"%s\" - %s" % (key, str(e)))
+			debug.warn("AvatarCache: IOError reading avatar \"%r\" - %r" % (key, str(e)))
