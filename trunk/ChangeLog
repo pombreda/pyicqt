@@ -11,6 +11,9 @@
 	* src/utils.py:
 	Adjusted to account for move of image pieces.
 
+	* src/legacy/glue.py:
+	Updated version to 0.7.
+
 2006-02-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/config.py:
