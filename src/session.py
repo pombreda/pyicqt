@@ -187,9 +187,9 @@ class Session(jabw.JabberConnection):
 		if avatarHash == " ": # Setting no avatar
 			self.legacycon.updateAvatar() # Default
 		elif not self.avatar or (self.avatar and self.avatar.getImageHash() != avatarHash):
-			imageData = self.pytrans.avatarCache.getAvatar(avatarHash)
-			if imageData:
-				self.avatar = avatar.Avatar(imageData) # Stuff in the cache is always PNG
+			av = self.pytrans.avatarCache.getAvatar(avatarHash)
+			if av:
+				self.avatar = av # Stuff in the cache is always PNG
 				self.legacycon.updateAvatar(self.avatar)
 			else:
 				self.doVCardUpdate()
