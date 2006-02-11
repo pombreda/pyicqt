@@ -17,6 +17,9 @@
 	Applied Florian's patch to use %r instead of %s.
 	Fixes crashes during printing of unprintable chars.
 
+	* src/session.py:
+	Fixed handling of avatar hashes received.
+
 2006-02-10  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/xdb/xmlfiles.py:
