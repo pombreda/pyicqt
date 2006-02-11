@@ -150,7 +150,7 @@ class AdHocCommands:
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
 
-		debug.log("Discovery: AdHoc Iq received \"%s\" \"%s\". Looking for handler" % (fro, ID))
+		debug.log("Discovery: AdHoc Iq received \"%r\" \"%r\". Looking for handler" % (fro, ID))
 
 		node = None
 		for child in el.elements():
@@ -171,7 +171,7 @@ class AdHocCommands:
 					self.commands[node](el)
 					handled = True
 			if not handled:
-				debug.log("Discovery: Unknown AdHoc Iq request \"%s\" \"%s\" \"%s\"" % (fro, ID, node))
+				debug.log("Discovery: Unknown AdHoc Iq request \"%r\" \"%r\" \"%r\"" % (fro, ID, node))
 				self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 
 
@@ -199,7 +199,7 @@ class AdHocCommands:
 		self.pytrans.send(iq)
 
 	def sendCommandInfoResponse(self, to, ID):
-		debug.log("Discovery: Replying to AdHoc disco#info request from \"%s\" \"%s\"" % (to, ID))
+		debug.log("Discovery: Replying to AdHoc disco#info request from \"%r\" \"%r\"" % (to, ID))
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = config.jid
@@ -214,7 +214,7 @@ class AdHocCommands:
 		self.pytrans.send(iq)
 
 	def sendCommandItemsResponse(self, to, ID):
-		debug.log("Discovery: Replying to AdHoc disco#items request from \"%s\" \"%s\"" % (to, ID))
+		debug.log("Discovery: Replying to AdHoc disco#items request from \"%r\" \"%r\"" % (to, ID))
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = config.jid
@@ -244,7 +244,7 @@ class VCardFactory:
 			self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns="vcard-temp", etype="cancel", condition="feature-not-implemented")
 			return
 
-		debug.log("VCardFactory: Retrieving vCard for user %s %s" % (to, ID))
+		debug.log("VCardFactory: Retrieving vCard for user %r %r" % (to, ID))
 
 		toGateway = not (to.find('@') > 0)
 		if not toGateway:
@@ -296,7 +296,7 @@ class VCardFactory:
 			c.fillvCard(vCard, to).addCallback(self.gotvCardResponse, iq)
 
 	def gotvCardResponse(self, vcard, iq):
-		#debug.log("VCardFactory: Sending vCard %s" % (vcard.toXml()))
+		#debug.log("VCardFactory: Sending vCard %r" % (vcard.toXml()))
 		debug.log("VCardFactory: Sending vCard")
 		self.pytrans.send(iq)
 
@@ -365,7 +365,7 @@ class IqAvatarFactory:
 			self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 			return
 
-		debug.log("IqAvatarFactory: Retrieving avatar for user %s %s" % (to, ID))
+		debug.log("IqAvatarFactory: Retrieving avatar for user %r %r" % (to, ID))
 
 		if not self.pytrans.sessions.has_key(froj.userhost()):
 			self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="auth", condition="not-authorized")
@@ -446,7 +446,7 @@ class GatewayTranslator:
 			self.sendTranslation(fro, ID, el)
 	
 	def sendPrompt(self, to, ID, ulang):
-		debug.log("GatewayTranslator: Sending translation details for jabber:iq:gateway - user %s %s" % (to, ID))
+		debug.log("GatewayTranslator: Sending translation details for jabber:iq:gateway - user %r %r" % (to, ID))
 		
 		iq = Element((None, "iq"))
 		
@@ -463,7 +463,7 @@ class GatewayTranslator:
 		self.pytrans.send(iq)
 	
 	def sendTranslation(self, to, ID, el):
-		debug.log("GatewayTranslator: Translating account for jabber:iq:gateway - user %s %s" % (to, ID))
+		debug.log("GatewayTranslator: Translating account for jabber:iq:gateway - user %r %r" % (to, ID))
 		
 		# Find the user's legacy account
 		legacyaccount = None
@@ -477,7 +477,7 @@ class GatewayTranslator:
 		
 		
 		if legacyaccount and len(legacyaccount) > 0:
-			debug.log("GatewayTranslator: Sending translated account for jabber:iq:gateway - user %s %s" % (to, ID))
+			debug.log("GatewayTranslator: Sending translated account for jabber:iq:gateway - user %r %r" % (to, ID))
 			iq = Element((None, "iq"))
 			iq.attributes["type"] = "result"
 			iq.attributes["from"] = config.jid
@@ -631,5 +631,5 @@ class SearchFactory:
 			self.pytrans.discovery.sendIqError(to=to, fro=config.jid, ID=ID, xmlns="jabber:iq:search", etype="retry", condition="bad-request")
 
 	def gotSearchResponse(self, iq):
-		debug.log("SearchFactory: Sending search response %s" % iq.toXml())
+		debug.log("SearchFactory: Sending search response %r" % iq.toXml())
 		self.pytrans.send(iq)

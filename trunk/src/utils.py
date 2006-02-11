@@ -44,7 +44,7 @@ excluded = {}
 for c in _excluded: excluded[c] = None
 
 def xmlify(s):
-	#debug.log("xmlify: class is %s: %s" % (s.__class__, s))
+	#debug.log("xmlify: class is %r: %r" % (s.__class__, s))
 	if s.__class__ == str:
 		try:
 			us = unicode(s)
@@ -58,7 +58,7 @@ def xmlify(s):
 
 def xhtml_to_aimhtml(s):
 	try:
-		debug.log("xhtml_to_aimhtml: Got %s" % s)
+		debug.log("xhtml_to_aimhtml: Got %r" % s)
 
 		# Convert the spans to fonts!
 		s = re.sub("<(/?)span",r"<\1font",s)
@@ -69,7 +69,7 @@ def xhtml_to_aimhtml(s):
 		# AIMHTML might croke on these
 		s = re.sub("<br/>","<br>",s)
 
-		debug.log("xhtml_to_aimhtml: Made %s" % s)
+		debug.log("xhtml_to_aimhtml: Made %r" % s)
 		return s
 	except:
 		debug.log("xhtml_to_aimhtml: Failed.")
@@ -112,7 +112,7 @@ def prepxhtml(s):
 	try:
 		s=s.encode("utf-8","replace")
 
-		debug.log("prepxhtml: Got %s" % repr(s))
+		debug.log("prepxhtml: Got %r" % repr(s))
 
 		s = re.sub(">+",">",s)
 		s = re.sub("<+","<",s)
@@ -161,7 +161,7 @@ def prepxhtml(s):
 		# Make sure our root tag is properly namespaced
 		ret = "<html xmlns=\"http://jabber.org/protocol/xhtml-im\">%s</html>"%ret;
 
-		debug.log("prepxhtml: Made %s" % repr(ret))
+		debug.log("prepxhtml: Made %r" % repr(ret))
 		return ret.encode("utf-8","replace")
 	except:
 		debug.log("prepxhtml: Failed.")

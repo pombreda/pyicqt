@@ -258,7 +258,7 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 		response.addContent(r)
 		self.xmlstream.removeObserver("/challenge",self._saslStep1)
 		self.xmlstream.addOnetimeObserver("/challenge",self._saslStep2)
-		debug.log("SASLSTEP1: Sending: %s" % (response.toXml()))
+		debug.log("SASLSTEP1: Sending: %r" % (response.toXml()))
 		self.xmlstream.send(response)
 
 	def _saslStep2(self, challenge):
@@ -272,7 +272,7 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 
 			self.xmlstream.removeObserver("/challenge",self._saslStep2)
 			self.xmlstream.addOnetimeObserver("/success",self._saslSuccess)
-			debug.log("SASLSTEP2: Sending: %s" % (response.toXml()))
+			debug.log("SASLSTEP2: Sending: %r" % (response.toXml()))
 			self.xmlstream.send(response)
 		else:
 			self.xmlstream.dispatch(challenge, self.AUTH_FAILED_EVENT)

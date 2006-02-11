@@ -91,17 +91,45 @@ if os.name == "posix":
 	import signal
 	signal.signal(signal.SIGHUP, reloadConfig)
 
-if config.reactor == "epoll":
-	from twisted.internet import epollreactor
-	epollreactor.install()
-elif config.reactor == "poll":
-	from twisted.internet import pollreactor
-	pollreactor.install()
-elif config.reactor == "kqueue":
-	from twisted.internet import kqreactor
-	kqreactor.install()
-elif len(config.reactor) > 0:
-	print "Unknown reactor: ", config.reactor, ". Using default, select(), reactor."
+if config.reactor:
+	# They picked their own reactor. Lets install it.
+	del sys.modules["twisted.internet.reactor"]
+	if config.reactor == "epoll":
+		from twisted.internet import epollreactor
+		epollreactor.install()
+	elif config.reactor == "poll":
+		from twisted.internet import pollreactor
+		pollreactor.install()
+	elif config.reactor == "kqueue":
+		from twisted.internet import kqreactor
+		kqreactor.install()
+	elif len(config.reactor) > 0:
+		print "Unknown reactor: ", config.reactor, ". Using default, select(), reactor."
+else:
+	# Find the best reactor
+	del sys.modules["twisted.internet.reactor"]
+	try:
+		from twisted.internet import epollreactor as bestreactor
+		debug.log("Found and using epollreactor.")
+	except ImportError:
+		try:
+			from twisted.internet import kqreactor as bestreactor
+			debug.log("Found and using kqreactor.")
+		except ImportError:
+			try:
+				from twisted.internet import pollreactor as bestreactor
+				debug.log("Found and using pollreactor.")
+			except ImportError:
+				try:
+					from twisted.internet import default as bestreactor
+					print "Unable to install any good reactors (kqueue, epoll, poll)."
+					print "We fell back to using select. You may have scalability problems."
+					print "This reactor will not support more than 1024 connections at a time."
+				except ImportError:
+					print "Unable to find a reactor.\nExiting..."
+					sys.exit(1)
+	bestreactor.install()
+
 
 from twisted.internet import reactor, task
 from twisted.internet.defer import Deferred
@@ -197,7 +225,7 @@ class PyTransport(component.Service):
 			for key in oldDict:
 				session = oldDict[key]
 				if not session.alive:
-					debug.log("Ghost session %s found. This shouldn't happen. Trace" % (session.jabberID))
+					debug.log("Ghost session %r found. This shouldn't happen. Trace" % (session.jabberID))
 					# Don't add it to the new dictionary. Effectively removing it
 				else:
 					self.sessions[key] = session
@@ -223,7 +251,7 @@ class PyTransport(component.Service):
 			x.attributes["config-ns"] = legacy.url + "/component"
 			self.send(pres)
 		if config.saslUsername and config.useJ2Component:
-			debug.log("PyTransport: J2C Binding to %s" % config.jid)
+			debug.log("PyTransport: J2C Binding to %r" % config.jid)
 			bind = Element((None,"bind"))
 			#bind.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
 			bind.attributes["name"] = config.jid
@@ -253,7 +281,7 @@ class PyTransport(component.Service):
 		self.xmlstream = None
 
 	def onRouteMessage(self, el):
-		debug.log("PyTransport: Received route packet %s" % (el.toXml()))
+		debug.log("PyTransport: Received route packet %r" % (el.toXml()))
 		for child in el.elements():
 			if child.name == "message": 
 				self.onMessage(child)
@@ -267,7 +295,7 @@ class PyTransport(component.Service):
 				self.onBind(child)
 
 	def onBind(self, el):
-		debug.log("PyTransport: Received bind packet %s" % (el.toXml()))
+		debug.log("PyTransport: Received bind packet %r" % (el.toXml()))
 		pass
 
 	def streamError(self, errelem):
@@ -285,7 +313,7 @@ class PyTransport(component.Service):
 		try:
 			froj = jid.JID(fro)
 		except Exception, e:
-			debug.log("PyTransport: Failed stringprep on <message from=\"%s\"/> - %s" % (fro, str(e)))
+			debug.log("PyTransport: Failed stringprep on <message from=\"%r\"/> - %r" % (fro, str(e)))
 			return
 		if self.sessions.has_key(froj.userhost()):
 			self.sessions[froj.userhost()].onMessage(el)
@@ -307,7 +335,7 @@ class PyTransport(component.Service):
 			froj = jid.JID(fro)
 			toj = jid.JID(to)
 		except Exception, e:
-			debug.log("PyTransport: Failed stringprep on <presence from=\"%s\" to=\"%s\"/> - %s" % (fro, to, str(e)))
+			debug.log("PyTransport: Failed stringprep on <presence from=\"%r\" to=\"%r\"/> - %r" % (fro, to, str(e)))
 			return
 
 		if self.sessions.has_key(froj.userhost()):
@@ -318,21 +346,21 @@ class PyTransport(component.Service):
 			if to.find('@') < 0:
 				# If the presence packet is to the transport (not a user) and there isn't already a session
 				if not ptype: # Don't create a session unless they're sending available presence
-					debug.log("PyTransport: Attempting to create a new session \"%s\"" % (froj.userhost()))
+					debug.log("PyTransport: Attempting to create a new session \"%r\"" % (froj.userhost()))
 					s = session.makeSession(self, froj.userhost(), ulang, toj)
 					if s:
 						self.sessions[froj.userhost()] = s
-						debug.log("PyTransport: New session created \"%s\"" % (froj.userhost()))
+						debug.log("PyTransport: New session created \"%r\"" % (froj.userhost()))
 						# Send the first presence
 						s.onPresence(el)
 						# Get the capabilities
 						s.getCapabilities(el)
 					else:
-						debug.log("PyTransport: Failed to create session \"%s\"" % (froj.userhost()))
+						debug.log("PyTransport: Failed to create session \"%r\"" % (froj.userhost()))
 						jabw.sendMessage(self, to=froj.userhost(), fro=config.jid, body=lang.get("notregistered", ulang))
 				
 				elif ptype != "error":
-					debug.log("PyTransport: Sending unavailable presence to non-logged in user \"%s\"" % (froj.userhost()))
+					debug.log("PyTransport: Sending unavailable presence to non-logged in user \"%r\"" % (froj.userhost()))
 					pres = Element((None, "presence"))
 					pres.attributes["from"] = to
 					pres.attributes["to"] = fro
@@ -343,11 +371,11 @@ class PyTransport(component.Service):
 			elif ptype and (ptype.startswith("subscribe") or ptype.startswith("unsubscribe")):
 				# They haven't logged in, and are trying to change subscription to a user
 				# Lets log them in and then do it
-				debug.log("PyTransport: Attempting to create a session to do subscription stuff %s" % (froj.userhost()))
+				debug.log("PyTransport: Attempting to create a session to do subscription stuff %r" % (froj.userhost()))
 				s = session.makeSession(self, froj.userhost(), ulang, toj)
 				if s:
 					self.sessions[froj.userhost()] = s
-					debug.log("PyTransport: New session created \"%s\"" % (froj.userhost()))
+					debug.log("PyTransport: New session created \"%r\"" % (froj.userhost()))
 					# Tell the session there's a new resource
 					s.handleResourcePresence(froj.userhost(), froj.resource, toj.userhost(), toj.resource, 0, None, None, None)
 					# Send this subscription
@@ -356,7 +384,7 @@ class PyTransport(component.Service):
 	def sendInvitations(self):              
 		if config.enableAutoInvite:
 			for jid in self.xdb.getRegistrationList():
-				debug.log("Inviting %s..." % (jid))
+				debug.log("Inviting %r..." % (jid))
 				jabw.sendPresence(self, jid, config.jid, ptype="probe")
 				jabw.sendPresence(self, jid, "%s/registered" % (config.jid), ptype="probe")
 
