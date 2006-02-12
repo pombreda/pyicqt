@@ -1,16 +1,16 @@
-# Copyright 2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2005-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
 import config
 from twisted.internet import reactor
 from tlib.twistwrap import Element
-import config
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import lang
 import sha
 import base64
 import os
+import os.path
 
 SPOOL_UMASK = 0077
 
@@ -85,14 +85,14 @@ class AvatarCache:
 		Returns an Avatar object. """
 		avatar = Avatar(imageData, self)
 		key = avatar.getImageHash()
-		debug.log("AvatarCache: Setting avatar \"%r\"" % (key))
+		LogEvent(INFO, "", "Setting avatar %r" % (key))
 		prev_umask = os.umask(SPOOL_UMASK)
 		try:
 			f = open(self.dir(key) + key, 'wb')
 			f.write(imageData)
 			f.close()
 		except IOError, e:
-			debug.warn("AvatarCache: IOError writing to avatar \"%r\" - %r" % (key, str(e)))
+			LogEvent(WARN, "", "IOError writing to avatar %r - %r" % (key, str(e)))
 		os.umask(prev_umask)
 		return avatar
 	
@@ -107,12 +107,12 @@ class AvatarCache:
 		try:
 			filename = self.dir(key) + key
 			if os.path.isfile(filename):
-				debug.log("AvatarCache: Getting avatar \"%r\"" % (key))
+				LogEvent(INFO, "", "Getting avatar %r" % (key))
 				f = open(filename, 'rb')
 				data = f.read()
 				f.close()
 				return data
 			else:
-				debug.log("AvatarCache: Avatar not found \"%r\"" % (key))
+				LogEvent(INFO, "", "Avatar not found %r" % (key))
 		except IOError, e:
-			debug.warn("AvatarCache: IOError reading avatar \"%r\" - %r" % (key, str(e)))
+			LogEvent(INFO, "", "IOError reading avatar %r - %r" % (key, str(e)))

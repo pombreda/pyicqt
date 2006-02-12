@@ -1,4 +1,4 @@
-# Copyright 2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2005-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 #
 # MySQL database storage.  See db-setup.mysql in the tools directory in

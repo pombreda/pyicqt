@@ -1,4 +1,4 @@
-# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
@@ -6,7 +6,7 @@ from tlib.twistwrap import Element
 import os
 import os.path
 import config
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 
 X = os.path.sep
 SPOOL_UMASK = 0177
@@ -76,7 +76,7 @@ class XDB:
 			
 			self.__writeFile(file, document.toXml())
 		except:
-			debug.log("XDB error writing entry %s to file %s" % (xdbns, file))
+			LogEvent(INFO, "", "XDB error writing entry %s to file %s" % (xdbns, file))
 			raise
 	
 	def remove(self, file):
@@ -86,7 +86,7 @@ class XDB:
 		try:
 			os.remove(file)
 		except:
-			debug.log("XDB error removing file " + file)
+			LogEvent(INFO, "", "XDB error removing file " + file)
 			raise
 
 	def formRegEntry(self, username, password):

@@ -1,4 +1,4 @@
-# Copyright 2004 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import imgmanip
@@ -10,7 +10,7 @@ from tlib import socks5, sockserror
 from twisted.python import log
 import icqt
 import config
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import sys, warnings, pprint
 import lang
 import os.path
@@ -109,23 +109,23 @@ class LegacyConnection:
 		self.deferred = defer.Deferred()
 		self.deferred.addErrback(self.errorCallback)
 		hostport = (config.icqServer, int(config.icqPort))
-		debug.log("LegacyConnection: client creation for %s" % (self.session.jabberID))
+		LogEvent(INFO, self.session.jabberID, "Creating")
 		if config.socksProxyServer and config.socksProxyPort:
 			self.oa = icqt.OA
 			self.creator = socks5.ProxyClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
-			debug.log("LegacyConnection: connect via socks proxy")
+			LogEvent(INFO, self.session.jabberID, "Connect via socks proxy")
 			self.creator.connectSocks5Proxy(config.icqServer, int(config.icqPort), config.socksProxyServer, int(config.socksProxyPort), "ICQCONN")
 		else:
 			self.oa = icqt.OA
 			self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
-			debug.log("LegacyConnection: connect direct tcp")
+			LogEvent(INFO, self.session.jabberID, "Connect via direct tcp")
 			self.creator.connectTCP(*hostport)
 
-		debug.log("LegacyConnection: \"%s\" created" % (self.username))
+		LogEvent(INFO, self.session.jabberID, "Created!")
 	
 	def removeMe(self):
 		from glue import icq2jid
-		debug.log("LegacyConnection: removeMe")
+		LogEvent(INFO, self.session.jabberID)
 		try:
 			self.bos.stopKeepAlive()
 			self.bos.disconnect()
@@ -147,7 +147,7 @@ class LegacyConnection:
 		return self.session.highestResource()
 
 	def setURL(self, URL=None):
-		debug.log("LegacyConnection: setURL %s" % (URL))
+		LogEvent(INFO, self.session.jabberID, "setURL %s" % URL)
 		try:
 			self.bos.setURL(utils.utf8encode(URL))
 		except AttributeError:
@@ -155,7 +155,7 @@ class LegacyConnection:
 			pass
 
 	def sendMessage(self, target, resource, message, noerror, xhtml, autoResponse=0):
-		debug.log("LegacyConnection: sendMessage %s %s %s AR=%d" % (target, resource, message, autoResponse))
+		LogEvent(INFO, self.session.jabberID)
 		from glue import jid2icq
 		try:
 			self.session.pytrans.statistics.stats['OutgoingMessages'] += 1
@@ -163,7 +163,7 @@ class LegacyConnection:
 			uin = jid2icq(target)
 			wantIcon = 0
 			if self.bos.requesticon.has_key(uin):
-				debug.log("LegacyConnection: sendMessage: We are going to ask for their icon.")
+				LogEvent(INFO, self.session.jabberID, "Going to ask for target's icon.")
 				wantIcon = 1
 
 			iconSum = None
@@ -173,17 +173,16 @@ class LegacyConnection:
 				iconSum = oscar.getIconSum(self.myavatar)
 				iconLen = len(self.myavatar)
 				iconStamp = time.time()
-				debug.log("LegacyConnection: sendMessage: We are going to send info about our icon, length %d." % iconLen)
+				LogEvent(INFO, self.session.jabberID, "Going to send info about our icon, length %d" % iconLen)
 
-			debug.log("LegacyConnection: sendMessage %s %s" % (uin, message))
+			LogEvent(INFO, self.session.jabberID)
 			if uin[0].isdigit():
 				encoding = config.encoding
 				charset = "iso-8859-1"
 				if self.legacyList.hasCapability(uin, "unicode"):
 					encoding = "utf-16be"
 					charset = "unicode"
-				debug.log("LegacyConnection: sendMessage encoding %s" % encoding)
-				#self.bos.sendMessage(uin, [[message.encode(encoding, "replace"),charset]], offline=1)
+				LogEvent(INFO, self.session.jabberID, "Encoding %r" % encoding)
 				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 			else:
 				if xhtml and not config.disableXHTML:
@@ -198,10 +197,10 @@ class LegacyConnection:
 
 	def newResourceOnline(self, resource):
 		from glue import icq2jid
-		debug.log("LegacyConnection: newResourceOnline %s" % (resource))
+		LogEvent(INFO, self.session.jabberID)
 		try:
 			for c in self.legacyList.ssicontacts.keys( ):
-				debug.log("LegacyConnection: resending buddy of %s" % (c))
+				LogEvent(INFO, self.session.jabberID, "Resending buddy %r" % c)
 				jid = icq2jid(c)
 				show = self.legacyList.ssicontacts[c]['show']
 				status = self.legacyList.ssicontacts[c]['status']
@@ -213,7 +212,7 @@ class LegacyConnection:
 			return
 
 	def setAway(self, awayMessage=None):
-		debug.log("LegacyConnection: setAway %s" % (awayMessage))
+		LogEvent(INFO, self.session.jabberID)
 		try:
 			self.bos.awayResponses = {}
 			self.bos.setAway(utils.xmlify(awayMessage))
@@ -222,7 +221,7 @@ class LegacyConnection:
 			pass
 
 	def setBack(self, backMessage=None):
-		debug.log("LegacyConnection: setBack %s" % (backMessage))
+		LogEvent(INFO, self.session.jabberID)
 		try:
 			self.bos.awayResponses = {}
 			self.bos.setBack(utils.utf8encode(backMessage))
@@ -231,7 +230,7 @@ class LegacyConnection:
 			pass
 
  	def setStatus(self, nickname, show, friendly, url=None):
-		debug.log("LegacyConnection: setStatus %s %s" % (show, friendly))
+		LogEvent(INFO, self.session.jabberID)
 
 		if show=="away" and not friendly:
 			friendly="Away"
@@ -261,7 +260,7 @@ class LegacyConnection:
 			self.session.sendPresence(to=self.session.jabberID, fro=config.jid, show=show, status=friendly, url=url)
 
 	def setProfile(self, profileMessage=None):
-		debug.log("LegacyConnection: setProfile %s" % (profileMessage))
+		LogEvent(INFO, self.session.jabberID)
 		try:
 			self.bos.setProfile(profileMessage)
 		except AttributeError:
@@ -269,7 +268,7 @@ class LegacyConnection:
 			pass
 
 	def setICQStatus(self, status):
-		debug.log("LegacyConnection: setICQStatus %s" % (status))
+		LogEvent(INFO, self.session.jabberID)
 		try:
 			self.bos.setICQStatus(status)
 		except AttributeError:
@@ -283,7 +282,6 @@ class LegacyConnection:
 			friendly += status
 		if len(friendly) > 127:
 			friendly = friendly[:124] + "..."
-		debug.log("Session: buildFriendly(%s) returning \"%s\"" % (self.jabberID, friendly))
 		return friendly
 
 	def sendTypingNotify(self, type, dest):
@@ -291,7 +289,7 @@ class LegacyConnection:
 		from glue import jid2icq
 		try:
 			username = jid2icq(dest)
-			debug.log("LegacyConnection: sendTypingNotify %s to %s" % (type,username))
+			LogEvent(INFO, self.session.jabberID)
 			if type == "begin":
 				self.bos.sendTypingNotification(username, MTN_BEGIN)
 			elif type == "idle":
@@ -302,14 +300,14 @@ class LegacyConnection:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 	
 	def userTypingNotification(self, dest, resource, composing):
-		debug.log("LegacyConnection: userTypingNotification %s %s" % (dest,composing))
+		LogEvent(INFO, self.session.jabberID)
 		if composing:
 			self.sendTypingNotify("begin", dest)
 		else:
 			self.sendTypingNotify("finish", dest)
 
 	def chatStateNotification(self, dest, resource, state):
-		debug.log("LegacyConnection: chatStateNotification %s %s" % (dest,state))
+		LogEvent(INFO, self.session.jabberID)
 		if state == "composing":
 			self.sendTypingNotify("begin", dest)
 		elif state == "paused" or state == "inactive":
@@ -319,53 +317,23 @@ class LegacyConnection:
 		pass
 
 	def jabberVCardRequest(self, vcard, user):
-		debug.log("LegacyConnection: jabberVCardRequest %s" % (user))
+		LogEvent(INFO, self.session.jabberID)
 		return self.getvCard(vcard, user)
 
 	def getvCardNotInList(self, vcard, jid):
-		debug.log("LegacyConnection: getvCardNotInList %s" % (jid))
+		LogEvent(INFO, self.session.jabberID)
 		user = jid.split('@')[0]
 		return self.getvCard(vcard, user)
 
-	def createChat(self, chatroom, exchange):
-		debug.log("LegacyConnection: createChat %s %d" % (chatroom, exchange))
-		try:
-			self.bos.createChat(chatroom, exchange).addCallback(self.bos.createdRoom)
-		except AttributeError:
-			self.alertUser(lang.get("sessionnotactive", config.jid))
-
-	def leaveChat(self, chatroom):
-		debug.log("LegacyConnection: leaveChat %s" % (chatroom))
-		try:
-			for c in self.bos.chats:
-				if c.name == chatroom:
-					c.leaveChat()
-					self.bos.chats.remove(c)
-					break
-		except AttributeError:
-			self.alertUser(lang.get("sessionnotactive", config.jid))
-
-	def sendChat(self, chatroom, message):
-		debug.log("LegacyConnection: sendChat %s %s" % (chatroom, message))
-		try:
-			for c in self.bos.chats:
-				debug.log("Checking chat %s" % (c.name))
-				if c.name.lower() == chatroom.lower():
-					c.sendMessage(message)
-					debug.log("Found chat and sent message.")
-					break
-		except AttributeError:
-			self.alertUser(lang.get("sessionnotactive", config.jid))
-
 	def resourceOffline(self, resource):
-		debug.log("LegacyConnection: resourceOffline %s" % (resource))
+		LogEvent(INFO, self.session.jabberID)
 		from glue import icq2jid
 		try:
 			show = None
 			status = None
 			ptype = "unavailable"
 			for c in self.legacyList.ssicontacts.keys( ):
-				debug.log("LegacyConnection: sending offline for %s" % (c))
+				LogEvent(INFO, self.session.jabberID, "Sending offline %r" % c)
 				jid = icq2jid(c)
 
 				self.session.sendPresence(to=self.session.jabberID+"/"+resource, fro=jid, ptype=ptype, show=show, status=status)
@@ -399,7 +367,7 @@ class LegacyConnection:
 				self.myavatarsum = m.digest()
 				self.myavatarstamp = time.time()
 			except:
-				debug.log("LegacyConnection: changeAvatar, unable to convert avatar to JPEG, punting.")
+				LogEvent(INFO, self.session.jabberID, "Unable to convert avatar to JPEG")
 				return
 		if hasattr(self, "bos") and self.session.ready:
 			if not imageData:
@@ -408,18 +376,18 @@ class LegacyConnection:
 				if len(self.bos.ssiiconsum) > 0:
 					self.bos.startModifySSI()
 					for i in self.bos.ssiiconsum:
-						debug.log("LegacyConnection: Removing icon %s (u:%d g:%d) from group %s"%(i.name, i.buddyID, i.groupID, i.group.name))
+						LogEvent(INFO, self.session.jabberID, "Removing icon %s (u:%d g:%d) from group %s" % (i.name, i.buddyID, i.groupID, i.group.name))
 						de = self.bos.delItemSSI(i)
 					self.bos.endModifySSI()
 					return
 			if len(self.bos.ssiiconsum) > 0 and self.bos.ssiiconsum[0]:
-				debug.log("LegacyConnection: changeAvatar, replacing existing icon")
+				LogEvent(INFO, self.session.jabberID, "Replacing existing icon")
 				self.bos.ssiiconsum[0].updateIcon(imageData)
 				self.bos.startModifySSI()
 				self.bos.modifyItemSSI(self.bos.ssiiconsum[0])
 				self.bos.endModifySSI()
 			else:
-				debug.log("LegacyConnection: changeAvatar, adding new icon")
+				LogEvent(INFO, self.session.jabberID, "Adding new icon")
 				newBuddySum = oscar.SSIIconSum()
 				newBuddySum.updateIcon(imageData)
 				self.bos.startModifySSI()
@@ -427,7 +395,7 @@ class LegacyConnection:
 				self.bos.endModifySSI()
 
 	def doSearch(self, form, iq):
-		debug.log("LegacyConnection: doSearch")
+		LogEvent(INFO, self.session.jabberID)
 		#TEST self.bos.sendInterestsRequest()
 		email = utils.getDataFormValue(form, "email")
 		first = utils.getDataFormValue(form, "first")
@@ -441,7 +409,6 @@ class LegacyConnection:
 		zip = utils.getDataFormValue(form, "zip")
 		country = utils.getDataFormValue(form, "country")
 		interest = utils.getDataFormValue(form, "interest")
-                debug.log("LegacyConnection: doSearch %s" % (form.toXml()))
 		try:
 			d = defer.Deferred()
 			self.bos.sendDirectorySearch(email=email, first=first, middle=middle, last=last, maiden=maiden, nickname=nick, address=address, city=city, state=state, zip=zip, country=country, interest=interest).addCallback(self.gotSearchResults, iq, d).addErrback(self.gotSearchError, d)
@@ -450,7 +417,7 @@ class LegacyConnection:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def gotSearchResults(self, results, iq, d):
-		debug.log("LegacyConnection: gotSearchResults %s %s" % (results, iq.toXml()))
+		LogEvent(INFO, self.session.jabberID)
 		from glue import icq2jid
 
 		x = None
@@ -474,11 +441,11 @@ class LegacyConnection:
 		d.callback(iq)
 
 	def gotSearchError(self, error, d):
-		debug.log("LegacyConnection: gotSearchError %s" % (error))
+		LogEvent(INFO, self.session.jabberID)
 		#d.callback(vcard)
 
 	def getvCard(self, vcard, user):
-		debug.log("LegacyConnection: getvCard %s" % (user))
+		LogEvent(INFO, self.session.jabberID)
 		if (not user.isdigit()):
 			try:
                         	d = defer.Deferred()
@@ -500,7 +467,7 @@ class LegacyConnection:
 	def gotAIMvCard(self, profile, user, vcard, d):
 		from glue import icq2jid
 
-		debug.log("LegacyConnection: gotAIMvCard: %s" % (profile))
+		LogEvent(INFO, self.session.jabberID)
 
 		cutprofile = oscar.dehtml(profile)
 		nickname = vcard.addElement("NICKNAME")
@@ -515,7 +482,7 @@ class LegacyConnection:
 	def gotvCard(self, usercol):
 		from glue import icq2jid
 
-		debug.log("LegacyConnection: gotvCard")
+		LogEvent(INFO, self.session.jabberID)
 
 		if usercol != None and usercol.valid:
 			vcard = usercol.vcard
@@ -615,7 +582,7 @@ class LegacyConnection:
 
 	def gotnovCard(self, profile, user, vcard, d):
 		from glue import icq2jid
-		debug.log("LegacyConnection: novCard: %s" % (profile))
+		LogEvent(INFO, self.session.jabberID)
 
 		nickname = vcard.addElement("NICKNAME")
 		nickname.addContent(utils.xmlify(user))
@@ -636,7 +603,7 @@ class LegacyConnection:
 		self.session.sendPresence(to=self.session.jabberID, fro=to, ptype=ptype)
 
 	def addContact(self, userHandle):
-		debug.log("LegacyConnection: Session \"%s\" - addContact(\"%s\")" % (self.session.jabberID, userHandle))
+		LogEvent(INFO, self.session.jabberID)
 		def cb(arg=None):
 			self.updatePresence(userHandle, "subscribed")
 
@@ -657,11 +624,11 @@ class LegacyConnection:
 			groupName = "PyICQ-t Buddies"
 			for g in self.bos.ssigroups:
 				if g.name == groupName:
-					debug.log("Located group %s" % (g.name))
+					LogEvent(INFO, self.session.jabberID, "Located group %s" % (g.name))
 					savethisgroup = g
 
 			if savethisgroup is None:
-				debug.log("Adding new group")
+				LogEvent(INFO, self.session.jabberID, "Adding new group")
 				newGroupID = self.generateGroupID()
 				newGroup = oscar.SSIGroup(groupName, newGroupID, 0)
 				self.bos.startModifySSI()
@@ -676,7 +643,7 @@ class LegacyConnection:
 			savethisgroup.addUser(newUserID, newUser)
 
 
-			debug.log("Adding item to SSI")
+			LogEvent(INFO, self.session.jabberID, "Adding item to SSI")
 			self.bos.startModifySSI()
 			self.bos.addItemSSI(newUser)
 			self.bos.modifyItemSSI(savethisgroup)
@@ -688,7 +655,7 @@ class LegacyConnection:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def removeContact(self, userHandle):
-		debug.log("LegacyConnection: Session \"%s\" - removeContact(\"%s\")" % (self.session.jabberID, userHandle))
+		LogEvent(INFO, self.session.jabberID)
 		if userHandle in self.bos.authorizationRequests:
 			self.bos.sendAuthorizationResponse(userHandle, False, "")
 			self.bos.authorizationRequests.remove(userHandle)
@@ -701,18 +668,18 @@ class LegacyConnection:
 			for g in self.bos.ssigroups:
 				for u in g.users:
 					icqHandle = self.icq2uhandle(u.name)
-					debug.log("Comparing %s and %s" % (icqHandle, userHandle))
+					LogEvent(INFO, self.session.jabberID, "Comparing %s and %s" % (icqHandle, userHandle))
 					if icqHandle == userHandle:
-						debug.log("Located user %s" % (u.name))
+						LogEvent(INFO, self.session.jabberID, "Located user %s" % (u.name))
 						savetheseusers.append(u)
 
 			if len(savetheseusers) == 0:
-				debug.log("Did not find user")
+				LogEvent(INFO, self.session.jabberID, "Did not find user")
 				return
 
 			self.bos.startModifySSI()
 			for u in savetheseusers:
-				debug.log("LegacyConnection: Removing %s (u:%d g:%d) from group %s"%(u.name, u.buddyID, u.groupID, u.group.name))
+				LogEvent(INFO, self.session.jabberID, "Removing %s (u:%d g:%d) from group %s"%(u.name, u.buddyID, u.groupID, u.group.name))
 				de = self.bos.delItemSSI(u)
 				de.addCallback(self.SSIItemDeleted, u)
 			de.addCallback(cb)
@@ -721,7 +688,7 @@ class LegacyConnection:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def authContact(self, userHandle):
-		debug.log("LegacyConnection: Session \"%s\" - authContact(\"%s\")" % (self.session.jabberID, userHandle))
+		LogEvent(INFO, self.session.jabberID)
 		try:
 			if userHandle in self.bos.authorizationRequests:
 				self.bos.sendAuthorizationResponse(userHandle, True, "OK")
@@ -730,7 +697,7 @@ class LegacyConnection:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 
 	def deauthContact(self, userHandle):
-		debug.log("LegacyConnection: Session \"%s\" - deauthContact(\"%s\")" % (self.session.jabberID, userHandle))
+		LogEvent(INFO, self.session.jabberID)
 		# I don't recall why these are the same
 		self.authContact(userHandle)
 
@@ -744,7 +711,7 @@ class LegacyConnection:
 					del g.usersToID[u]
 
 	def errorCallback(self, result):
-		debug.log("LegacyConnection: errorCallback %s" % (result.getErrorMessage()))
+		LogEvent(INFO, self.session.jabberID)
 		errmsg = result.getErrorMessage()
 		errmsgs = errmsg.split("'")
 		message = "Authentication Error!" 

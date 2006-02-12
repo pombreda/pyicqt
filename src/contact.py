@@ -1,4 +1,4 @@
-# Copyright 2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2005-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
@@ -6,7 +6,7 @@ from twisted.internet import reactor
 from tlib.twistwrap import Element
 import jabw
 import config
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import lang
 import sha
 import legacy
@@ -188,13 +188,13 @@ class Contact:
 class ContactList:
 	""" Represents the Jabber contact list """
 	def __init__(self, session):
-		debug.log("ContactList: \"%r\" creating" % (session.jabberID))
+		LogEvent(INFO, session.jabberID)
 		self.session = session
 		self.contacts = {}
 	
 	def removeMe(self):
 		""" Cleanly removes the object """
-		debug.log("ContactList: \"%r\" removed" % (self.session.jabberID))
+		LogEvent(INFO, self.session.jabberID)
 		for jid in self.contacts:
 			self.contacts[jid].updatePresence("", "", "unavailable")
 			self.contacts[jid].removeMe()
@@ -206,13 +206,13 @@ class ContactList:
 		for jid in self.contacts:
 			if self.contacts[jid].status != "unavailable":
 				self.contacts[jid].sendPresence(tojid)
-		debug.log("ContactList: \"%r\" resent lists" % (self.session.jabberID))
+		LogEvent(INFO, self.session.jabberID)
 	
 	def createContact(self, jid, sub):
 		""" Creates a contact object. Use this to initialise the contact list
 		Returns a Contact object which you can call sync* methods on to synchronise
 		the user's legacy contact list with their Jabber list """
-		debug.log("ContactList: \"%r\" created contact \"%r\" \"%r\"" % (self.session.jabberID, jid, sub))
+		LogEvent(INFO, self.session.jabberID)
 		c = Contact(jid, sub, self)
 		self.contacts[jid] = c
 		return c

@@ -1,4 +1,4 @@
-# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 from twisted.internet import protocol, reactor
@@ -6,7 +6,7 @@ from tlib import oscar
 from tlib import socks5
 import config
 import utils
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import lang
 import re
 import time
@@ -42,16 +42,16 @@ class B(oscar.BOSConnection):
 
 	def initDone(self):
 		if not hasattr(self, "session") or not self.session:
-			debug.log("B: initDone, no session!")
+			LogEvent(INFO, "", "No session!")
 			return
 		self.requestSelfInfo().addCallback(self.gotSelfInfo)
 		#self.requestSelfInfo() # experimenting with no callback
 		self.requestSSI().addCallback(self.gotBuddyList)
-		debug.log("B: initDone %s for %s" % (self.username,self.session.jabberID))
+		LogEvent(INFO, self.session.jabberID)
 
 	def connectionLost(self, reason):
 		message = "ICQ connection lost! Reason: %s" % reason
-		debug.log("B: connectionLost: %s" % message)
+		LogEvent(INFO, self.session.jabberID, message)
 		try:
 			self.icqcon.alertUser(message)
 		except:
@@ -81,7 +81,7 @@ class B(oscar.BOSConnection):
 
 	def gotAuthorizationResponse(self, uin, success):
 		from glue import icq2jid
-		debug.log("B: Authorization Response: %s, %s"%(uin, success))
+		LogEvent(INFO, self.session.jabberID)
 		if success:
 			for g in self.ssigroups:
 				for u in g.users:
@@ -99,19 +99,19 @@ class B(oscar.BOSConnection):
 
 	def gotAuthorizationRequest(self, uin):
 		from glue import icq2jid
-		debug.log("B: Authorization Request: %s"%uin)
+		LogEvent(INFO, self.session.jabberID)
 		if not uin in self.authorizationRequests:
 			self.authorizationRequests.append(uin)
 			self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), ptype="subscribe")
 
 	def youWereAdded(self, uin):
 		from glue import icq2jid
-		debug.log("B: %s added you to her/his contact list"%uin)
+		LogEvent(INFO, self.session.jabberID)
 		self.session.sendPresence(to=self.session.jabberID, fro=icq2jid(uin), ptype="subscribe")
 
 	def updateBuddy(self, user):
 		from glue import icq2jid
-		debug.log("B: updateBuddy %s" % (user))
+		LogEvent(INFO, self.session.jabberID)
 		buddyjid = icq2jid(user.name)
                 c = self.session.contactList.findContact(buddyjid)
                 if not c: return
@@ -144,10 +144,10 @@ class B(oscar.BOSConnection):
 
 		if user.iconmd5sum != None and not config.disableAvatars and not config.avatarsOnlyOnChat:
 			if self.icqcon.legacyList.diffAvatar(user.name, md5Hash=binascii.hexlify(user.iconmd5sum)):
-				debug.log("Retrieving buddy icon for %s" % user.name)
+				LogEvent(INFO, self.session.jabberID, "Retrieving buddy icon for %s" % user.name)
 				self.retrieveBuddyIconFromServer(user.name, user.iconmd5sum, user.icontype).addCallback(self.gotBuddyIconFromServer)
 			else:
-				debug.log("Buddy icon is the same, using what we have for %s" % user.name)
+				LogEvent(INFO, self.session.jabberID, "Buddy icon is the same, using what we have for %s" % user.name)
 
 		if user.caps:
 			self.icqcon.legacyList.setCapabilities(user.name, user.caps)
@@ -165,13 +165,13 @@ class B(oscar.BOSConnection):
 		iconhash = iconinfo[2]
 		iconlen = iconinfo[3]
 		icondata = iconinfo[4]
-		debug.log("B: gotBuddyIconFromServer for %s: hash: %s, len: %d" % (contact, binascii.hexlify(iconhash), iconlen))
+		LogEvent(INFO, self.session.jabberID, "%s: hash: %s, len: %d" % (contact, binascii.hexlify(iconhash), iconlen))
 		if iconlen > 0 and iconlen != 90: # Some ICQ clients send crap
 			self.icqcon.legacyList.updateAvatar(contact, icondata, md5Hash=iconhash)
 
 	def offlineBuddy(self, user):
 		from glue import icq2jid 
-		debug.log("B: offlineBuddy %s" % (user.name))
+		LogEvent(INFO, self.session.jabberID, user.name)
 		buddyjid = icq2jid(user.name)
                 c = self.session.contactList.findContact(buddyjid)
                 if not c: return
@@ -183,7 +183,7 @@ class B(oscar.BOSConnection):
 	def receiveMessage(self, user, multiparts, flags):
 		from glue import icq2jid
 
-		debug.log("B: receiveMessage %s %s %s %s %s" % (self.session.jabberID, self.name, user.name, multiparts, flags))
+		LogEvent(INFO, self.session.jabberID, "%s %s %s" % (user.name, multiparts, flags))
 		sourcejid = icq2jid(user.name)
 		text = multiparts[0][0]
 		if len(multiparts[0]) > 1:
@@ -193,7 +193,7 @@ class B(oscar.BOSConnection):
 				encoding = config.encoding
 		else:
 			encoding = config.encoding
-		debug.log("B: using encoding %s" % (encoding))
+		LogEvent(INFO, self.session.jabberID, "Using encoding %s" % (encoding))
 		text = text.decode(encoding, "replace")
 		xhtml = utils.prepxhtml(text)
 		if not user.name[0].isdigit():
@@ -213,22 +213,24 @@ class B(oscar.BOSConnection):
 
 		if "icon" in flags and not config.disableAvatars:
 			if self.icqcon.legacyList.diffAvatar(user.name, numHash=user.iconcksum):
-				debug.log("User %s has a buddy icon we want, will ask for it next message." % user.name)
+				LogEvent(INFO, self.session.jabberID, "User %s has a buddy icon we want, will ask for it next message." % user.name)
 				self.requesticon[user.name] = 1
 			else:
-				debug.log("User %s has a icon that we already have." % user.name)
+				LogEvent(INFO, self.session.jabberID, "User %s has a icon that we already have." % user.name)
 
 		if "iconrequest" in flags and hasattr(self.icqcon, "myavatar") and not config.disableAvatars:
-			debug.log("User %s wants our icon, so we're sending it." % user.name)
+			LogEvent(INFO, self.session.jabberID, "User %s wants our icon, so we're sending it." % user.name)
 			icondata = self.icqcon.myavatar
 			self.sendIconDirect(user.name, icondata, wantAck=1)
 
 	def receiveWarning(self, newLevel, user):
-		debug.log("B: receiveWarning [%s] from %s" % (newLevel,hasattr(user,'name') and user.name or None))
+		LogEvent(INFO, self.session.jabberID)
+		#debug.log("B: receiveWarning [%s] from %s" % (newLevel,hasattr(user,'name') and user.name or None))
 
 	def receiveTypingNotify(self, type, user):
 		from glue import icq2jid
-		debug.log("B: receiveTypingNotify %s from %s" % (type,hasattr(user,'name') and user.name or None))
+		LogEvent(INFO, self.session.jabberID)
+		#debug.log("B: receiveTypingNotify %s from %s" % (type,hasattr(user,'name') and user.name or None))
 		sourcejid = icq2jid(user.name)
 		if type == "begin":
 			self.session.sendTypingNotification(to=self.session.jabberID, fro=sourcejid, typing=True)
@@ -247,10 +249,11 @@ class B(oscar.BOSConnection):
 		self.session.sendErrorMessage(to=self.session.jabberID, fro=tmpjid, etype="cancel", condition="recipient-unavailable",explanation=message)
 
 	def receiveSendFileRequest(self, user, file, description, cookie):
-		debug.log("B: receiveSendFileRequest")
+		LogEvent(INFO, self.session.jabberID)
 
 	def emailNotificationReceived(self, addr, url, unreadnum, hasunread):
-		debug.log("B: emailNotificationReceived %s %s %d %d" % (addr, url, unreadnum, hasunread))
+		LogEvent(INFO, self.session.jabberID)
+		#debug.log("B: emailNotificationReceived %s %s %d %d" % (addr, url, unreadnum, hasunread))
 		if unreadnum > self.unreadmessages:
 			diff = unreadnum - self.unreadmessages
 			self.session.sendMessage(to=self.session.jabberID, fro=config.jid, body=lang.get("icqemailnotification", config.jid) % (diff, addr, url), mtype="headline")
@@ -283,12 +286,12 @@ class B(oscar.BOSConnection):
 				elif charset == "us-ascii":
 					charset = "iso-8859-1"
 				else:
-					debug.log( "unknown charset (%s) of buddy's away message" % msg[0] );
+					LogEvent(INFO, self.session.jabberID, "Unknown charset (%s) of buddy's away message" % msg[0]);
 					charset = config.encoding
 					status = msg[0] + ": " + status
 
 			status = status.decode(charset, 'replace')
-			debug.log( "dsh: away (%s, %s) message %s" % (charset, msg[0], status) )
+			LogEvent(INFO, self.session.jabberID, "Away (%s, %s) message %s" % (charset, msg[0], status))
 
 		if status == "Away" or status=="I am currently away from the computer." or status=="I am away from my computer right now.":
 			status = ""
@@ -308,42 +311,42 @@ class B(oscar.BOSConnection):
 		self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
 	def gotSelfInfo(self, user):
-		debug.log("B: gotSelfInfo: %s" % (user.__dict__))
+		LogEvent(INFO, self.session.jabberID)
 		self.name = user.name
 
 	def receivedSelfInfo(self, user):
-		debug.log("B: receivedSelfInfo: %s" % (user.__dict__))
+		LogEvent(INFO, self.session.jabberID)
 		self.name = user.name
 
 	def receivedIconUploadRequest(self, iconhash):
 		if config.disableAvatars: return
-		debug.log("B: receivedIconUploadRequest: %s" % binascii.hexlify(iconhash))
+		LogEvent(INFO, self.session.jabberID, "%s" % binascii.hexlify(iconhash))
 		if hasattr(self.icqcon, "myavatar"):
-			debug.log("B: I have an icon, sending it on, %d" % len(self.icqcon.myavatar))
+			LogEvent(INFO, self.session.jabberID, "I have an icon, sending it on, %d" % len(self.icqcon.myavatar))
 			self.uploadBuddyIconToServer(self.icqcon.myavatar, len(self.icqcon.myavatar)).addCallback(self.uploadedBuddyIconToServer)
 			#del self.icqcon.myavatar
 
 	def receivedIconDirect(self, user, icondata):
 		if config.disableAvatars: return
-		debug.log("B: receivedIconDirectRequest for %s [%d]" % (user.name, user.iconlen))
+		LogEvent(INFO, self.session.jabberID, "%s [%d]" % (user.name, user.iconlen))
 		if user.iconlen > 0 and user.iconlen != 90: # Some ICQ clients send crap
 			self.icqcon.legacyList.updateAvatar(user.name, icondata, numHash=user.iconcksum)
 
 	def uploadedBuddyIconToServer(self, iconchecksum):
-		debug.log("B: uploadedBuddyIconToServer: %s" % (iconchecksum))
+		LogEvent(INFO, self.session.jabberID, "%s" % (iconchecksum))
 
 	def gotBuddyList(self, l):
-		debug.log("B: gotBuddyList: %s" % (str(l)))
+		LogEvent(INFO, self.session.jabberID, "%s" % (str(l)))
 		if l is not None and l[0] is not None:
 			for g in l[0]:
-				debug.log("B: gotBuddyList found group %s" % (g.name))
+				LogEvent(INFO, self.session.jabberID, "Found group %s" % (g.name))
 				self.ssigroups.append(g)
 				for u in g.users:
-					debug.log("B: got user %s (%s) from group %s" % (u.name, u.nick, g.name))
+					LogEvent(INFO, self.session.jabberID, "Got user %s (%s) from group %s" % (u.name, u.nick, g.name))
 					self.icqcon.legacyList.updateSSIContact(u.name, nick=u.nick)
 		if l is not None and l[5] is not None:
 			for i in l[5]:
-				debug.log("B: gotBuddyList found icon %s" % (str(i)))
+				LogEvent(INFO, self.session.jabberID, "Found icon %s" % (str(i)))
 				self.ssiiconsum.append(i)
 		self.activateSSI()
 		self.setProfile(self.session.description)
@@ -367,7 +370,7 @@ class B(oscar.BOSConnection):
 		self.requestOffline()
 
 	def warnedUser(self, oldLevel, newLevel, username):
-		debug.log("B: warnedUser");
+		LogEvent(INFO, self.session.jabberID)
 
 
 

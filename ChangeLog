@@ -20,6 +20,46 @@
 	* src/session.py:
 	Fixed handling of avatar hashes received.
 
+	* tools/Makefile:
+	Added developer Makefile.
+
+	* src/config.py:
+	* src/debug.py:
+	* src/main.py:
+	Switched to new debugging code.
+
+	* src/avatar.py:
+	* src/contact.py:
+	* src/disco.py:
+	* src/jabw.py:
+	* src/main.py:
+	* src/misciq.py:
+	* src/register.py:
+	* src/session.py:
+	* src/utils.py:
+	* src/xmlconfig.py:
+	* src/xdb/__init__.py:
+	* src/xdb/legacyaimtransport.py:
+	* src/xdb/legacyjittransport.py:
+	* src/xdb/xmlfiles.py:
+	* src/web/handler.py:
+	* src/legacy/__init__.py:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/legacy/legacyiq.py:
+	* src/legacy/legacylist.py:
+	Switched to new debugging style.
+
+	* src/globals.py:
+	Added extra settings.
+
+	* src/lang.py:
+	* src/sasl.py:
+	Minor cleanup.
+
+	* src/web/handler.py:
+	Imported http from newer proper location.
+
 2006-02-10  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/xdb/xmlfiles.py:
