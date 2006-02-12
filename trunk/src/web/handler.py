@@ -3,11 +3,11 @@
 
 from nevow import rend, loaders, inevow, static
 from nevow import tags as T
-from twisted.protocols import http
-from twisted.web import microdom
+#from twisted.protocols import http
+from twisted.web import microdom, http
 from twisted.internet import reactor
 from twisted.cred import portal, credentials
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import config
 import legacy
 import sys, os, os.path
@@ -84,7 +84,7 @@ class WebInterface_template(rend.Page):
 # Root Node
 class WebInterface(WebInterface_template):
 	def childFactory(self, ctx, name):
-		debug.log("WebInterface: childFactory %s %s" % (ctx, name))
+		LogEvent(INFO, "", "childFactory %s %s" % (ctx, name))
 		request = inevow.IRequest(ctx)
 		username = request.getUser()
 
@@ -259,13 +259,6 @@ class WebInterface_config(WebInterface_template):
 
 # Controls Node
 class WebInterface_controls(WebInterface_template):
-	#def renderHTTP(self, ctx):
-	#	request = inevow.IRequest(ctx)
-	#	if request.args.get('shutdown'):
-	#		debug.log("WebInterface: Received shutdown")
-	#		reactor.stop()
-	#	return WebInterface_template.renderHTTP(self, ctx)
-
 	def render_content(self, ctx, data):
 		return loaders.htmlstr("""
 <B>Controls</B>

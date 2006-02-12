@@ -1,4 +1,4 @@
-# Copyright 2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2005-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 # Some of this code is directly lifted from Twisted's jabber.component code.
 
@@ -19,8 +19,6 @@ try:
 except ImportError:
 	SSL = None
 
-import debug
-import utils
 from tlib.twistwrap import component, jstrports, client, Element, elementStream, xmlstream
 from twisted.application import service
 
@@ -258,7 +256,6 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 		response.addContent(r)
 		self.xmlstream.removeObserver("/challenge",self._saslStep1)
 		self.xmlstream.addOnetimeObserver("/challenge",self._saslStep2)
-		debug.log("SASLSTEP1: Sending: %r" % (response.toXml()))
 		self.xmlstream.send(response)
 
 	def _saslStep2(self, challenge):
@@ -272,7 +269,6 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 
 			self.xmlstream.removeObserver("/challenge",self._saslStep2)
 			self.xmlstream.addOnetimeObserver("/success",self._saslSuccess)
-			debug.log("SASLSTEP2: Sending: %r" % (response.toXml()))
 			self.xmlstream.send(response)
 		else:
 			self.xmlstream.dispatch(challenge, self.AUTH_FAILED_EVENT)

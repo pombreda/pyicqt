@@ -1,4 +1,4 @@
-# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
@@ -10,7 +10,7 @@ import legacy
 import disco
 import config
 import lang
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import base64
 import sys
 import avatar
@@ -150,7 +150,7 @@ class AdHocCommands:
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
 
-		debug.log("Discovery: AdHoc Iq received \"%r\" \"%r\". Looking for handler" % (fro, ID))
+		LogEvent(INFO, "", "Looking for handler")
 
 		node = None
 		for child in el.elements():
@@ -171,7 +171,7 @@ class AdHocCommands:
 					self.commands[node](el)
 					handled = True
 			if not handled:
-				debug.log("Discovery: Unknown AdHoc Iq request \"%r\" \"%r\" \"%r\"" % (fro, ID, node))
+				LogEvent(INFO, "", "Unknown Ad-Hoc command received")
 				self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 
 
@@ -199,7 +199,7 @@ class AdHocCommands:
 		self.pytrans.send(iq)
 
 	def sendCommandInfoResponse(self, to, ID):
-		debug.log("Discovery: Replying to AdHoc disco#info request from \"%r\" \"%r\"" % (to, ID))
+		LogEvent(INFO, "", "Replying to disco#info")
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = config.jid
@@ -214,7 +214,7 @@ class AdHocCommands:
 		self.pytrans.send(iq)
 
 	def sendCommandItemsResponse(self, to, ID):
-		debug.log("Discovery: Replying to AdHoc disco#items request from \"%r\" \"%r\"" % (to, ID))
+		LogEvent(INFO, "", "Replying to disco#items")
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = config.jid
@@ -244,7 +244,7 @@ class VCardFactory:
 			self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns="vcard-temp", etype="cancel", condition="feature-not-implemented")
 			return
 
-		debug.log("VCardFactory: Retrieving vCard for user %r %r" % (to, ID))
+		LogEvent(INFO, "", "Sending vCard")
 
 		toGateway = not (to.find('@') > 0)
 		if not toGateway:
@@ -296,8 +296,7 @@ class VCardFactory:
 			c.fillvCard(vCard, to).addCallback(self.gotvCardResponse, iq)
 
 	def gotvCardResponse(self, vcard, iq):
-		#debug.log("VCardFactory: Sending vCard %r" % (vcard.toXml()))
-		debug.log("VCardFactory: Sending vCard")
+		LogEvent(INFO)
 		self.pytrans.send(iq)
 
 	def getMyVCard(self, el):
@@ -365,7 +364,7 @@ class IqAvatarFactory:
 			self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 			return
 
-		debug.log("IqAvatarFactory: Retrieving avatar for user %r %r" % (to, ID))
+		LogEvent(INFO, "", "Retrieving avatar")
 
 		if not self.pytrans.sessions.has_key(froj.userhost()):
 			self.pytrans.discovery.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="auth", condition="not-authorized")
@@ -395,41 +394,11 @@ class IqAvatarFactory:
 class PingService:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		#self.pingCounter = 0
-		#self.pingTask = task.LoopingCall(self.pingCheck)
 		self.pingTask = task.LoopingCall(self.whitespace)
-		reactor.callLater(10.0, self.start)
-
-	def start(self):
-		self.pingTask.start(120.0)
 
 	def whitespace(self):
 		self.pytrans.send(" ")
 
-	def pingCheck(self):
-		if self.pingCounter >= 2 and self.pytrans.xmlstream: # Two minutes of no response from the main server
-			debug.log("Disconnecting because the main server has ignored our 'pings' for too long.")
-			self.pytrans.xmlstream.transport.loseConnection()
-		elif config.mainServerJID:
-			d = self.pytrans.discovery.sendIq(self.makePingPacket())
-			d.addCallback(self.pongReceived)
-			d.addErrback(self.pongFailed)
-			self.pingCounter += 1
-
-	def pongReceived(self, el):
-		self.pingCounter = 0
-
-	def pongFailed(self, el):
-		pass
-
-	def makePingPacket(self):
-		iq = Element((None, "iq"))
-		iq.attributes["from"] = config.jid
-		iq.attributes["to"] = config.mainServerJID
-		iq.attributes["type"] = "get"
-		query = iq.addElement("query")
-		query.attributes["xmlns"] = "jabber:iq:version"
-		return iq
 
 class GatewayTranslator:
 	def __init__(self, pytrans):
@@ -446,7 +415,7 @@ class GatewayTranslator:
 			self.sendTranslation(fro, ID, el)
 	
 	def sendPrompt(self, to, ID, ulang):
-		debug.log("GatewayTranslator: Sending translation details for jabber:iq:gateway - user %r %r" % (to, ID))
+		LogEvent(INFO)
 		
 		iq = Element((None, "iq"))
 		
@@ -463,7 +432,7 @@ class GatewayTranslator:
 		self.pytrans.send(iq)
 	
 	def sendTranslation(self, to, ID, el):
-		debug.log("GatewayTranslator: Translating account for jabber:iq:gateway - user %r %r" % (to, ID))
+		LogEvent(INFO)
 		
 		# Find the user's legacy account
 		legacyaccount = None
@@ -477,7 +446,7 @@ class GatewayTranslator:
 		
 		
 		if legacyaccount and len(legacyaccount) > 0:
-			debug.log("GatewayTranslator: Sending translated account for jabber:iq:gateway - user %r %r" % (to, ID))
+			LogEvent(INFO, "", "Sending translated account")
 			iq = Element((None, "iq"))
 			iq.attributes["type"] = "result"
 			iq.attributes["from"] = config.jid
@@ -509,7 +478,7 @@ class VersionTeller:
 		self.sendVersion(el)
 
 	def sendVersion(self, el):
-		debug.log("Discovery: Sending transport version information")
+		LogEvent(INFO)
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = el.getAttribute("to")
@@ -545,7 +514,7 @@ class SearchFactory:
 			self.processSearch(el)
 
 	def sendSearchForm(self, el):
-		debug.log("SearchFactory: Sending search form")
+		LogEvent(INFO)
 		ulang = utils.getLang(el)
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
@@ -581,7 +550,7 @@ class SearchFactory:
 		self.pytrans.send(iq)
 
 	def processSearch(self, el):
-		debug.log("SearchFactory: Processing search form")
+		LogEvent(INFO)
 		ulang = utils.getLang(el)
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
@@ -631,5 +600,5 @@ class SearchFactory:
 			self.pytrans.discovery.sendIqError(to=to, fro=config.jid, ID=ID, xmlns="jabber:iq:search", etype="retry", condition="bad-request")
 
 	def gotSearchResponse(self, iq):
-		debug.log("SearchFactory: Sending search response %r" % iq.toXml())
+		LogEvent(INFO)
 		self.pytrans.send(iq)

@@ -1,4 +1,4 @@
-# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import config
@@ -7,7 +7,7 @@ import legacy
 import jabw
 import contact
 import avatar
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import lang
 from tlib.twistwrap import jid
 
@@ -17,9 +17,9 @@ def makeSession(pytrans, jabberID, ulang, rosterID):
 	""" Tries to create a session object for the corresponding JabberID. Retrieves information
 	from XDB to create the session. If it fails, then the user is most likely not registered with
 	the transport """
-	debug.log("Session: makeSession(\"%r\")" % (jabberID))
+	LogEvent(INFO, jabberID)
 	if pytrans.sessions.has_key(jabberID):
-		debug.log("Session: makeSession() - removing existing session")
+		LogEvent(INFO, jabberID, "Removing existing session")
 		pytrans.sessions[jabberID].removeMe()
 	result = pytrans.xdb.getRegistration(jabberID)
 	if result:
@@ -37,7 +37,7 @@ class Session(jabw.JabberConnection):
 	def __init__(self, pytrans, jabberID, username, password, ulang, rosterID):
 		""" Initialises the session object and connects to the legacy network """
 		jabw.JabberConnection.__init__(self, pytrans, jabberID)
-		debug.log("Session: Creating new session \"%r\"" % (jabberID))
+		LogEvent(INFO, jabberID)
 		
 		self.pytrans = pytrans
 		self.alive = True
@@ -72,7 +72,7 @@ class Session(jabw.JabberConnection):
 		self.updateNickname("")
 		self.updateDescription("")
 		self.doVCardUpdate()
-		debug.log("Session: New session created \"%r\" \"%r\" \"%r\"" % (jabberID, username, password))
+		LogEvent(INFO, self.jabberID, "Created!")
 
 		self.pytrans.statistics.stats["TotalSessions"] += 1
 		self.pytrans.statistics.stats["OnlineSessions"] += 1
@@ -86,7 +86,7 @@ class Session(jabw.JabberConnection):
 		# Delete all objects cleanly
 		# Remove this Session object from the pytrans
 		
-		debug.log("Session: Removing \"%r\"" % (self.jabberID))
+		LogEvent(INFO, self.jabberID)
 		
 		# Mark as dead
 		self.alive = False
@@ -115,12 +115,12 @@ class Session(jabw.JabberConnection):
 			# Clean up the no longer needed reference
 			self.pytrans = None
 		
-		debug.log("Session: Completed removal \"%r\"" % (self.jabberID))
+		LogEvent(INFO, self.jabberID, "Removed!")
 
 	def doVCardUpdate(self):
 		def vCardReceived(el):
 			if not self.alive: return
-			debug.log("Session %r - Got user's vCard" % (self.jabberID))
+			LogEvent(INFO, self.jabberID)
 			vCard = None
 			for e in el.elements():
 				if e.name == "vCard" and e.defaultUri == "vcard-temp":
@@ -146,10 +146,10 @@ class Session(jabw.JabberConnection):
 				self.legacycon.updateAvatar() # Default avatar
 
 		def errback(args=None):
-			debug.log("Session %r - error fetching avatar from vCard" % (self.jabberID))
-			if not config.disableAvatars: self.legacycon.updateAvatar()
+			LogEvent(INFO, self.jabberID, "Error fetching avatar")
+			if not config.disableAvatars and self.alive: self.legacycon.updateAvatar()
 
-		debug.log("Session %r - Fetching user's vCard" % (self.jabberID))
+		LogEvent(INFO, self.jabberID, "Fetching avatar")
 		d = self.sendVCardRequest(to=self.jabberID, fro=config.jid)
 		d.addCallback(vCardReceived)
 		d.addErrback(errback)
@@ -197,7 +197,7 @@ class Session(jabw.JabberConnection):
 	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml, autoResponse=0):
 		if dest == config.jid:
 			if body.lower().startswith("end"):
-				debug.log("Session: Received 'end' request. Killing session %r" % (self.jabberID))
+				LogEvent(INFO, self.jabberID, "Received 'end' request")
 				self.removeMe()
 			return
 
@@ -205,7 +205,7 @@ class Session(jabw.JabberConnection):
 			self.sendNotReadyError(source, resource, dest, body)
 			return
 		
-		debug.log("Session: messageReceived(), passing onto legacycon.sendMessage()")
+		LogEvent(INFO, self.jabberID, "Message")
 		self.legacycon.sendMessage(dest, resource, body, noerror, xhtml, autoResponse=autoResponse)
 	
 	def typingNotificationReceived(self, dest, resource, composing):
@@ -229,26 +229,26 @@ class Session(jabw.JabberConnection):
 		existing = self.resourceList.has_key(resource)
 		if ptype == "unavailable":
 			if existing:
-				debug.log("Session: %r - resource \"%r\" gone offline" % (self.jabberID, resource))
+				LogEvent(INFO, self.jabberID, "Resource gone offline")
 				self.resourceOffline(resource)
 			else:
 				return # I don't know the resource, and they're leaving, so it's all good
 		else:
 			if not existing:
-				debug.log("Session %r - resource \"%r\" has come online" % (self.jabberID, resource))
+				LogEvent(INFO, self.jabberID, "Resource came online")
 				self.contactList.resendLists("%s/%s"%(source,resource))
-			debug.log("Session %r - resource \"%r\" setting \"%r\" \"%r\" \"%r\"" % (self.jabberID, resource, show, status, priority)) 
+			LogEvent(INFO, self.jabberID, "Setting status")
 			self.resourceList[resource] = SessionResource(show, status, priority, url)
 
 		highestActive = self.highestResource()
 
 		if highestActive:
 			# If we're the highest active resource, we should update the legacy service
-			debug.log("Session %r - updating status on legacy service, resource %r" % (self.jabberID, highestActive))
+			LogEvent(INFO, self.jabberID, "Updating status on legacy service")
 			r = self.resourceList[highestActive]
 			self.setStatus(r.show, r.status, r.url)
 		else:
-			debug.log("Session %r - calling removeMe in 0 seconds. Last resource gone offline" % (self.jabberID))
+			LogEvent(INFO, self.jabberID, "Last resource died.  Calling removeMe in 0 seconds")
 			#reactor.callLater(0, self.removeMe)
 			self.removeMe()
 			#FIXME Which of the above?
@@ -260,8 +260,8 @@ class Session(jabw.JabberConnection):
 			if highestActive == None or self.resourceList[checkR].priority > self.resourceList[highestActive].priority: 
 				highestActive = checkR
 
-		if highestActive:
-			debug.log("Session %r - highest active resource is \"%r\" at %d" % (self.jabberID, highestActive, self.resourceList[highestActive].priority))
+		#if highestActive:
+		#	debug.log("Session %r - highest active resource is \"%r\" at %d" % (self.jabberID, highestActive, self.resourceList[highestActive].priority))
 
 		return highestActive
 
@@ -272,7 +272,7 @@ class Session(jabw.JabberConnection):
 	def subscriptionReceived(self, to, subtype):
 		""" Sends the subscription request to the legacy services handler """
 		if to.find('@') > 0:
-			debug.log("Session: \"%r\" subscriptionReceived(), passing onto contactList.jabberSubscriptionReceived()" % (self.jabberID))
+			LogEvent(INFO, self.jabberID, "Passing subscription to legacy service")
 			self.contactList.jabberSubscriptionReceived(to, subtype)
 		else:
 			if subtype == "subscribe":
@@ -280,9 +280,9 @@ class Session(jabw.JabberConnection):
 			elif subtype.startswith("unsubscribe"):
 				# They want to unregister.
 				jid = self.jabberID
-				debug.log("Session: \"%r\" is about to be unregistered" % (jid))
+				LogEvent(INFO, jid, "About to register")
 				self.pytrans.registermanager.removeRegInfo(jid)
-				debug.log("Session: \"%r\" is has been unregistered" % (jid))
+				LogEvent(INFO, jid, "Just unregistered")
 
 
 

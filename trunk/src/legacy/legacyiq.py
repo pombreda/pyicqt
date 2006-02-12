@@ -1,9 +1,9 @@
-# Copyright 2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2005-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
 from tlib.twistwrap import Element, jid
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import config
 import disco
 import lang
@@ -155,7 +155,7 @@ class EmailLookup:
 		self.pytrans.sessions[toj.userhost()].legacycon.bos.lookupEmail(email).addCallback(self.emailLookupResults, el, sessionid)
 
 	def emailLookupResults(self, results, el, sessionid):
-		debug.log("emailLookupResults %s" % (str(results)))
+		LogEvent(INFO)
 		to = el.getAttribute("from")
 		toj = jid.JID(to)
 		ID = el.getAttribute("id")
@@ -222,7 +222,7 @@ class ConfirmAccount:
 			self.pytrans.sessions[toj.userhost()].legacycon.bos.confirmAccount().addCallback(self.sendResponse, el, sessionid)
 
 	def sendResponse(self, failure, el, sessionid=None):
-		debug.log("confirmAccount %s" % (str(failure)))
+		LogEvent(INFO)
 		to = el.getAttribute("from")
 		toj = jid.JID(to)
 		ID = el.getAttribute("id")

@@ -1,7 +1,7 @@
-# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import re
 import string
 import config
@@ -44,7 +44,6 @@ excluded = {}
 for c in _excluded: excluded[c] = None
 
 def xmlify(s):
-	#debug.log("xmlify: class is %r: %r" % (s.__class__, s))
 	if s.__class__ == str:
 		try:
 			us = unicode(s)
@@ -58,7 +57,7 @@ def xmlify(s):
 
 def xhtml_to_aimhtml(s):
 	try:
-		debug.log("xhtml_to_aimhtml: Got %r" % s)
+		LogEvent(INFO, "", "Got %r" % s)
 
 		# Convert the spans to fonts!
 		s = re.sub("<(/?)span",r"<\1font",s)
@@ -69,10 +68,10 @@ def xhtml_to_aimhtml(s):
 		# AIMHTML might croke on these
 		s = re.sub("<br/>","<br>",s)
 
-		debug.log("xhtml_to_aimhtml: Made %r" % s)
+		LogEvent(INFO, "", "Made %r" % s)
 		return s
 	except:
-		debug.log("xhtml_to_aimhtml: Failed.")
+		LogEvent(INFO, "", "Failed")
 		return None
 
 def lower_element(match):
@@ -112,7 +111,7 @@ def prepxhtml(s):
 	try:
 		s=s.encode("utf-8","replace")
 
-		debug.log("prepxhtml: Got %r" % repr(s))
+		LogEvent(INFO, "", "Got %r" % s)
 
 		s = re.sub(">+",">",s)
 		s = re.sub("<+","<",s)
@@ -122,11 +121,11 @@ def prepxhtml(s):
 
 		all_regex = re.compile('</?[^>]*>'); 
 		try: s=all_regex.sub(lower_element, s);
-		except: debug.log("perpxhtml: Unable to do lowercase stuff")
+		except: LogEvent(INFO, "", "Unable to do lowercase stuff")
 
 		font_regex = re.compile('<font [^>]*>',re.X);
 		try: s=font_regex.sub(font_to_span, s);
-		except: debug.log("perpxhtml: Unable to do font-to-span stuff")
+		except: LogEvent(INFO, "", "Unable to do font-to-span stuff")
 
 		s = re.sub("</?(html|HTML)[^>]*>","",s)
 
@@ -161,10 +160,10 @@ def prepxhtml(s):
 		# Make sure our root tag is properly namespaced
 		ret = "<html xmlns=\"http://jabber.org/protocol/xhtml-im\">%s</html>"%ret;
 
-		debug.log("prepxhtml: Made %r" % repr(ret))
+		LogEvent(INFO, "", "Made %r" % ret)
 		return ret.encode("utf-8","replace")
 	except:
-		debug.log("prepxhtml: Failed.")
+		LogEvent(INFO, "", "Failed")
 		return None
 	
 def utf8encode(text):
@@ -270,23 +269,6 @@ class TextParser:
 
 	def element(self, e):
 		self.root.addChild(e)
-
-class RollingStack:
-	def __init__(self, size):
-		self.lst = []
-		self.size = size
-
-	def push(self, data):
-		self.lst.append(str(data))
-		if len(self.lst) > self.size:
-			self.lst.remove(self.lst[0])
-
-	def grabAll(self):
-		return "".join(self.lst)
-
-	def flush(self):
-		self.lst = []
-
 
 def makeDataFormElement(type, var, label=None, value=None, options=None):
 	field = Element((None, "field"))

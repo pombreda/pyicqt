@@ -1,9 +1,9 @@
-# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
 from tlib.twistwrap import Element, jid
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import config
 import disco
 import globals
@@ -11,7 +11,7 @@ import globals
 
 def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None):
 	""" Sends a Jabber message """
-	debug.log("jabw: Sending a Jabber message \"%r\" \"%r\" \"%r\" \"%r\"" % (to, fro, body, mtype))
+	LogEvent(INFO)
 	el = Element((None, "message"))
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
@@ -123,11 +123,11 @@ class JabberConnection:
 		self.typingUser = False # Whether this user can accept typing notifications.
 		self.chatStateUser = False # Whether this user can accept chat state notifications.
 		self.messageIDs = dict() # The ID of the last message the user sent to a particular contact. Indexed by contact JID
-		debug.log("User: %r - JabberConnection constructed" % (self.jabberID))
+		LogEvent(INFO, self.jabberID)
 	
 	def removeMe(self):
 		""" Cleanly deletes the object """
-		debug.log("User: %r - JabberConnection removed" % (self.jabberID))
+		LogEvent(INFO, self.jabberID)
 	
 	def checkFrom(self, el):
 		""" Checks to see that this packet was intended for this object """
@@ -140,7 +140,7 @@ class JabberConnection:
 		""" Sends a Jabber message 
 		For this message to have a <x xmlns="jabber:x:delay"/> you must pass a correctly formatted timestamp (See JEP0091)
 		"""
-		debug.log("User: %r - JabberConnection sending message \"%r\" \"%r\" \"%r\" \"%r\"" % (self.jabberID, to, fro, body, mtype))
+		LogEvent(INFO, self.jabberID)
 		if xhtml and not self.hasCapability(globals.XHTML):
 			# User doesn't support XHTML, so kill it.
 			xhtml = None
@@ -149,7 +149,7 @@ class JabberConnection:
 	def sendTypingNotification(self, to, fro, typing):
 		""" Sends the user the contact's current typing notification status """
 		if self.typingUser:
-			debug.log("jabw: Sending a Jabber typing notification message \"%r\" \"%r\" \"%r\"" % (to, fro, typing))
+			LogEvent(INFO, self.jabberID)
 			el = Element((None, "message"))
 			el.attributes["to"] = to
 			el.attributes["from"] = fro
@@ -165,7 +165,7 @@ class JabberConnection:
 	def sendChatStateNotification(self, to, fro, state):
 		""" Sends the user the contact's chat state status """
 		if self.chatStateUser:
-			debug.log("jabw: Sending chat state \"%r\" \"%r\" \"%r\"" % (to, fro, state))
+			LogEvent(INFO, self.jabberID)
 			el = Element((None, "message"))
 			el.attributes["to"] = to
 			el.attributes["from"] = fro
@@ -188,28 +188,17 @@ class JabberConnection:
 		return self.pytrans.discovery.sendIq(el)
 
 	def sendErrorMessage(self, to, fro, etype, explanation, condition=None, body=None):
-		try:debug.log(u"User: %r - JabberConnection sending error response."%(self.jabberID))
-		except:pass
-		try:debug.log(u"to: %r"%(to))
-		except:pass
-		try:debug.log(u"from: %r"%(fro))
-		except:pass
-		try:debug.log(u"condition: %r"%(condition))
-		except:pass
-		try:debug.log(u"explanation: %r"%(explanation))
-		except:pass
-
 		if self.last_el.has_key(to) and self.last_el[to].attributes.has_key("from"):
-			debug.log(u"Using pre-existing element")
+			LogEvent(INFO, self.jabberID, "Using pre-existing element")
 			sendErrorMessage(self.pytrans, to=to, fro=self.last_el[to].attributes["to"], etype=etype, condition=condition, explanation=explanation, body=body, el=self.last_el[to])
 			del self.last_el[to]
 		else:
-			debug.log(u"**NOT** Using pre-existing element")
+			LogEvent(INFO, self.jabberID, "**NOT** Using pre-existing element")
 			sendErrorMessage(self.pytrans, to=to, fro=fro, etype=etype, condition=condition, explanation=explanation, body=body)
 	
 	def sendPresence(self, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[], url=None):
 		""" Sends a Jabber presence packet """
-		debug.log("User: %r - JabberConnection sending presence \"%r\"\"%r\" \"%r\" \"%r\" \"%r\" \"%r\" \"%r\" \"%r\"" % (self.jabberID, to, fro, show, status, priority, ptype, not not avatarHash, nickname))
+		LogEvent(INFO, self.jabberID)
 		sendPresence(self.pytrans, to, fro, show, status, priority, ptype, avatarHash, nickname, payload, url=url)
 	
 	def sendRosterImport(self, jid, ptype, sub, name="", groups=[]):
@@ -233,6 +222,7 @@ class JabberConnection:
 
 	def getCapabilities(self, el): 
 		""" Requests the capabilities of the client """
+		LogEvent(INFO)
 		fro = el.getAttribute("from")
 		froj = jid.JID(fro)
 
@@ -243,7 +233,6 @@ class JabberConnection:
 		query = iq.addElement("query")
 		query.attributes["xmlns"] = globals.DISCO_INFO
 
-		debug.log("Asking for capabilities %r" % (iq.toXml()))
 		self.pytrans.discovery.sendIq(iq).addCallback(self.gotCapabilities)
 
 	def gotCapabilities(self, el):
@@ -255,7 +244,7 @@ class JabberConnection:
 						var = item.getAttribute("var")
 						self.capabilities.append(var)
 
-		debug.log("Capabilities of %r:\n\t%r" % (fro, "\n\t".join(self.capabilities)))
+		LogEvent(INFO, self.jabberID, "Capabilities of %r:\n\t%r" % (fro, "\n\t".join(self.capabilities)))
 
 	def hasCapability(self, capability):
 		for c in self.capabilities:
@@ -266,14 +255,14 @@ class JabberConnection:
 	def onMessage(self, el):
 		""" Handles incoming message packets """
 		if not self.checkFrom(el): return
-		debug.log("User: %r - JabberConnection received message packet" % (self.jabberID))
+		LogEvent(INFO, self.jabberID)
 		fro = el.getAttribute("from")
 		to = el.getAttribute("to")
 		try:
 			froj = jid.JID(fro)
 			toj = jid.JID(to)
 		except Exception, e:
-			debug.log("PyTransport: Failed stringprep on <presence from=\"%r\" to=\"%r\"/> - %r" % (fro, to, str(e)))
+			LogEvent(WARN, self.jabberID)
 			return
 
 		self.last_el[froj.userhost()] = el
@@ -289,7 +278,6 @@ class JabberConnection:
 		chatStateEvent = None
 		chatStates = None
 		for child in el.elements():
-			debug.log("child: %r" % child.name)
 			if child.name == "body":
 				body = child.__str__()
 			elif child.name == "error":
@@ -315,7 +303,7 @@ class JabberConnection:
 			body = error
 			xhtml = None
 			autoResponse = 1
-			debug.log("Got an error jabber packet, formulating an autoresponse")
+			LogEvent(WARN, self.jabberID, "Got error jabber packet")
 
 		# Check message event stuff
 		if body and chatStates:
@@ -326,23 +314,22 @@ class JabberConnection:
 			self.typingUser = False
 			self.chatStateUser = False
 		elif not body and chatStateEvent:
-			debug.log("User: %r - JabberConnection parsed chat state notification \"%r\" \"%r\"" % (self.jabberID, toj.userhost(), chatStateEvent))
+			LogEvent(INFO, self.jabberID, "Chat state notification %r" % chatStateEvent)
 			self.chatStateReceived(toj.userhost(), toj.resource, chatStateEvent)
 		elif not body and messageEvent:
-			debug.log("User: %r - JabberConnection parsed typing notification \"%r\" \"%r\"" % (self.jabberID, toj.userhost(), composing))
+			LogEvent(INFO, self.jabberID, "Typing notification %r" % composing)
 			self.typingNotificationReceived(toj.userhost(), toj.resource, composing)
 
 		if body:
-# 			body = utils.utf8(body)
 			# Save the message ID for later
 			self.messageIDs[to] = mID
-			debug.log("User: %r - JabberConnection parsed message packet \"%r\" \"%r\" \"%r\" \"%r\" \"%r\" AR=%d" % (self.jabberID, froj.userhost(), to, froj.resource, mtype, body, autoResponse))
+			LogEvent(INFO, self.jabberID, "Message packet")
 			self.messageReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, mtype, body, noerror, xhtml, autoResponse=autoResponse)
 	
 	def onPresence(self, el):
 		""" Handles incoming presence packets """
 		if not self.checkFrom(el): return
-		debug.log("User: %r - JabberConnection received presence packet %r" % (self.jabberID, el.toXml()))
+		LogEvent(INFO, self.jabberID)
 		fro = el.getAttribute("from")
 		froj = jid.JID(fro)
 		to = el.getAttribute("to")
@@ -351,7 +338,7 @@ class JabberConnection:
 		# Grab the contents of the <presence/> packet
 		ptype = el.getAttribute("type")
 		if ptype and (ptype.startswith("subscribe") or ptype.startswith("unsubscribe")):
-			debug.log("User: %r - JabberConnection parsed subscription presence packet \"%r\" \"%r\"" % (self.jabberID, toj.userhost(), ptype))
+			LogEvent(INFO, self.jabberID, "Parsed subscription presence packet")
 			self.subscriptionReceived(toj.userhost(), ptype)
 		else:
 			status = None
@@ -392,7 +379,7 @@ class JabberConnection:
 				if nickname:
 					self.nicknameReceived(froj.userhost(), toj.userhost(), nickname)
 
-			debug.log("User: %r - JabberConnection parsed presence packet \"%r\" \"%r\" \"%r\" \"%r\" \"%r\" \"%r\"" % (self.jabberID, froj.userhost(), froj.resource, priority, ptype, show, status))
+			LogEvent(INFO, self.jabberID, "Parsed presence packet")
 			self.presenceReceived(froj.userhost(), froj.resource, toj.userhost(), toj.resource, priority, ptype, show, status)
 	
 	

@@ -1,4 +1,4 @@
-# Copyright 2004-2005 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
@@ -8,7 +8,7 @@ from twisted.internet import reactor
 import sys
 import config
 import legacy
-import debug
+from debug import LogEvent, INFO, WARN, ERROR
 import lang
 import globals
 
@@ -21,7 +21,7 @@ class ServerDiscovery:
 	# TODO rename this file & class to something more sensible
 
 	def __init__ (self, pytrans):
-		debug.log("ServerDiscovery: Created server discovery manager")
+		LogEvent(INFO)
 		self.pytrans = pytrans
 		self.identities = {}
 		self.features = {}
@@ -53,28 +53,30 @@ class ServerDiscovery:
 
 	def addIdentity(self, category, ctype, name, jid):
 		""" Adds an identity to this JID's discovery profile. If jid == "USER" then ICQ users will get this identity. """
-		debug.log("ServerDiscovery: Adding identity \"%r\" \"%r\" \"%r\" \"%r\"" % (category, ctype, name, jid))
+		#debug.log("ServerDiscovery: Adding identity \"%r\" \"%r\" \"%r\" \"%r\"" % (category, ctype, name, jid))
+		LogEvent(INFO)
 		if not self.identities.has_key(jid):
 			self.identities[jid] = []
 		self.identities[jid].append((category, ctype, name))
 	
 	def addFeature(self, var, handler, jid):
 		""" Adds a feature to this JID's discovery profile. If jid == "USER" then ICQ users will get this feature. """
-		debug.log("ServerDiscovery: Adding feature support \"%r\" \"%r\" \"%r\"" % (var, handler, jid))
+		#debug.log("ServerDiscovery: Adding feature support \"%r\" \"%r\" \"%r\"" % (var, handler, jid))
+		LogEvent(INFO)
 		if not self.features.has_key(jid):
 			self.features[jid] = []
 		self.features[jid].append((var, handler))
 
 	def addNode(self, node, handler, name, jid, rootnode):
 		""" Adds a node to this JID's discovery profile. If jid == "USER" then ICQ users will get this node. """
-		debug.log("ServerDiscovery: Adding node item \"%r\" \"%r\" \"%r\" \"%r\" \"%r\"" % (node, handler, name, jid, rootnode))
+		#debug.log("ServerDiscovery: Adding node item \"%r\" \"%r\" \"%r\" \"%r\" \"%r\"" % (node, handler, name, jid, rootnode))
+		LogEvent(INFO)
 		if not self.nodes.has_key(jid):
 			self.nodes[jid] = {}
 		self.nodes[jid][node] = (handler, name, rootnode)
 
 	def onIq(self, el):
 		""" Decides what to do with an IQ """
-		#debug.log("ServerDiscovery: onIq element \"%r\"" % (el.toXml()))
 		fro = el.getAttribute("from")
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
@@ -84,18 +86,19 @@ class ServerDiscovery:
 			froj = jid.JID(fro)
 			to = jid.JID(to).full()
 		except Exception, e:
-			debug.log("ServerDiscovery: Dropping IQ because of stringprep error - \"%r\" \"%r\" %r" % (fro, to, str(e)))
+			LogEvent(INFO, "", "Dropping IQ because of stringprep error")
 
 		# Check if it's a response to a sent IQ
 		if self.deferredIqs.has_key((fro, ID)) and (iqType == "error" or iqType == "result"):
-			debug.log("ServerDiscovery: Iq received \"%r\" \"%r\". Doing callback." % (fro, ID))
+			#debug.log("ServerDiscovery: Iq received \"%r\" \"%r\". Doing callback." % (fro, ID))
+			LogEvent(INFO, "", "Doing callback")
 			self.deferredIqs[(fro, ID)].callback(el)
 			del self.deferredIqs[(fro, ID)]
 			return
 
 		if not (iqType == "get" or iqType == "set"): return # Not interested
 
-		debug.log("ServerDiscovery: Iq received \"%r\" \"%r\". Looking for handler" % (fro, ID))
+		LogEvent(INFO, "", "Looking for handler")
 
 		for query in el.elements():
 			xmlns = query.defaultUri
@@ -123,17 +126,18 @@ class ServerDiscovery:
 
 			for (feature, handler) in self.features.get(searchjid, []):
 					if feature == xmlns and handler:
-						debug.log("ServerDiscovery: Handler found \"%r\" \"%r\"" % (feature, handler))
+						LogEvent(INFO, "", "Handler found")
 						handler(el)
 						return
 
 			# Still hasn't been handled
-			debug.log("Discovery: Unknown Iq request \"%r\" \"%r\" \"%r\"" % (fro, ID, xmlns))
+			#debug.log("Discovery: Unknown Iq request \"%r\" \"%r\" \"%r\"" % (fro, ID, xmlns))
+			LogEvent(WARN, "", "Unknown Iq Request")
 			self.sendIqError(to=fro, fro=to, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 
 	def sendDiscoInfoResponse(self, to, ID, ulang, jid):
 		""" Send a service discovery disco#info stanza to the given 'to'. 'jid' is the JID that was queried. """
-		debug.log("ServerDiscovery: Replying to disco#info request from \"%r\" \"%r\"" % (to, ID))
+		LogEvent(INFO)
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = jid
@@ -148,7 +152,7 @@ class ServerDiscovery:
 
 		# Add any identities
 		for (category, ctype, name) in self.identities.get(searchjid, []):
-			debug.log("Found identity %r %r %r" % (category, ctype, name))
+			#debug.log("Found identity %r %r %r" % (category, ctype, name))
 			identity = query.addElement("identity")
 			identity.attributes["category"] = category
 			identity.attributes["type"] = ctype
@@ -156,7 +160,7 @@ class ServerDiscovery:
 		
 		# Add any supported features
 		for (var, handler) in self.features.get(searchjid, []):
-			debug.log("Found feature %r" % (var))
+			#debug.log("Found feature %r" % (var))
 			feature = query.addElement("feature")
 			feature.attributes["var"] = var
 
@@ -164,7 +168,7 @@ class ServerDiscovery:
 
 	def sendDiscoItemsResponse(self, to, ID, ulang, jid):
 		""" Send a service discovery disco#items stanza to the given 'to'. 'jid' is the JID that was queried. """
-		debug.log("ServerDiscovery: Replying to disco#items request from \"%r\" \"%r\"" % (to, ID))
+		LogEvent(INFO)
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = jid
@@ -180,7 +184,7 @@ class ServerDiscovery:
 		for node in self.nodes.get(searchjid, []):
 			handler, name, rootnode = self.nodes[jid][node]
 			if rootnode:
-				debug.log("Found node %r" % (node))
+				#debug.log("Found node %r" % (node))
 				name = lang.get(name, ulang)
 				item = query.addElement("item")
 				item.attributes["jid"] = jid
@@ -191,7 +195,7 @@ class ServerDiscovery:
 	
 	def sendIqError(self, to, fro, ID, xmlns, etype, condition):
 		""" Sends an IQ error response. See the XMPP RFC for details on the fields. """
-		debug.log("Sending IQ Error: %r %r %r %r %r" % (to,fro,xmlns,etype,condition))
+		#debug.log("Sending IQ Error: %r %r %r %r %r" % (to,fro,xmlns,etype,condition))
 		el = Element((None, "iq"))
 		el.attributes["to"] = to
 		el.attributes["from"] = fro
