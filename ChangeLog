@@ -15,6 +15,9 @@
 	* config_example.xml:
 	Switched to port 5190 since 5238 seems to bust buddy icons.
 
+	* src/web/handler.py:
+	Updated to ask real jabber server if you are who you say you are.
+
 2006-02-12  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
