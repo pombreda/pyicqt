@@ -104,7 +104,7 @@ class LogEvent:
 				# If its not an object with length, assume that it can't be too big. Hope that's a good assumption.
 				pass
 		category = str(self.category).split(".")[1]
-		return "%s :: %s :: %s :: %s :: %s :: %s" % (category, str(self.ident), self.method, str(self.klass), str(args), self.msg)
+		return "%s :: %s :: %s :: %s :: %s :: %s" % (category, str(self.ident), str(self.klass), self.method, str(args), self.msg)
 	
 	def log(self):
 		log.msg(self)

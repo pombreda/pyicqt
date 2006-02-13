@@ -28,7 +28,7 @@ class WebInterface_avatars(rend.Page):
 # Template Node
 class WebInterface_template(rend.Page):
 	addSlash = True
-	docFactory = loaders.xmlfile('data'.X.'www'.'template.html')
+	docFactory = loaders.xmlfile('data'+X+'www'+X+'template.html')
 
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
@@ -76,8 +76,8 @@ class WebInterface_template(rend.Page):
 
 		return ret
 
-	child_images = static.File('data'.X.'www'.X.'images'.X)
-	child_css = static.File('data'.X.'www'.X.'css'.X)
+	child_images = static.File('data'+X+'www'+X+'images'+X)
+	child_css = static.File('data'+X+'www'+X+'css'+X)
 	child_avatars = WebInterface_avatars()
 
 

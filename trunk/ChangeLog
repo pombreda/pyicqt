@@ -1,3 +1,14 @@
+2006-02-12  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Fixed typoed repr.
+
+	* src/debug.py:
+	Adjusted ordering of debug output.
+
+	* src/web/handler.py:
+	Fixed string concat bug.
+
 2006-02-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
