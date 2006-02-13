@@ -171,8 +171,8 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 				if SSL:
 					# look for required
 					starttls = Element((TLS_XMLNS,"starttls"),TLS_XMLNS)
-					# why?
-					starttls['xmlns'] = TLS_XMLNS
+					# why? --- should not be here!!!!!
+					#starttls['xmlns'] = TLS_XMLNS
 					self.xmlstream.addOnetimeObserver("/proceed",self._proceed)
 					self.xmlstream.addOnetimeObserver("/failue",self._tlsError)
 					self.xmlstream.send(starttls)

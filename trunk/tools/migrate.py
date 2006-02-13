@@ -73,11 +73,7 @@ if len(args) != 2:
 
 import xmlconfig
 xmlconfig.Import(conffile, options)
-import utils
-if utils.checkTwisted():
-	from twisted.xish.domish import Element
-else:
-	from tlib.domish import Element
+from tlib.twistwrap import Element
 
 if args[0] == "dump":
 	import xdb

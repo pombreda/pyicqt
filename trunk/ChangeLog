@@ -1,3 +1,20 @@
+2006-02-13  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* tools/migrate.py:
+	Fixed to use new twistwrap stuff.
+
+	* src/sasl.py:
+	Fixed duplicate xmlns declaration.
+
+	* src/tlib/oscar.py:
+	Fixed encoding that doesn't exist everywhere.
+
+	* PyICQt.py:
+	Adjusted call to python.
+
+	* config_example.xml:
+	Switched to port 5190 since 5238 seems to bust buddy icons.
+
 2006-02-12  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
