@@ -15,6 +15,7 @@ import lang
 import string
 import avatar
 from xmppcred import XMPPRealm, XMPPChecker, IXMPPAvatar
+from tlib.twistwrap import jid
 
 X = os.path.sep
 
@@ -37,8 +38,17 @@ class WebInterface_template(rend.Page):
 		request = inevow.IRequest(ctx)
 		username = request.getUser()
 		password = request.getPassword()
+		if not username or not password: return self._loginFailed(None, ctx)
+		LogEvent(INFO, "", repr(username))
+		if username:
+			j = jid.JID(username)
+			jabberHost = j.host
+		else:
+			jabberHost = config.mainServer
+		jabberPort = 5222
 		p = portal.Portal(XMPPRealm())
-		p.registerChecker(XMPPChecker(config.mainServer, 5222))
+		#p.registerChecker(XMPPChecker(config.mainServer, 5222))
+		p.registerChecker(XMPPChecker(jabberHost, jabberPort))
 		creds = credentials.UsernamePassword(username, password)
 		return p.login(creds, None, IXMPPAvatar).addCallback(
 			self._loginSucceeded, ctx).addErrback(

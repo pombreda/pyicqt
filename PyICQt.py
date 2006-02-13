@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Make 'cwd'/src in the PYTHONPATH
 import sys, os, os.path
