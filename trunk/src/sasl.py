@@ -170,9 +170,10 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 			if f.starttls:
 				if SSL:
 					# look for required
-					starttls = Element((TLS_XMLNS,"starttls"),TLS_XMLNS)
+					#starttls = Element((TLS_XMLNS,"starttls"),TLS_XMLNS)
+					starttls = Element((None,"starttls"))
 					# why? --- should not be here!!!!!
-					#starttls['xmlns'] = TLS_XMLNS
+					starttls['xmlns'] = TLS_XMLNS
 					self.xmlstream.addOnetimeObserver("/proceed",self._proceed)
 					self.xmlstream.addOnetimeObserver("/failue",self._tlsError)
 					self.xmlstream.send(starttls)
@@ -190,9 +191,10 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 							break
 						if ms == 'PLAIN':
 							break
-					auth = Element((SASL_XMLNS,"auth"),SASL_XMLNS,{'mechanism' : ms})
+					#auth = Element((SASL_XMLNS,"auth"),SASL_XMLNS,{'mechanism' : ms})
+					auth = Element((None,"auth"),attribs = {'mechanism' : ms})
 					# why?
-					#auth['xmlns'] = SASL_XMLNS
+					auth['xmlns'] = SASL_XMLNS
 					# auth['mechanism'] = ms
 					if ms == 'DIGEST-MD5':
 						self.xmlstream.addOnetimeObserver("/challenge",self._saslStep1)
@@ -248,9 +250,10 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 		self.nc=0
 		self.charset = ra['charset']
 		self.algorithm = ra['algorithm']
-		response = Element((SASL_XMLNS,"response"))
+		#response = Element((SASL_XMLNS,"response"))
+		response = Element((None,"response"))
 		# why?
-		#response['xmlns'] = SASL_XMLNS
+		response['xmlns'] = SASL_XMLNS
 		r = self._response(self.charset,self.realm,self.nonce)
 
 		response.addContent(r)
@@ -263,9 +266,10 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 		ca = self._parse(cs)
 
 		if self.rauth == ca['rspauth']:
-			response = Element((SASL_XMLNS,"response"))
+			#response = Element((SASL_XMLNS,"response"))
+			response = Element((None,"response"))
 			# why?
-			#response['xmlns'] = SASL_XMLNS
+			response['xmlns'] = SASL_XMLNS
 
 			self.xmlstream.removeObserver("/challenge",self._saslStep2)
 			self.xmlstream.addOnetimeObserver("/success",self._saslSuccess)
