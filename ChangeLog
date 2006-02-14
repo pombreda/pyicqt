@@ -18,6 +18,9 @@
 	* src/web/handler.py:
 	Updated to ask real jabber server if you are who you say you are.
 
+	* src/sasl.py:
+	Minor mods to fix duplicate xmlns declaration.
+
 2006-02-12  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
