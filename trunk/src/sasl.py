@@ -192,7 +192,7 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 							break
 					auth = Element((SASL_XMLNS,"auth"),SASL_XMLNS,{'mechanism' : ms})
 					# why?
-					auth['xmlns'] = SASL_XMLNS
+					#auth['xmlns'] = SASL_XMLNS
 					# auth['mechanism'] = ms
 					if ms == 'DIGEST-MD5':
 						self.xmlstream.addOnetimeObserver("/challenge",self._saslStep1)
@@ -250,7 +250,7 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 		self.algorithm = ra['algorithm']
 		response = Element((SASL_XMLNS,"response"))
 		# why?
-		response['xmlns'] = SASL_XMLNS
+		#response['xmlns'] = SASL_XMLNS
 		r = self._response(self.charset,self.realm,self.nonce)
 
 		response.addContent(r)
@@ -265,7 +265,7 @@ class ConnectSASLComponentAuthenticator(SASLConnectComponentAuthenticator):
 		if self.rauth == ca['rspauth']:
 			response = Element((SASL_XMLNS,"response"))
 			# why?
-			response['xmlns'] = SASL_XMLNS
+			#response['xmlns'] = SASL_XMLNS
 
 			self.xmlstream.removeObserver("/challenge",self._saslStep2)
 			self.xmlstream.addOnetimeObserver("/success",self._saslSuccess)
