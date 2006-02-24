@@ -30,6 +30,12 @@ class B(oscar.BOSConnection):
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
 		self.capabilities = [oscar.CAP_ICON, oscar.CAP_UTF]
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN1)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN2)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN3)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN4)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN5)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN6)
 		if not config.disableWebPresence:
 			self.statusindicators = oscar.STATUS_WEBAWARE
 		self.unreadmessages = 0
@@ -208,7 +214,8 @@ class B(oscar.BOSConnection):
 		self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'IncomingMessages', 1)
 		if self.awayMessage and not "auto" in flags:
 			if not self.awayResponses.has_key(user.name) or self.awayResponses[user.name] < (time.time() - 900):
-				self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
+				#self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
+				self.sendMessage(user.name, "Away message: "+self.awayMessage, autoResponse=1)
 				self.awayResponses[user.name] = time.time()
 
 		if "icon" in flags and not config.disableAvatars:
