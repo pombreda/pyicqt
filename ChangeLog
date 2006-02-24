@@ -1,3 +1,14 @@
+2006-02-24  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Fixed double encoding issue with auto-away messages.
+
+2006-02-22  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	* src/legacy/icqt.py:
+	Updated capabilities stuff and tried out a few.
+
 2006-02-14  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/sasl.py:
