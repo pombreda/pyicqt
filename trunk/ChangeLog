@@ -3,6 +3,9 @@
 	* tools/Makefile:
 	Added script to create test install.
 
+	* src/tlib/oscar.py:
+	Fixed stupid error.
+
 2006-02-26  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/avatar.py:
