@@ -157,10 +157,10 @@ class LegacyList:
 			'show': show,
 			'status': status,
 			'url': url,
-                        'ipaddr' : ipaddr,
-                        'lanipaddr' : lanipaddr,
-                        'lanipport' : lanipport,
-                        'icqprotocol' : icqprotocol
+			'ipaddr' : ipaddr,
+			'lanipaddr' : lanipaddr,
+			'lanipport' : lanipport,
+			'icqprotocol' : icqprotocol
 		}
 
 		c = self.session.contactList.findContact(icq2jid(contact))

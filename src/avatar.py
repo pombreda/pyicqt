@@ -73,7 +73,7 @@ class AvatarCache:
 		""" Returns the full path to the directory that a 
 		particular key is in. Creates that directory if it doesn't already exist. """
 		X = os.path.sep
-		d = os.path.os.path.abspath(config.spooldir) + X + config.jid + X + "avatars" + X + key[0:3] + X 
+		d = os.path.abspath(config.spooldir) + X + config.jid + X + "avatars" + X + key[0:3] + X
 		prev_umask = os.umask(SPOOL_UMASK)
 		if not os.path.exists(d):
 			os.makedirs(d)

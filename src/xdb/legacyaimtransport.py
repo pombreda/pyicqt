@@ -19,7 +19,7 @@ class XDB:
 	"""
 	def __init__(self, name):
 		""" Creates an XDB object. """
-                self.name = os.path.join(os.path.abspath(config.spooldir), name)
+		self.name = os.path.join(os.path.abspath(config.spooldir), name)
 		if not os.path.exists(self.name):
 			os.makedirs(self.name)
 	
