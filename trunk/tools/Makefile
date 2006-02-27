@@ -16,6 +16,8 @@ all:
 	@echo "debdist   create a debian distribution of the current version"
 	@echo "md5sums   determine md5 checksums of all distributions of the current version"
 	@echo "dists     try to create all available distributions of the current version"
+	@echo "testinst  create a test install directory based off local source tree"
+
 dists: srcdist rpmdist debdist md5sums
 
 srcdist:
@@ -39,3 +41,9 @@ md5sums:
 	@ver=`cat src/legacy/glue.py | grep 'version =' | cut -f2 -d'"' | cut -f1 -d'"'`; \
 	cd /tmp; \
 	for E in `echo $(EXTENSIONS)`; do if [ -r "$(TNAME)-$${ver}$${E}" ]; then md5sum $(TNAME)-$${ver}$$E; else echo ".........Does not exist.........  $(TNAME)-$${ver}$$E"; fi; done
+
+testinst:
+	@files=`svn list -R`; \
+	rm -rf ../$(TNAME)-test; \
+	mkdir ../$(TNAME)-test; \
+	tar --no-recursion -cf - $${files} | ( cd ../$(TNAME)-test; tar -xf - );

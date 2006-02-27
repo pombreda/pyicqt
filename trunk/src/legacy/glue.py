@@ -24,7 +24,7 @@ import md5
 name = "ICQ Transport"
 
 # The transport's version
-version = "0.7"
+version = "post-0.7"
 
 # URL of the transport's web site
 url = "http://pyicq-t.blathersource.org"
@@ -193,7 +193,6 @@ class LegacyConnection:
 					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 		except AttributeError:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
-			raise
 
 	def newResourceOnline(self, resource):
 		from glue import icq2jid

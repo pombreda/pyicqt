@@ -368,7 +368,7 @@ class B(oscar.BOSConnection):
 		if self.session.pytrans:
 			self.session.sendPresence(to=self.session.jabberID, fro=tmpjid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly, url=self.icqcon.savedURL)
 		if not self.icqcon.savedShow or self.icqcon.savedShow == "online":
-			self.icqcon.setAway(None)
+			self.icqcon.setBack(self.icqcon.savedFriendly)
 		else:
 			self.icqcon.setAway(self.icqcon.savedFriendly)
 		if hasattr(self.icqcon, "myavatar") and not config.disableAvatars:
