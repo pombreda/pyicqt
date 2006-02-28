@@ -173,7 +173,7 @@ class LegacyConnection:
 				iconSum = oscar.getIconSum(self.myavatar)
 				iconLen = len(self.myavatar)
 				iconStamp = time.time()
-				LogEvent(INFO, self.session.jabberID, "Going to send info about our icon, length %d" % iconLen)
+				LogEvent(INFO, self.session.jabberID, "Going to send info about our icon, length %d, cksum %d" % (iconLen, iconSum))
 
 			LogEvent(INFO, self.session.jabberID)
 			if uin[0].isdigit():
