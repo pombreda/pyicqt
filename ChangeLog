@@ -3,6 +3,12 @@
 	* src/tlib/oscar.py:
 	Fixed warning (thanks to pkern from chatroom).
 
+	* src/legacy/legacylist.py:
+	Fixed debug output.
+
+	* src/legacy/glue.py:
+	Fixed lack of removal of "get their icon" indicator.
+
 2006-02-27  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* tools/Makefile:

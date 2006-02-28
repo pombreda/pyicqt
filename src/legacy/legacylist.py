@@ -80,7 +80,7 @@ class LegacyList:
 
 	def diffAvatar(self, contact, md5Hash=None, numHash=None):
 		if self.xdbcontacts.has_key(contact.lower()):
-			LogEvent(INFO, self.session.jabberID, "Comparing [M] %r and %r, [N] %r and %r" % (md5Hash, self.xdbcontacts[contact.lower()]["md5hash"], str(numHash), self.xdbcontacts[contact.lower()]["numhash"]))
+			LogEvent(INFO, self.session.jabberID, "Comparing [M] %r and %r, [N] %r and %r" % (md5Hash, self.xdbcontacts[contact.lower()].get("md5hash",None), str(numHash), self.xdbcontacts[contact.lower()].get("numhash",None)))
 			if self.xdbcontacts[contact.lower()].has_key("md5hash"):
 				if md5Hash and self.xdbcontacts[contact.lower()]["md5hash"] == md5Hash:
 					return False
