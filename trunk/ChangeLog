@@ -1,3 +1,8 @@
+2006-02-28  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Fixed warning (thanks to pkern from chatroom).
+
 2006-02-27  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* tools/Makefile:
@@ -5,6 +10,11 @@
 
 	* src/tlib/oscar.py:
 	Fixed stupid error.
+
+	* src/legacy/glue.py:
+	* src/legacy/legacylist.py:
+	* src/tlib/oscar.py:
+        Worked on improvements to direct buddy icons.
 
 2006-02-26  Daniel Henninger  <jadestorm@nc.rr.com>
 
