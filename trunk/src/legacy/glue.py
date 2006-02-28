@@ -165,6 +165,7 @@ class LegacyConnection:
 			if self.bos.requesticon.has_key(uin):
 				LogEvent(INFO, self.session.jabberID, "Going to ask for target's icon.")
 				wantIcon = 1
+				del self.bos.requesticon[uin]
 
 			iconSum = None
 			iconLen = None
