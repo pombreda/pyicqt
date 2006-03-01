@@ -46,4 +46,4 @@ testinst:
 	@files=`svn list -R`; \
 	rm -rf ../$(TNAME)-test; \
 	mkdir ../$(TNAME)-test; \
-	tar --no-recursion -cf - $${files} | ( cd ../$(TNAME)-test; tar -xf - );
+	tar --no-recursion -cf - $${files} | ( cd ../$(TNAME)-test; tar -xvf - );
