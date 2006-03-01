@@ -162,6 +162,7 @@ class LegacyConnection:
 			self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
 			uin = jid2icq(target)
 			wantIcon = 0
+			offline = 0
 			if self.bos.requesticon.has_key(uin):
 				LogEvent(INFO, self.session.jabberID, "Going to ask for target's icon.")
 				wantIcon = 1
