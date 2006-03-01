@@ -163,8 +163,8 @@ class WebInterface_account(WebInterface_template):
 				network = "AIM"
 			avatar = "-"
 			if not config.disableAvatars and item[1].has_key("shahash"):
-				avatar = T.a(href = ("/avatars/%s"%item[1]["localhash"]))[
-					T.img(border = 0, height = 25, src = ("/avatars/%s"%item[1]["localhash"]))
+				avatar = T.a(href = ("/avatars/%s"%item[1]["shahash"]))[
+					T.img(border = 0, height = 25, src = ("/avatars/%s"%item[1]["shahash"]))
 				]
 			nickname = "-"
 			if item[1].has_key("nickname"):
