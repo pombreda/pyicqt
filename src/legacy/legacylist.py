@@ -136,7 +136,7 @@ class LegacyList:
 					md5Hash = m.digest()
 				if not numHash:
 					numHash = oscar.getIconSum(iconData)
-				self.updateIconHashes(contact.lower(), binascii.hexlify(md5Hash), avatarData.getImageHash(), numHash)
+				self.updateIconHashes(contact.lower(), avatarData.getImageHash(), binascii.hexlify(md5Hash), numHash)
 			except:
 				LogEvent(INFO, self.session.jabberID, "Whoa there, this image doesn't want to work.  Lets leave it where it was...")
 		else:
