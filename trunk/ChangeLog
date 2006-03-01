@@ -9,6 +9,9 @@
 	* src/legacy/glue.py:
 	Fixed lack of removal of "get their icon" indicator.
 
+	* src/legacy/icqt.py:
+	Cleaned up connectionLost code a tad.
+
 2006-02-27  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* tools/Makefile:

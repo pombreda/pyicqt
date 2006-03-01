@@ -64,8 +64,11 @@ class B(oscar.BOSConnection):
 			pass
 
 		oscar.BOSConnection.connectionLost(self, reason)
-		if hasattr(self, "session") and self.session:
+
+		try:
 			self.session.removeMe()
+		except:
+			pass
 
 	def gotUserInfo(self, id, type, userinfo):
 		if userinfo:
