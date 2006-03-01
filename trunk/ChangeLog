@@ -1,3 +1,8 @@
+2006-03-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/web/handler.py:
+	Fixed stupid call to attribute that didn't exist.
+
 2006-02-28  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
