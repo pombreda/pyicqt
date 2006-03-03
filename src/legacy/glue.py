@@ -377,7 +377,7 @@ class LegacyConnection:
 				if len(self.bos.ssiiconsum) > 0:
 					self.bos.startModifySSI()
 					for i in self.bos.ssiiconsum:
-						LogEvent(INFO, self.session.jabberID, "Removing icon %s (u:%d g:%d) from group %s" % (i.name, i.buddyID, i.groupID, i.group.name))
+						LogEvent(INFO, self.session.jabberID, "Removing icon %s (u:%d g:%d)" % (i.name, i.buddyID, i.groupID))
 						de = self.bos.delItemSSI(i)
 					self.bos.endModifySSI()
 					return
