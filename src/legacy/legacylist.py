@@ -163,7 +163,8 @@ class LegacyList:
 			LogEvent(INFO, self.session.jabberID)
 			if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
-				c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+				#c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+				c.updateNickname(nick, push=True)
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
 
 	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None, url=None):
@@ -195,7 +196,8 @@ class LegacyList:
 			self.xdbcontacts[contact.lower()] = {}
 			if nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
-				c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+				#c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+				c.updateNickname(nick, push=True)
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
 			else:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
@@ -203,7 +205,8 @@ class LegacyList:
 		else:
 			if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
-				c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+				#c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+				c.updateNickname(nick, push=True)
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
 			
 
