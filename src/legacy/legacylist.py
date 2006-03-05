@@ -176,13 +176,20 @@ class LegacyList:
 					c.updateAvatar(glue.defaultAIMAvatar, push=False)
 
 		if not self.xdbcontacts.has_key(contact.lower()):
+			self.xdbcontacts[contact.lower()] = {}
 			if nick:
+				self.xdbcontacts[contact.lower()]['nickname'] = nick
 				c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
 			else:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
-			self.xdbcontacts[contact.lower()] = {}
 			self.session.pytrans.xdb.setListEntry("roster", self.session.jabberID, contact.lower(), payload=self.xdbcontacts[contact.lower()])
+		else:
+			if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
+				self.xdbcontacts[contact.lower()]['nickname'] = nick
+				c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
+			
 
 	def getLegacyList(self):
 		LogEvent(INFO, self.session.jabberID)
