@@ -497,12 +497,14 @@ class LegacyConnection:
 			middle = n.addElement("MIDDLE")
 			nickname = vcard.addElement("NICKNAME")
 			nickname.addContent(utils.xmlify(usercol.nick))
+			if usercol.nick:
+				self.legacyList.updateNickname(usercol.userinfo, usercol.nick)
 			bday = vcard.addElement("BDAY")
 			bday.addContent(utils.xmlify(usercol.birthday))
 			desc = vcard.addElement("DESC")
 			desc.addContent(utils.xmlify(usercol.about))
 			try:
-				c = self.contacts.ssicontacts[usercol.userinfo]
+				c = self.legacyList.ssicontacts[usercol.userinfo]
 				desc.addContent(utils.xmlify("\n\n-----\n"+c['lanipaddr']+'/'+c['ipaddr']+':'+"%s"%(c['lanipport'])+' v.'+"%s"%(c['icqprotocol'])))
 			except:
 				pass

@@ -16,6 +16,15 @@
 	* src/jabw.py:
 	Switched namespace for roster subsync.
 
+	* src/legacy/icqt.py:
+	Added better handling of nick.
+
+	* src/tlib/oscar.py:
+	Updated to actually include extended pieces of SSIBuddy.
+
+	* src/legacy/glue.py:
+	Fixed bug with retrieval of ip address and such.
+
 2006-03-03  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:
