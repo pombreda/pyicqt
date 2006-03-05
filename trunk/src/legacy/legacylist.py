@@ -26,7 +26,12 @@ class LegacyList:
 			from glue import icq2jid
 			jabContact = self.session.contactList.createContact(icq2jid(c), "both")
 			if not config.disableAvatars:
-				if self.xdbcontacts[c].has_key("ssihash") and self.xdbcontacts[c].has_key("localhash"):
+				if self.xdbcontacts[c].has_key("shahash"):
+					LogEvent(INFO, self.session.jabberID, "Setting custom avatar for %s" %(c))
+					avatarData = avatar.AvatarCache().getAvatar(self.xdbcontacts[c]["shahash"])
+					jabContact.updateAvatar(avatarData, push=False)
+				elif self.xdbcontacts[c].has_key("localhash"):
+					# Temporary
 					LogEvent(INFO, self.session.jabberID, "Setting custom avatar for %s" %(c))
 					avatarData = avatar.AvatarCache().getAvatar(self.xdbcontacts[c]["localhash"])
 					jabContact.updateAvatar(avatarData, push=False)

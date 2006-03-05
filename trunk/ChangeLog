@@ -3,6 +3,9 @@
 	* src/legacy/legacylist.py:
 	Fixed updateNickname to behave itself...
 
+	* src/legacy/legacylist.py:
+	Fixed stupid bug with cached icons.
+
 2006-03-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:
