@@ -12,6 +12,9 @@
 	* src/legacy/legacylist.py:
 	Adjusted encoding handling of nicknames.
 
+	* src/main.py:
+	Fixed bug with debugLog vs debugFile.
+
 2006-03-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

@@ -440,8 +440,8 @@ class App:
 def main():
 	if daemonizeme:
 		import daemonize
-		if len(config.debugLog) > 0:
-			daemonize.daemonize(stdout=config.debugLog,stderr=config.debugLog)
+		if len(config.debugFile) > 0:
+			daemonize.daemonize(stdout=config.debugFile,stderr=config.debugFile)
 		else:
 			daemonize.daemonize()
 
