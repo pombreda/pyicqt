@@ -380,7 +380,7 @@ class LegacyConnection:
 						LogEvent(INFO, self.session.jabberID, "Removing icon %s (u:%d g:%d)" % (i.name, i.buddyID, i.groupID))
 						de = self.bos.delItemSSI(i)
 					self.bos.endModifySSI()
-					return
+				return
 			if len(self.bos.ssiiconsum) > 0 and self.bos.ssiiconsum[0]:
 				LogEvent(INFO, self.session.jabberID, "Replacing existing icon")
 				self.bos.ssiiconsum[0].updateIcon(imageData)

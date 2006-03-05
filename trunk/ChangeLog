@@ -1,7 +1,28 @@
+2006-03-04  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	Fixed misplaced return.
+
+	* tools/migrate.py:
+	* tools/managessi.py:
+	Switched to /usr/bin/env python.
+
+	* src/tlib/oscar.py:
+	Added functionality to request "short info".
+
+	* src/legacy/icqt.py:
+	Added pieces to auto-retrieve nicknames.
+
+	* src/jabw.py:
+	Switched namespace for roster subsync.
+
 2006-03-03  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:
 	Removed print of variable that didn't exist.
+
+	* src/tlib/oscar.py:
+	Fixed lack of check for errorurl.
 
 2006-03-01  Daniel Henninger  <jadestorm@nc.rr.com>
 

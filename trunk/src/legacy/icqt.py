@@ -347,6 +347,7 @@ class B(oscar.BOSConnection):
 
 	def gotBuddyList(self, l):
 		LogEvent(INFO, self.session.jabberID, "%s" % (str(l)))
+		getnicknames = list()
 		if l is not None and l[0] is not None:
 			for g in l[0]:
 				LogEvent(INFO, self.session.jabberID, "Found group %s" % (g.name))
@@ -354,6 +355,9 @@ class B(oscar.BOSConnection):
 				for u in g.users:
 					LogEvent(INFO, self.session.jabberID, "Got user %s (%s) from group %s" % (u.name, u.nick, g.name))
 					self.icqcon.legacyList.updateSSIContact(u.name, nick=u.nick)
+					if u.name[0].isdigit() and u.name == u.nick:
+						# Hrm, lets get that nick
+						getnicknames.append(u.name)
 		if l is not None and l[5] is not None:
 			for i in l[5]:
 				LogEvent(INFO, self.session.jabberID, "Found icon %s" % (str(i)))
@@ -378,6 +382,26 @@ class B(oscar.BOSConnection):
 			self.icqcon.changeAvatar(self.icqcon.myavatar)
 		self.icqcon.setICQStatus(self.icqcon.savedShow)
 		self.requestOffline()
+		# Ok, lets get those nicknames.
+		for n in getnicknames:
+			self.getShortInfo(n).addCallback(self.gotNickname, n)
+
+	def gotNickname(self, info, uin):
+		LogEvent(INFO, self.session.jabberID)
+		if info[0]:
+			LogEvent(INFO, self.session.jabberID, "Found a nickname, lets update.")
+			self.icqcon.legacyList.updateSSIContact(uin, nick=info[0])
+			savetheseusers = []
+			for g in self.ssigroups:
+				for u in g.users:
+					if u.name == uin:
+						savetheseusers.append(u)
+			if len(savetheseusers) > 0:
+				self.startModifySSI()
+				for u in savetheseusers:
+					u.nick = info[0]
+					self.modifyItemSSI(u)
+				self.endModifySSI()
 
 	def warnedUser(self, oldLevel, newLevel, username):
 		LogEvent(INFO, self.session.jabberID)

@@ -209,7 +209,7 @@ class JabberConnection:
 		el.attributes["from"] = jid
 		el.attributes["type"] = ptype
 		r = el.addElement("x")
-		r.attributes["xmlns"] = "http://jabber.org/protocol/roster-subsync"
+		r.attributes["xmlns"] = globals.SUBSYNC
 		item = r.addElement("item")
 		item.attributes["subscription"] = sub
 		if name:
