@@ -163,9 +163,9 @@ class LegacyList:
 			LogEvent(INFO, self.session.jabberID)
 			if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
-				#c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
-				c.updateNickname(nick, push=True)
-				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
+				c.updateNickname(nick.encode("utf-8", 'replace'), push=True)
+				#c.updateNickname(nick, push=True)
+				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.encode("utf-8", 'replace'))
 
 	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None, url=None):
 		from glue import icq2jid
@@ -196,18 +196,18 @@ class LegacyList:
 			self.xdbcontacts[contact.lower()] = {}
 			if nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
-				#c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
-				c.updateNickname(nick, push=True)
-				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
+				c.updateNickname(nick.encode("utf-8", 'replace'), push=True)
+				#c.updateNickname(nick, push=True)
+				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.encode("utf-8", 'replace'))
 			else:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
 			self.session.pytrans.xdb.setListEntry("roster", self.session.jabberID, contact.lower(), payload=self.xdbcontacts[contact.lower()])
 		else:
 			if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
-				#c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
-				c.updateNickname(nick, push=True)
-				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
+				c.updateNickname(nick.encode("utf-8", 'replace'), push=True)
+				#c.updateNickname(nick, push=True)
+				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.encode("utf-8", 'replace'))
 			
 
 	def getLegacyList(self):
