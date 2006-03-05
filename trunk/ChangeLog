@@ -6,6 +6,12 @@
 	* src/legacy/legacylist.py:
 	Fixed stupid bug with cached icons.
 
+	* src/web/handler.py:
+	Fixed bug with web access check.
+
+	* src/legacy/legacylist.py:
+	Adjusted encoding handling of nicknames.
+
 2006-03-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

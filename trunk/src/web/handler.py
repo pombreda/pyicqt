@@ -95,16 +95,14 @@ class WebInterface_template(rend.Page):
 class WebInterface(WebInterface_template):
 	def childFactory(self, ctx, name):
 		LogEvent(INFO, "", "childFactory %s %s" % (ctx, name))
-		request = inevow.IRequest(ctx)
-		username = request.getUser()
 
 		if name == "account":
 			return WebInterface_account(pytrans=self.pytrans)
-		if name == "status" and config.admins.count(username) > 0:
+		if name == "status":
 			return WebInterface_status(pytrans=self.pytrans)
-		if name == "config" and config.admins.count(username) > 0:
+		if name == "config":
 			return WebInterface_config(pytrans=self.pytrans)
-		if name == "controls" and config.admins.count(username) > 0:
+		if name == "controls":
 			return WebInterface_controls(pytrans=self.pytrans)
 		else:
 			pass
@@ -196,7 +194,14 @@ class WebInterface_account(WebInterface_template):
 # Status Node
 class WebInterface_status(WebInterface_template):
 	def render_content(self, ctx, data):
-		return loaders.htmlstr("""
+		request = inevow.IRequest(ctx)
+		username = request.getUser()
+		if config.admins.count(username) == 0:
+			return loaders.htmlstr("""
+<B>Access Restricted</B>
+""")
+		else:
+			return loaders.htmlstr("""
 <B>Transport Statistics</B>
 <HR />
 <SPAN nevow:render="statistics" />
@@ -247,7 +252,14 @@ class WebInterface_status(WebInterface_template):
 # Configuration Node
 class WebInterface_config(WebInterface_template):
 	def render_content(self, ctx, data):
-		return loaders.htmlstr("""
+		request = inevow.IRequest(ctx)
+		username = request.getUser()
+		if config.admins.count(username) == 0:
+			return loaders.htmlstr("""
+<B>Access Restricted</B>
+""")
+		else:
+			return loaders.htmlstr("""
 <B>Configuration</B>
 <HR />
 <SPAN nevow:render="config" />
@@ -270,7 +282,14 @@ class WebInterface_config(WebInterface_template):
 # Controls Node
 class WebInterface_controls(WebInterface_template):
 	def render_content(self, ctx, data):
-		return loaders.htmlstr("""
+		request = inevow.IRequest(ctx)
+		username = request.getUser()
+		if config.admins.count(username) == 0:
+			return loaders.htmlstr("""
+<B>Access Restricted</B>
+""")
+		else:
+			return loaders.htmlstr("""
 <B>Controls</B>
 <HR />
 <SPAN nevow:render="message" />
