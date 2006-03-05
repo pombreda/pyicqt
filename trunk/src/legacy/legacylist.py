@@ -150,6 +150,15 @@ class LegacyList:
 					else:
 						c.updateAvatar(glue.defaultAIMAvatar, push=True)
 
+	def updateNickname(self, contact, nick):
+		from glue import icq2jid
+
+		LogEvent(INFO, self.session.jabberID)
+		if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
+			self.xdbcontacts[contact.lower()]['nickname'] = nick
+			c.updateNickname(nick.decode(config.encoding, 'replace'), push=True)
+			self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick.decode(config.encoding, 'replace'))
+
 	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None, url=None):
 		from glue import icq2jid
 

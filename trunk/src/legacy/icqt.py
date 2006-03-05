@@ -353,9 +353,9 @@ class B(oscar.BOSConnection):
 				LogEvent(INFO, self.session.jabberID, "Found group %s" % (g.name))
 				self.ssigroups.append(g)
 				for u in g.users:
-					LogEvent(INFO, self.session.jabberID, "Got user %s (%s) from group %s" % (u.name, u.nick, g.name))
+					LogEvent(INFO, self.session.jabberID, "Got user %r (%r) from group %r" % (u.name, u.nick, g.name))
 					self.icqcon.legacyList.updateSSIContact(u.name, nick=u.nick)
-					if u.name[0].isdigit() and u.name == u.nick:
+					if u.name[0].isdigit() and (not u.nick or u.name == u.nick):
 						# Hrm, lets get that nick
 						getnicknames.append(u.name)
 		if l is not None and l[5] is not None:
@@ -390,7 +390,7 @@ class B(oscar.BOSConnection):
 		LogEvent(INFO, self.session.jabberID)
 		if info[0]:
 			LogEvent(INFO, self.session.jabberID, "Found a nickname, lets update.")
-			self.icqcon.legacyList.updateSSIContact(uin, nick=info[0])
+			self.icqcon.legacyList.updateNickname(uin, info[0])
 			savetheseusers = []
 			for g in self.ssigroups:
 				for u in g.users:
