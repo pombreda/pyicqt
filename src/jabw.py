@@ -213,7 +213,11 @@ class JabberConnection:
 		item = r.addElement("item")
 		item.attributes["subscription"] = sub
 		if name:
-			item.attributes["name"] = unicode(name)
+			try:
+				item.attributes["name"] = unicode(name)
+			except:
+				# FIXME, why do i need this?
+				pass
 		for group in groups:
 			g = item.addElement("group")
 			g.addContent(group)

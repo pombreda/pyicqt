@@ -15,6 +15,18 @@
 	* src/main.py:
 	Fixed bug with debugLog vs debugFile.
 
+	* src/jabw.py:
+	Added catch for nickname.
+
+	* src/tlib/oscar.py:
+	Added ability to connect on other ports properly besides 5190.
+
+	* src/legacy/icqt.py:
+	Fixed for stupid problems with port and socks port handling.
+
+	* src/main.py:
+	Fixes for jabberd2 disconnects. (not complete)
+
 2006-03-04  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

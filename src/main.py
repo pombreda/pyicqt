@@ -270,6 +270,7 @@ class PyTransport(component.Service):
 	def componentDisconnected(self):
 		LogEvent(INFO)
 		self.xmlstream = None
+		self.j2bound = 0
 
 	def onRouteMessage(self, el):
 		LogEvent(INFO)
