@@ -41,10 +41,12 @@ class B(oscar.BOSConnection):
 		self.unreadmessages = 0
 		if config.crossChat:
 			self.capabilities.append(oscar.CAP_CROSS_CHAT)
+		oscar.BOSConnection.__init__(self,username,cookie)
 		if config.socksProxyServer and config.socksProxyPort:
 			self.socksProxyServer = config.socksProxyServer
 			self.socksProxyPort = config.socksProxyPort
-		oscar.BOSConnection.__init__(self,username,cookie)
+		if config.icqPort:
+			self.connectPort = int(config.icqPort)
 
 	def initDone(self):
 		if not hasattr(self, "session") or not self.session:
