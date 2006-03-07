@@ -1,3 +1,12 @@
+2006-03-06  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	* PyICQt.py:
+	Added option to enable profiling.
+
+	* src/legacy/glue.py:
+	Updated version to 0.7a.
+
 2006-03-05  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/legacylist.py:
