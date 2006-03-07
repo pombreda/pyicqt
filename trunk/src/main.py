@@ -26,12 +26,15 @@ if VersionNumber(sys.version[:3]) < VersionNumber("2.2"):
 import config
 import xmlconfig
 conffile = "config.xml"
+profilelog = None
 options = {}
 daemonizeme = False
-opts, args = getopt.getopt(sys.argv[1:], "bc:o:dDgtl:h", ["background", "config=", "option=", "debug", "Debug", "garbage", "traceback", "log=", "help"])
+opts, args = getopt.getopt(sys.argv[1:], "bc:o:dDgtl:p:h", ["background", "config=", "option=", "debug", "Debug", "garbage", "traceback", "log=", "profile=", "help"])
 for o, v in opts:
 	if o in ("-c", "--config"):
 		conffile = v
+	elif o in ("-p", "--profile"):
+		profilelog = v
 	elif o in ("-b", "--background"):
                 daemonizeme = True
 	elif o in ("-d", "--debug"):

@@ -9,4 +9,8 @@ sys.path[0] = PATH
 
 # Start the service
 import main
-main.main()
+if main.profilelog:
+	import profile
+	profile.run('main.main()', main.profilelog)
+else:
+	main.main()
