@@ -1,3 +1,11 @@
+2006-03-09  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/glue.py:
+	Updated version to post-0.7a.
+
+	* src/legacy/icqt.py:
+	Added recursive/improved group parse.
+
 2006-03-06  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:

@@ -347,19 +347,29 @@ class B(oscar.BOSConnection):
 	def uploadedBuddyIconToServer(self, iconchecksum):
 		LogEvent(INFO, self.session.jabberID, "%s" % (iconchecksum))
 
+	def readGroup(self, memberlist, parent=None):
+		for member in memberlist:
+			if isinstance(member, oscar.SSIGroup):
+				LogEvent(INFO, self.session.jabberID, "Found group %s" % (member.name))
+				self.ssigroups.append(member)
+				self.readGroup(member.users, parent=member)
+			elif isinstance(member, oscar.SSIBuddy):
+				if parent:
+					LogEvent(INFO, self.session.jabberID, "Found user %r (%r) from group %r" % (member.name, member.nick, parent.name))
+				else:
+					LogEvent(INFO, self.session.jabberID, "Found user %r (%r) from master group" % (member.name, member.nick))
+				self.icqcon.legacyList.updateSSIContact(member.name, nick=member.nick)
+				if member.name[0].isdigit() and (not member.nick or member.name == member.nick):
+					# Hrm, lets get that nick
+					self.getnicknames.append(member.name)
+			else:
+				LogEvent(INFO, self.session.jabberID, "Found unknown SSI entity: %r" % member)
+			
 	def gotBuddyList(self, l):
 		LogEvent(INFO, self.session.jabberID, "%s" % (str(l)))
-		getnicknames = list()
+		self.getnicknames = list()
 		if l is not None and l[0] is not None:
-			for g in l[0]:
-				LogEvent(INFO, self.session.jabberID, "Found group %s" % (g.name))
-				self.ssigroups.append(g)
-				for u in g.users:
-					LogEvent(INFO, self.session.jabberID, "Got user %r (%r) from group %r" % (u.name, u.nick, g.name))
-					self.icqcon.legacyList.updateSSIContact(u.name, nick=u.nick)
-					if u.name[0].isdigit() and (not u.nick or u.name == u.nick):
-						# Hrm, lets get that nick
-						getnicknames.append(u.name)
+			self.readGroup(l[0])
 		if l is not None and l[5] is not None:
 			for i in l[5]:
 				LogEvent(INFO, self.session.jabberID, "Found icon %s" % (str(i)))
@@ -385,7 +395,7 @@ class B(oscar.BOSConnection):
 		self.icqcon.setICQStatus(self.icqcon.savedShow)
 		self.requestOffline()
 		# Ok, lets get those nicknames.
-		for n in getnicknames:
+		for n in self.getnicknames:
 			self.getShortInfo(n).addCallback(self.gotNickname, n)
 
 	def gotNickname(self, info, uin):
