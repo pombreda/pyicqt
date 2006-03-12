@@ -6,9 +6,9 @@ XMPP credential classes
 
 from twisted.cred import portal, checkers, credentials, error as credError
 from twisted.internet import protocol, reactor, defer
-from zope.interface import Interface, implements
+from tlib.ifcompat import Interface, implements
+from tlib.twistwrap import client, xmlstream, jid
 from twisted.python import log, failure
-from twisted.words.protocols.jabber import client, xmlstream, jid
 from twisted.protocols import basic
 
 class XMPPChecker(object):

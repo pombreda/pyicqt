@@ -453,13 +453,14 @@ def main():
 	xdb.housekeep()
 
 	app = App()
-	if hasattr(config, "webport") and config.webport:
+	if config.webport:
 		try:
 			from nevow import appserver
 			import web
 			site = appserver.NevowSite(web.WebInterface(pytrans=app.transportSvc))
-			reactor.listenTCP(int(config.webport), site)
+			reactor.listenTCP(config.webport, site)
 			LogEvent(INFO, "", "Web interface activated")
 		except:
 			LogEvent(WARN, "", "Unable to start web interface.  Either Nevow is not installed or you need a more recent version of Twisted.  (>= 2.0.0.0)")
+			raise
 	reactor.run()

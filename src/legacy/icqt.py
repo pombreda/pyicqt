@@ -46,7 +46,7 @@ class B(oscar.BOSConnection):
 			self.socksProxyServer = config.socksProxyServer
 			self.socksProxyPort = config.socksProxyPort
 		if config.icqPort:
-			self.connectPort = int(config.icqPort)
+			self.connectPort = config.icqPort
 
 	def initDone(self):
 		if not hasattr(self, "session") or not self.session:
@@ -432,10 +432,10 @@ class OA(oscar.OscarAuthenticator):
 	def connectToBOS(self, server, port):
 		if config.socksProxyServer:
 			c = socks5.ProxyClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.icqcon)
-			return c.connectSocks5Proxy(server, int(port), config.socksProxyServer, int(config.socksProxyPort), "OABOS")
+			return c.connectSocks5Proxy(server, port, config.socksProxyServer, config.socksProxyPort, "OABOS")
 		else:
 			c = protocol.ClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.icqcon)
-			return c.connectTCP(server, int(port))
+			return c.connectTCP(server, port)
 
 #	def connectionLost(self, reason):
 #		message = "ICQ connection lost! Reason: %s" % reason

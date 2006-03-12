@@ -108,13 +108,13 @@ class LegacyConnection:
 		self.userinfoID = 0
 		self.deferred = defer.Deferred()
 		self.deferred.addErrback(self.errorCallback)
-		hostport = (config.icqServer, int(config.icqPort))
+		hostport = (config.icqServer, config.icqPort)
 		LogEvent(INFO, self.session.jabberID, "Creating")
 		if config.socksProxyServer and config.socksProxyPort:
 			self.oa = icqt.OA
 			self.creator = socks5.ProxyClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
 			LogEvent(INFO, self.session.jabberID, "Connect via socks proxy")
-			self.creator.connectSocks5Proxy(config.icqServer, int(config.icqPort), config.socksProxyServer, int(config.socksProxyPort), "ICQCONN")
+			self.creator.connectSocks5Proxy(config.icqServer, config.icqPort, config.socksProxyServer, config.socksProxyPort, "ICQCONN")
 		else:
 			self.oa = icqt.OA
 			self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
@@ -162,11 +162,17 @@ class LegacyConnection:
 			self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
 			uin = jid2icq(target)
 			wantIcon = 0
-			offline = 0
 			if self.bos.requesticon.has_key(uin):
 				LogEvent(INFO, self.session.jabberID, "Going to ask for target's icon.")
 				wantIcon = 1
 				del self.bos.requesticon[uin]
+			offline = 1
+			try:
+				if self.legacyList.ssicontacts[uin]['presence'] != "unavailable":
+					offline = 0
+			except:
+				# well then they're online in some way
+				pass
 
 			iconSum = None
 			iconLen = None
@@ -185,14 +191,14 @@ class LegacyConnection:
 					encoding = "utf-16be"
 					charset = "unicode"
 				LogEvent(INFO, self.session.jabberID, "Encoding %r" % encoding)
-				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
+				self.bos.sendMessage(uin, [[message,charset]], offline=offline, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 			else:
 				if xhtml and not config.disableXHTML:
 					xhtml = utils.xhtml_to_aimhtml(xhtml)
-					self.bos.sendMessage(uin, xhtml, offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
+					self.bos.sendMessage(uin, xhtml, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 				else:
 					htmlized = oscar.html(message)
-					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
+					self.bos.sendMessage(uin, htmlized, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 		except AttributeError:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 

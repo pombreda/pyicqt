@@ -1,3 +1,37 @@
+2006-03-11  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/config.py:
+	* src/xmlconfig.py:
+	* src/main.py:
+	* src/debug.py:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	Added true integer checking in config file.
+
+	* src/web/handler.py:
+	Added handling for port specification. (username@hostname%port)
+
+	* src/web/xmppcred.py:
+	* src/tlib/twistwrap.py:
+	* src/tlib/ifcompat.py:
+	* src/tlib/xmlstream.py:
+	Added functionality to make web interface compatible with twisted 1.*.
+
+	* src/tlib/oscar.py:
+	Adjusted snac handling to make sure calls look the same.
+
+	* src/debug.py:
+	Killed 'self' debug instance.
+
+	* src/legacy/glue.py:
+	Adjusted to check for offline vs online for messages.
+
+	* src/tlib/scheduler.py:
+	Minor cosmetic cleanup.
+
+	* src/tlib/oscar.py:
+	Added better repr printing of various objects.
+
 2006-03-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

@@ -4,7 +4,7 @@
 from nevow import rend, loaders, inevow, static
 from nevow import tags as T
 #from twisted.protocols import http
-from twisted.web import microdom, http
+from twisted.web import microdom
 from twisted.internet import reactor
 from twisted.cred import portal, credentials
 from debug import LogEvent, INFO, WARN, ERROR
@@ -15,7 +15,7 @@ import lang
 import string
 import avatar
 from xmppcred import XMPPRealm, XMPPChecker, IXMPPAvatar
-from tlib.twistwrap import jid
+from tlib.twistwrap import jid, http
 
 X = os.path.sep
 
@@ -40,12 +40,20 @@ class WebInterface_template(rend.Page):
 		password = request.getPassword()
 		if not username or not password: return self._loginFailed(None, ctx)
 		LogEvent(INFO, "", repr(username))
+		jabberPort = 5222
+		port_sep = username.find("%")
+		if port_sep != -1:
+			jabberPort = int(username[port_sep+1:])
+			username = username[0:port_sep]
 		if username:
-			j = jid.JID(username)
+			try:
+				j = jid.JID(username)
+			except InvalidFormat:
+				return self._loginFailed(None, ctx)
 			jabberHost = j.host
 		else:
 			jabberHost = config.mainServer
-		jabberPort = 5222
+		LogEvent(INFO, "", "Port = %r" % jabberPort)
 		p = portal.Portal(XMPPRealm())
 		#p.registerChecker(XMPPChecker(config.mainServer, 5222))
 		p.registerChecker(XMPPChecker(jabberHost, jabberPort))
