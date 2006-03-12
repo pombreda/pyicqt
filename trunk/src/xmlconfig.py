@@ -62,6 +62,19 @@ def importFile(conffile):
 				setattr(config, tag, cdata)
 			except AttributeError:
 				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
+		elif type(getattr(config, tag)) == int:
+			# For config options like <port>5347</port>
+			try:
+				if not cdata:
+					invalidError("Tag %r in your configuration file should be an integer (ie, must have numeric cdata)." % (tag))
+				LogEvent(INFO, "", "Setting config option %r = %r" % (tag, cdata))
+				try:
+					setattr(config, tag, int(cdata))
+				except:
+					# Isn't an integer apparantly.
+					invalidError("Tag %r in your configuration file should be an integer (ie, must have numeric cdata)." % (tag))
+			except AttributeError:
+				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
 		elif type(getattr(config, tag)) == bool:
 			# For config options like <crossChat/>
 			try:

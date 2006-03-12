@@ -1,3 +1,7 @@
+0.7b:
+
+* Web interface works in Twisted 1.* again.
+
 0.7a:
 
 * ICQ nicknames are now retrieved and propaged via event updates.

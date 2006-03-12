@@ -61,6 +61,12 @@ try:
 	from twisted.words.protocols.jabber import jid, component, client, jstrports, xmlstream
 	jid.intern = jid.internJID # This got renamed for some reason
 	log.msg("Using Twisted >= 2.0, Words >= 0.3, Words DOM")
+	try:
+		from twisted.web import http
+		log.msg("Using Twisted Web")
+	except:
+		http = None
+		log.msg("No Twisted Web found")
 except ImportError:
 	try:
 		log.msg("Checking Twisted version...")
@@ -70,11 +76,18 @@ except ImportError:
 			from twisted.words.protocols.jabber import jid, component, client, jstrports
 			jid.intern = jid.internJID # This got renamed for some reason
 			log.msg("Using Twisted >= 2.0, Words < 0.3, Twisted DOM")
+			try:
+				from twisted.web import http
+				log.msg("Using Twisted Web")
+			except:
+				http = None
+				log.msg("No Twisted Web found")
 		else:
 			from tlib.domish import SuxElementStream, Element, unescapeFromXml, elementStream
 			from tlib import xmlstream
 			from tlib.jabber import jid, component, client, jstrports
-			log.msg("Using Twisted < 2.0, Internal patched DOM")
+			from twisted.protocols import http
+			log.msg("Using Twisted < 2.0, Internal patched DOM, Twisted HTTP")
 	except ImportError:
 		print "Could not find the XML DOM. If you're using Twisted 2.x make sure you have twisted.words installed."
 		raise

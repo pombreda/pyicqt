@@ -116,7 +116,7 @@ class ConnectAuthenticator(Authenticator):
         else:
             sh = "<stream:stream xmlns='%s' xmlns:stream='http://etherx.jabber.org/streams' to='%s'>" % \
                  (self.namespace, self.streamHost)
-        self.xmlstream.send(sh)
+        self.xmlstream.send(str(sh))
     
 class XmlStream(protocol.Protocol, utility.EventDispatcher):
     def __init__(self, authenticator):
