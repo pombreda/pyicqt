@@ -7,6 +7,7 @@ import legacy
 import jabw
 import contact
 import avatar
+import globals
 from debug import LogEvent, INFO, WARN, ERROR
 import lang
 from tlib.twistwrap import jid
@@ -123,7 +124,7 @@ class Session(jabw.JabberConnection):
 			LogEvent(INFO, self.jabberID)
 			vCard = None
 			for e in el.elements():
-				if e.name == "vCard" and e.defaultUri == "vcard-temp":
+				if e.name == "vCard" and e.defaultUri == globals.VCARD:
 					vCard = e
 					break
 			else:

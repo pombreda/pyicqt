@@ -4,7 +4,6 @@
 import utils
 from tlib.twistwrap import Element, jid
 from twisted.internet import reactor, task
-
 import jabw
 import legacy
 import disco
@@ -49,7 +48,7 @@ class ConnectUsers:
 		command.attributes["status"] = "completed"
 
 		x = command.addElement("x")
-		x.attributes["xmlns"] = "jabber:x:data"
+		x.attributes["xmlns"] = globals.XDATA
 		x.attributes["type"] = "result"
 
 		title = x.addElement("title")
@@ -109,7 +108,7 @@ class Statistics:
 		command.attributes["status"] = "completed"
 
 		x = command.addElement("x")
-		x.attributes["xmlns"] = "jabber:x:data"
+		x.attributes["xmlns"] = globals.XDATA
 		x.attributes["type"] = "result"
 
 		title = x.addElement("title")
@@ -230,8 +229,8 @@ class AdHocCommands:
 class VCardFactory:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		self.pytrans.discovery.addFeature("vcard-temp", self.incomingIq, "USER")
-		self.pytrans.discovery.addFeature("vcard-temp", self.incomingIq, config.jid)
+		self.pytrans.discovery.addFeature(globals.VCARD, self.incomingIq, "USER")
+		self.pytrans.discovery.addFeature(globals.VCARD, self.incomingIq, config.jid)
 		self.pytrans.adHocCommands.addCommand("updatemyvcard", self.getMyVCard, "command_UpdateMyVCard")
 
 	def incomingIq(self, el):
@@ -264,7 +263,7 @@ class VCardFactory:
 				iq.attributes["id"] = ID
 				iq.attributes["type"] = "result"
 				vCard = iq.addElement("vCard")
-				vCard.attributes["xmlns"] = "vcard-temp"
+				vCard.attributes["xmlns"] = globals.VCARD
 				self.pytrans.legacycon.getvCardNotInList(vCard, to).addCallback(self.gotvCardResponse, iq)
 				return
 				# Lets leave this up to the legacy pieces
@@ -277,7 +276,7 @@ class VCardFactory:
 		iq.attributes["id"] = ID
 		iq.attributes["type"] = "result"
 		vCard = iq.addElement("vCard")
-		vCard.attributes["xmlns"] = "vcard-temp"
+		vCard.attributes["xmlns"] = globals.VCARD
 		if toGateway:
 			FN = vCard.addElement("FN")
 			FN.addContent(legacy.name)
@@ -329,7 +328,7 @@ class VCardFactory:
 		command.attributes["status"] = "completed"
 
 		x = command.addElement("x")
-		x.attributes["xmlns"] = "jabber:x:data"
+		x.attributes["xmlns"] = globals.XDATA
 		x.attributes["type"] = "result"
 
 		title = x.addElement("title")
@@ -345,8 +344,8 @@ class VCardFactory:
 class IqAvatarFactory:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		self.pytrans.discovery.addFeature("jabber:iq:avatar", self.incomingIq, "USER")
-		self.pytrans.discovery.addFeature("storage:client:avatar", self.incomingIq, "USER")
+		self.pytrans.discovery.addFeature(globals.IQAVATAR, self.incomingIq, "USER")
+		self.pytrans.discovery.addFeature(globals.STORAGEAVATAR, self.incomingIq, "USER")
 
 	def incomingIq(self, el):
 		itype = el.getAttribute("type")
@@ -403,7 +402,7 @@ class PingService:
 class GatewayTranslator:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		self.pytrans.discovery.addFeature("jabber:iq:gateway", self.incomingIq, config.jid)
+		self.pytrans.discovery.addFeature(globals.IQGATEWAY, self.incomingIq, config.jid)
 	
 	def incomingIq(self, el):
 		fro = el.getAttribute("from")
@@ -424,7 +423,7 @@ class GatewayTranslator:
 		iq.attributes["to"] = to
 		iq.attributes["id"] = ID
 		query = iq.addElement("query")
-		query.attributes["xmlns"] = "jabber:iq:gateway"
+		query.attributes["xmlns"] = globals.IQGATEWAY
 		desc = query.addElement("desc")
 		desc.addContent(lang.get("gatewaytranslator", ulang))
 		prompt = query.addElement("prompt")
@@ -453,14 +452,14 @@ class GatewayTranslator:
 			iq.attributes["to"] = to
 			iq.attributes["id"] = ID
 			query = iq.addElement("query")
-			query.attributes["xmlns"] = "jabber:iq:gateway"
+			query.attributes["xmlns"] = globals.IQGATEWAY
 			prompt = query.addElement("prompt")
 			prompt.addContent(legacy.translateAccount(legacyaccount))
 			
 			self.pytrans.send(iq)
 		
 		else:
-			self.pytrans.discovery.sendIqError(to, ID, "jabber:iq:gateway")
+			self.pytrans.discovery.sendIqError(to, ID, globals.IQGATEWAY)
 			self.pytrans.discovery.sendIqError(to=to, fro=config.jid, ID=ID, xmlns="jabber:iq:gateway", etype="retry", condition="bad-request")
 
 
@@ -468,8 +467,8 @@ class GatewayTranslator:
 class VersionTeller:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		self.pytrans.discovery.addFeature("jabber:iq:version", self.incomingIq, config.jid)
-		self.pytrans.discovery.addFeature("jabber:iq:version", self.incomingIq, "USER")
+		self.pytrans.discovery.addFeature(globals.IQVERSION, self.incomingIq, config.jid)
+		self.pytrans.discovery.addFeature(globals.IQVERSION, self.incomingIq, "USER")
 
 	def incomingIq(self, el):
 		eltype = el.getAttribute("type")
@@ -486,7 +485,7 @@ class VersionTeller:
 		if el.getAttribute("id"):
 			iq.attributes["id"] = el.getAttribute("id")
 		query = iq.addElement("query")
-		query.attributes["xmlns"] = "jabber:iq:version"
+		query.attributes["xmlns"] = globals.IQVERSION
 		name = query.addElement("name")
 		name.addContent(legacy.name)
 		version = query.addElement("version")
@@ -500,7 +499,7 @@ class VersionTeller:
 class SearchFactory:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		self.pytrans.discovery.addFeature("jabber:iq:search", self.incomingIq, config.jid)
+		self.pytrans.discovery.addFeature(globals.IQSEARCH, self.incomingIq, config.jid)
 
 	def incomingIq(self, el):
 		eltype = el.getAttribute("type")
@@ -523,11 +522,11 @@ class SearchFactory:
 		if el.getAttribute("id"):
 			iq.attributes["id"] = el.getAttribute("id")
 		query = iq.addElement("query")
-		query.attributes["xmlns"] = "jabber:iq:search"
+		query.attributes["xmlns"] = globals.IQSEARCH
 		forminstr = query.addElement("instructions")
 		forminstr.addContent(lang.get("searchnodataform", ulang))
 		x = query.addElement("x")
-		x.attributes["xmlns"] = "jabber:x:data"
+		x.attributes["xmlns"] = globals.XDATA
 		x.attributes["type"] = "form"
 		title = x.addElement("title")
 		title.addContent(lang.get("searchtitle", ulang))
@@ -562,9 +561,9 @@ class SearchFactory:
 		if ID:
 			iq.attributes["id"] = ID
 		query = iq.addElement("query")
-		query.attributes["xmlns"] = "jabber:iq:search"
+		query.attributes["xmlns"] = globals.IQSEARCH
 		x = query.addElement("x")
-		x.attributes["xmlns"] = "jabber:x:data"
+		x.attributes["xmlns"] = globals.XDATA
 		x.attributes["type"] = "result"
 		x.addChild(utils.makeDataFormElement("hidden", "FORM_TYPE", value="jabber:iq:search"))
 		reported = x.addElement("reported")
@@ -592,12 +591,12 @@ class SearchFactory:
 				break
 
 		if not hasattr(self.pytrans, "legacycon"):
-			self.pytrans.discovery.sendIqError(to=to, fro=config.jid, ID=ID, xmlns="jabber:iq:search", etype="cancel", condition="bad-request")
+			self.pytrans.discovery.sendIqError(to=to, fro=config.jid, ID=ID, xmlns=globals.IQSEARCH, etype="cancel", condition="bad-request")
 
 		if dataform:
 			self.pytrans.legacycon.doSearch(dataform, iq).addCallback(self.gotSearchResponse)
 		else:
-			self.pytrans.discovery.sendIqError(to=to, fro=config.jid, ID=ID, xmlns="jabber:iq:search", etype="retry", condition="bad-request")
+			self.pytrans.discovery.sendIqError(to=to, fro=config.jid, ID=ID, xmlns=globals.IQSEARCH, etype="retry", condition="bad-request")
 
 	def gotSearchResponse(self, iq):
 		LogEvent(INFO)

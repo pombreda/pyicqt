@@ -238,8 +238,8 @@ class PyTransport(component.Service):
 			pres.attributes["to"] = "presence@-internal"
 			pres.attributes["from"] = config.compjid
 			x = pres.addElement("x")
-			x.attributes["xmlns"] = "http://www.jabber.com/schemas/component-presence.xsd"
-			x.attributes["xmlns:config"] = "http://www.jabber.com/config"
+			x.attributes["xmlns"] = globals.COMPPRESENCE
+			x.attributes["xmlns:config"] = globals.CONFIG
 			x.attributes["config:version"] = "1"
 			x.attributes["protocol-version"] = "1.0"
 			x.attributes["config-ns"] = legacy.url + "/component"
@@ -462,5 +462,4 @@ def main():
 			LogEvent(INFO, "", "Web interface activated")
 		except:
 			LogEvent(WARN, "", "Unable to start web interface.  Either Nevow is not installed or you need a more recent version of Twisted.  (>= 2.0.0.0)")
-			raise
 	reactor.run()

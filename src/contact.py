@@ -10,6 +10,7 @@ from debug import LogEvent, INFO, WARN, ERROR
 import lang
 import sha
 import legacy
+import globals
 
 
 class Contact:
@@ -164,7 +165,7 @@ class Contact:
 		if self.avatar and not config.disableAvatars:
 			avatarHash = self.avatar.getImageHash()
 		caps = Element((None, "c"))
-		caps.attributes["xmlns"] = "http://jabber.org/protocol/caps"
+		caps.attributes["xmlns"] = globals.CAPS
 		caps.attributes["node"] = legacy.url + "/protocol/caps"
 		caps.attributes["ver"] = legacy.version
 		if not tojid:
