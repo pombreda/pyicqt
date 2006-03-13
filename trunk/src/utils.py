@@ -8,6 +8,7 @@ import config
 import os
 import os.path
 import sys
+import globals
 from twisted.web import microdom
 from tlib.twistwrap import Element, SuxElementStream
 
@@ -158,7 +159,7 @@ def prepxhtml(s):
 		ret = re.sub('<\?xml.*\?>', '', ret)
 
 		# Make sure our root tag is properly namespaced
-		ret = "<html xmlns=\"http://jabber.org/protocol/xhtml-im\">%s</html>"%ret;
+		ret = "<html xmlns=\""+globals.XHTML+"\">%s</html>"%ret;
 
 		LogEvent(INFO, "", "Made %r" % ret)
 		return ret.encode("utf-8","replace")

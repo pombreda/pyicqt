@@ -15,7 +15,7 @@ class RegisterManager:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
 		if not config.disableRegister:
-			self.pytrans.discovery.addFeature("jabber:iq:register", self.incomingRegisterIq, config.jid)
+			self.pytrans.discovery.addFeature(globals.IQREGISTER, self.incomingRegisterIq, config.jid)
 		LogEvent(INFO)
 	
 	def removeRegInfo(self, jabberID):
@@ -49,7 +49,7 @@ class RegisterManager:
 		reply.attributes["id"] = incoming.getAttribute("id")
 		reply.attributes["type"] = "result"
 		query = reply.addElement("query")
-		query.attributes["xmlns"] = "jabber:iq:register"
+		query.attributes["xmlns"] = globals.IQREGISTER
 		instructions = query.addElement("instructions")
 		ulang = utils.getLang(incoming)
 		instructions.addContent(lang.get("registertext", ulang))

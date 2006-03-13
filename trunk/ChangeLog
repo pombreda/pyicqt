@@ -1,3 +1,22 @@
+2006-03-12  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Removed raise (that was there for testing)
+
+	* src/contact.py:
+	* src/globals.py:
+	* src/jabw.py:
+	* src/main.py:
+	* src/misciq.py:
+	* src/register.py:
+	* src/session.py:
+	* src/utils.py:
+	Starting really using globals.
+
+	* src/tlib/oscar.py:
+	* src/legacy/icqt.py:
+	Started passing direct variables instead of arrays.
+
 2006-03-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/config.py:

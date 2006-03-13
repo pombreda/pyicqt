@@ -169,13 +169,8 @@ class B(oscar.BOSConnection):
 			c.updatePresence(show=show, status=status, ptype=ptype, url=url)
 			self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
-	def gotBuddyIconFromServer(self, iconinfo):
+	def gotBuddyIconFromServer(self, contact, icontype, iconhash, iconlen, icondata):
 		if config.disableAvatars: return
-		contact = iconinfo[0]
-		icontype = iconinfo[1]
-		iconhash = iconinfo[2]
-		iconlen = iconinfo[3]
-		icondata = iconinfo[4]
 		LogEvent(INFO, self.session.jabberID, "%s: hash: %s, len: %d" % (contact, binascii.hexlify(iconhash), iconlen))
 		if iconlen > 0 and iconlen != 90: # Some ICQ clients send crap
 			self.icqcon.legacyList.updateAvatar(contact, icondata, md5Hash=iconhash)
@@ -398,11 +393,11 @@ class B(oscar.BOSConnection):
 		for n in self.getnicknames:
 			self.getShortInfo(n).addCallback(self.gotNickname, n)
 
-	def gotNickname(self, info, uin):
+	def gotNickname(self, nick, first, last, email, uin):
 		LogEvent(INFO, self.session.jabberID)
-		if info[0]:
+		if nick:
 			LogEvent(INFO, self.session.jabberID, "Found a nickname, lets update.")
-			self.icqcon.legacyList.updateNickname(uin, info[0])
+			self.icqcon.legacyList.updateNickname(uin, nick)
 			savetheseusers = []
 			for g in self.ssigroups:
 				for u in g.users:
@@ -411,7 +406,7 @@ class B(oscar.BOSConnection):
 			if len(savetheseusers) > 0:
 				self.startModifySSI()
 				for u in savetheseusers:
-					u.nick = info[0]
+					u.nick = nick
 					self.modifyItemSSI(u)
 				self.endModifySSI()
 

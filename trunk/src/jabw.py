@@ -21,17 +21,17 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None):
 
 	if delay:
 		x = el.addElement("x")
-		x.attributes["xmlns"] = "jabber:x:delay"
+		x.attributes["xmlns"] = globals.IQDELAY
 		x.attributes["from"] = fro
 		x.attributes["stamp"] = delay
 
 	b = el.addElement("body")
 	b.addContent(utils.xmlify(body))
 	x = el.addElement("x")
-	x.attributes["xmlns"] = "jabber:x:event"
+	x.attributes["xmlns"] = globals.XEVENT
 	composing = x.addElement("composing")
 	xx = el.addElement("active")
-	xx.attributes["xmlns"] = "http://jabber.org/protocol/chatstates"
+	xx.attributes["xmlns"] = globals.CHATSTATES
 
 	if xhtml and not config.disableXHTML:
 		try:
@@ -64,13 +64,13 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 		s.addContent(priority)
 	if url:
 		s = el.addElement("x")
-		s.attributes["xmlns"] = "jabber:x:oob"
+		s.attributes["xmlns"] = globals.XOOB
 		s = el.addElement("url")
 		s.addContent(url)
 
 	if ptype != "probe":
 		x = el.addElement("x")
-		x.attributes["xmlns"] = "vcard-temp:x:update"
+		x.attributes["xmlns"] = globals.VCARDUPDATE
 		if avatarHash and not config.disableAvatars:
 			p = x.addElement("photo")
 			p.addContent(avatarHash)
@@ -79,7 +79,7 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 			n.addContent(nickname)
 		if avatarHash and not config.disableAvatars:
 			xx = el.addElement("x")
-			xx.attributes["xmlns"] = "jabber:x:avatar"
+			xx.attributes["xmlns"] = globals.XAVATAR
 			h = xx.addElement("hash")
 			h.addContent(avatarHash)
 		if payload:
@@ -98,9 +98,9 @@ def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None,
 	error.attributes["code"] = str(utils.errorCodeMap[condition])
 	if condition:
 		desc = error.addElement(condition)
-		desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+		desc.attributes["xmlns"] = globals.XMPP_STANZAS
 	text = error.addElement("text")
-	text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
+	text.attributes["xmlns"] = globals.XMPP_STANZAS
 	text.addContent(explanation)
 
 	if body and len(body) > 0:
@@ -138,7 +138,8 @@ class JabberConnection:
 	
 	def sendMessage(self, to, fro, body, mtype=None, delay=None, xhtml=None):
 		""" Sends a Jabber message 
-		For this message to have a <x xmlns="jabber:x:delay"/> you must pass a correctly formatted timestamp (See JEP0091)
+		For this message to have a <x xmlns="jabber:x:delay"/>
+		you must pass a correctly formatted timestamp (See JEP0091)
 		"""
 		LogEvent(INFO, self.jabberID)
 		if xhtml and not self.hasCapability(globals.XHTML):
@@ -154,7 +155,7 @@ class JabberConnection:
 			el.attributes["to"] = to
 			el.attributes["from"] = fro
 			x = el.addElement("x")
-			x.attributes["xmlns"] = "jabber:x:event"
+			x.attributes["xmlns"] = globals.XEVENT
 			if typing:
 				composing = x.addElement("composing") 
 			id = x.addElement("id")
@@ -170,7 +171,7 @@ class JabberConnection:
 			el.attributes["to"] = to
 			el.attributes["from"] = fro
 			x = el.addElement(state)
-			x.attributes["xmlns"] = "http://jabber.org/protocol/chatstates"
+			x.attributes["xmlns"] = globals.CHATSTATES
 			self.pytrans.send(el)
 
 	def sendVCardRequest(self, to, fro):
@@ -184,7 +185,7 @@ class JabberConnection:
 		el.attributes["type"] = "get"
 		el.attributes["id"] = self.pytrans.makeMessageID()
 		vCard = el.addElement("vCard")
-		vCard.attributes["xmlns"] = "vcard-temp"
+		vCard.attributes["xmlns"] = globals.VCARD
 		return self.pytrans.discovery.sendIq(el)
 
 	def sendErrorMessage(self, to, fro, etype, explanation, condition=None, body=None):
@@ -288,10 +289,10 @@ class JabberConnection:
 				error = child.__str__()
 			elif child.name == "html":
 				xhtml = child.toXml()
-			elif child.name == "noerror" and child.uri == "sapo:noerror":
+			elif child.name == "noerror" and child.uri == globals.SAPO_NOERROR:
 				noerror = True
 			elif child.name == "x":
-				if child.uri == "jabber:x:event":
+				if child.uri == globals.XEVENT:
 					messageEvent = True
 					composing = False
 					for deepchild in child.elements():
@@ -299,7 +300,7 @@ class JabberConnection:
 							composing = True
 							break
 			elif child.name == "composing" or child.name == "active" or child.name == "paused" or child.name == "inactive" or child.name == "gone":
-				if child.uri=="http://jabber.org/protocol/chatstates":
+				if child.uri==globals.CHATSTATES:
 					chatStates = True
 					chatStateEvent = child.name
 		
@@ -358,17 +359,17 @@ class JabberConnection:
 					show = child.__str__()
 				elif child.name == "priority":
 					priority = child.__str__()
-				elif child.defaultUri == "http://jabber.org/protocol/tune":
+				elif child.defaultUri == globals.TUNE:
 					for child2 in child.elements():
-						if child2.defaultUri == "jabber:x:oob":
+						if child2.defaultUri == globals.XOOB:
 							for child3 in child2.elements():
 								if child3.name == "url":
 									url=child3.__str__()
-				elif child.defaultUri == "jabber:x:oob":
+				elif child.defaultUri == globals.XOOB:
 					for child2 in child.elements():
 						if child2.name == "url":
 							url=child2.__str__()
-				elif child.defaultUri == "vcard-temp:x:update" and not config.disableAvatars:
+				elif child.defaultUri == globals.VCARDUPDATE and not config.disableAvatars:
 					avatarHash = " "
 					for child2 in child.elements():
 						if child2.name == "photo":
