@@ -75,7 +75,7 @@ class B(oscar.BOSConnection):
 	def gotUserInfo(self, id, type, userinfo):
 		if userinfo:
 			for i in range(len(userinfo)):
-				userinfo[i] = userinfo[i].decode(config.encoding, "replace")
+				userinfo[i] = userinfo[i].decode(config.encoding, "replace").encode("utf-8", "replace")
 		if self.icqcon.userinfoCollection[id].gotUserInfo(id, type, userinfo):
 			# True when all info packages has been received
 			self.icqcon.gotvCard(self.icqcon.userinfoCollection[id])
@@ -128,7 +128,20 @@ class B(oscar.BOSConnection):
                 if not c: return
 
 		ptype = None
-		show = None
+		if user.icqStatus == 'dnd':
+			show = 'dnd'
+		elif user.icqStatus == 'xa':
+			show = 'xa'
+		elif user.icqStatus == 'busy':
+			show = 'dnd'
+		elif user.icqStatus == 'chat':
+			show = 'chat'
+		elif user.icqStatus == 'dnd':
+			show = 'dnd'
+		elif user.icqStatus == 'away':
+			show = 'away'
+		else:
+			show = None
 		status = user.status
 		encoding = user.statusencoding
 		url = user.url
@@ -144,8 +157,10 @@ class B(oscar.BOSConnection):
 		if user.idleTime:
 			if user.idleTime>60*24:
 				idle_time = "Idle %d days"%(user.idleTime/(60*24))
+				if not show: show = "xa"
 			elif user.idleTime>60:
 				idle_time = "Idle %d hours"%(user.idleTime/(60))
+				if not show: show = "away"
 			else:
 				idle_time = "Idle %d minutes"%(user.idleTime)
 			if status:
@@ -169,7 +184,7 @@ class B(oscar.BOSConnection):
 			c.updatePresence(show=show, status=status, ptype=ptype, url=url)
 			self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
-	def gotBuddyIconFromServer(self, contact, icontype, iconhash, iconlen, icondata):
+	def gotBuddyIconFromServer(self, (contact, icontype, iconhash, iconlen, icondata)):
 		if config.disableAvatars: return
 		LogEvent(INFO, self.session.jabberID, "%s: hash: %s, len: %d" % (contact, binascii.hexlify(iconhash), iconlen))
 		if iconlen > 0 and iconlen != 90: # Some ICQ clients send crap
@@ -276,7 +291,21 @@ class B(oscar.BOSConnection):
 		if not c: return
 
 		ptype = None
-		show = "away"
+		if user.icqStatus == 'dnd':
+			show = 'dnd'
+		elif user.icqStatus == 'xa':
+			show = 'xa'
+		elif user.icqStatus == 'busy':
+			show = 'dnd'
+		elif user.icqStatus == 'chat':
+			show = 'chat'
+		elif user.icqStatus == 'dnd':
+			show = 'dnd'
+		elif user.icqStatus == 'away':
+			show = 'away'
+		else:
+			show = 'away'
+
 		status = oscar.dehtml(msg[1]) # Removes any HTML tags
 		url = user.url
 
@@ -393,7 +422,7 @@ class B(oscar.BOSConnection):
 		for n in self.getnicknames:
 			self.getShortInfo(n).addCallback(self.gotNickname, n)
 
-	def gotNickname(self, nick, first, last, email, uin):
+	def gotNickname(self, (nick, first, last, email), uin):
 		LogEvent(INFO, self.session.jabberID)
 		if nick:
 			LogEvent(INFO, self.session.jabberID, "Found a nickname, lets update.")

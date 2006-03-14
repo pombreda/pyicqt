@@ -1,3 +1,21 @@
+2006-03-14  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	* src/tlib/oscar.py:
+	Fixed handling of icq statuses and flags.
+
+	* src/legacy/icqt.py:
+	Fixed encoding issues with nicknames (thanks Norbert!)
+
+	* src/main.py:
+	Fixed bug with call to handleResourcePresence (thanks Motienko!)
+
+	* src/legacy/glue.py:
+	Fixed possible crash with inactive session.
+
+	* src/legacy/icqt.py:
+	Fixed bug in how gotNickname was called.
+
 2006-03-12  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
