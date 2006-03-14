@@ -370,7 +370,7 @@ class PyTransport(component.Service):
 					self.sessions[froj.userhost()] = s
 					LogEvent(INFO, "", "New session created")
 					# Tell the session there's a new resource
-					s.handleResourcePresence(froj.userhost(), froj.resource, toj.userhost(), toj.resource, 0, None, None, None)
+					s.handleResourcePresence(froj.userhost(), froj.resource, toj.userhost(), toj.resource, 0, None, None, None, None)
 					# Send this subscription
 					s.onPresence(el)
 

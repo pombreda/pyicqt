@@ -665,15 +665,15 @@ class LegacyConnection:
 
 	def removeContact(self, userHandle):
 		LogEvent(INFO, self.session.jabberID)
-		if userHandle in self.bos.authorizationRequests:
-			self.bos.sendAuthorizationResponse(userHandle, False, "")
-			self.bos.authorizationRequests.remove(userHandle)
-
-		def cb(arg=None):
-			self.updatePresence(userHandle, "unsubscribed")
-
 		try:
-			savetheseusers = []
+			def cb(arg=None):
+				self.updatePresence(userHandle, "unsubscribed")
+				savetheseusers = []
+
+			if userHandle in self.bos.authorizationRequests:
+				self.bos.sendAuthorizationResponse(userHandle, False, "")
+				self.bos.authorizationRequests.remove(userHandle)
+
 			for g in self.bos.ssigroups:
 				for u in g.users:
 					icqHandle = self.icq2uhandle(u.name)
