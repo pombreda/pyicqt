@@ -47,6 +47,7 @@ class B(oscar.BOSConnection):
 			self.socksProxyPort = config.socksProxyPort
 		if config.icqPort:
 			self.connectPort = config.icqPort
+		self.defaultEncoding = config.encoding
 
 	def initDone(self):
 		if not hasattr(self, "session") or not self.session:
@@ -425,8 +426,9 @@ class B(oscar.BOSConnection):
 	def gotNickname(self, (nick, first, last, email), uin):
 		LogEvent(INFO, self.session.jabberID)
 		if nick:
+			unick,uenc = oscar.guess_encoding(nick, config.encoding)
 			LogEvent(INFO, self.session.jabberID, "Found a nickname, lets update.")
-			self.icqcon.legacyList.updateNickname(uin, nick)
+			self.icqcon.legacyList.updateNickname(uin, unick)
 			savetheseusers = []
 			for g in self.ssigroups:
 				for u in g.users:
