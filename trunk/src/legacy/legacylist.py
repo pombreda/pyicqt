@@ -161,6 +161,8 @@ class LegacyList:
 		c = self.session.contactList.findContact(icq2jid(contact))
 		if c:
 			LogEvent(INFO, self.session.jabberID)
+			if not self.xdbcontacts.has_key(contact.lower()):
+				self.xdbcontacts[contact.lower()] = {}
 			if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
 				c.updateNickname(nick, push=True)

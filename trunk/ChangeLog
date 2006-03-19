@@ -1,3 +1,13 @@
+2006-03-18  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	Added passing of encoding to BOSConnection.
+	Check encoding of nicknames.
+	Added better checking for updateNickname.
+
+	* src/tlib/oscar.py:
+	Added in encoding guess support for offline messages.
+
 2006-03-14  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:
