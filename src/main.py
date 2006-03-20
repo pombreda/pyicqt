@@ -84,6 +84,7 @@ if os.name == "posix":
 	import signal
 	signal.signal(signal.SIGHUP, reloadConfig)
 
+selectWarning = "Unable to install any good reactors (kqueue, epoll, poll).\nWe fell back to using select. You may have scalability problems.\nThis reactor will not support more than 1024 connections +at a time.  You may silence this message by choosing 'select' or 'default' as your reactor in the transport config."
 if config.reactor:
 	# They picked their own reactor. Lets install it.
 	del sys.modules["twisted.internet.reactor"]
@@ -96,6 +97,12 @@ if config.reactor:
 	elif config.reactor == "kqueue":
 		from twisted.internet import kqreactor
 		kqreactor.install()
+	elif config.reactor == "select":
+		from twisted.internet import selectreactor
+		selectreactor.install()
+	elif config.reactor == "default":
+		from twisted.internet import default
+		default.install()
 	elif len(config.reactor) > 0:
 		print "Unknown reactor: ", config.reactor, ". Using default, select(), reactor."
 else:
@@ -104,23 +111,25 @@ else:
 	try:
 		from twisted.internet import epollreactor as bestreactor
 		#LogEvent(INFO, "", "Found and using epollreactor")
-	except ImportError:
+	except:
 		try:
 			from twisted.internet import kqreactor as bestreactor
 			#LogEvent(INFO, "", "Found and using kqreactor")
-		except ImportError:
+		except:
 			try:
 				from twisted.internet import pollreactor as bestreactor
 				#LogEvent(INFO, "", "Found and using pollreactor")
-			except ImportError:
+			except:
 				try:
-					from twisted.internet import default as bestreactor
-					print "Unable to install any good reactors (kqueue, epoll, poll)."
-					print "We fell back to using select. You may have scalability problems."
-					print "This reactor will not support more than 1024 connections at a time."
-				except ImportError:
-					print "Unable to find a reactor.\nExiting..."
-					sys.exit(1)
+					from twisted.internet import selectreactor as bestreactor
+					print selectWarning
+				except:
+					try:
+						from twisted.internet import default as bestreactor
+						print selectWarning
+					except ImportError:
+						print "Unable to find a reactor.\nExiting..."
+						sys.exit(1)
 	bestreactor.install()
 
 
