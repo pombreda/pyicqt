@@ -127,7 +127,7 @@ else:
 					try:
 						from twisted.internet import default as bestreactor
 						print selectWarning
-					except ImportError:
+					except:
 						print "Unable to find a reactor.\nExiting..."
 						sys.exit(1)
 	bestreactor.install()
