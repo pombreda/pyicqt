@@ -668,7 +668,8 @@ class LegacyConnection:
 		try:
 			def cb(arg=None):
 				self.updatePresence(userHandle, "unsubscribed")
-				savetheseusers = []
+
+			savetheseusers = []
 
 			if userHandle in self.bos.authorizationRequests:
 				self.bos.sendAuthorizationResponse(userHandle, False, "")
