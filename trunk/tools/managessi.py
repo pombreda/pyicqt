@@ -109,7 +109,7 @@ class B(oscar.BOSConnection):
 			for g in self.ssi[0]:
 				print "Group[%0.5d]: %s" % (g.groupID,g.name)
 				for u in g.users:
-					print "\tMember[%0.5d]: %s" % (u.buddyID,u.name)
+					print "\tMember[%0.5d]: %s (%s)" % (u.buddyID,u.name,u.nick)
 	def showIconList(self):
 		if self.ssi is not None and self.ssi[5] is not None:
 			for i in self.ssi[5]:

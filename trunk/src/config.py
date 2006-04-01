@@ -44,5 +44,5 @@ saslUsername = ""
 avatarsOnlyOnChat = bool(False)
 disableDefaultAvatar = bool(False)
 disableAvatars = bool(False)
-disableWebPresence = bool(False)
+enableWebPresence = bool(False)
 disableMailNotifications = bool(False)

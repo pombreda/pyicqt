@@ -188,6 +188,19 @@ class JabberConnection:
 		vCard.attributes["xmlns"] = globals.VCARD
 		return self.pytrans.discovery.sendIq(el)
 
+	def sendIQAvatarRequest(self, to, fro):
+		""" Requests the the IQ-based avatar of 'to'
+		Returns a Deferred which fires when the IQ result has been received.
+		"""
+		el = Element((None, "iq"))
+		el.attributes["to"] = to
+		el.attributes["from"] = fro
+		el.attributes["type"] = "get"
+		el.attributes["id"] = self.pytrans.makeMessageID()
+		query = el.addElement("query")
+		query.attributes["xmlns"] = globals.IQAVATAR
+		return self.pytrans.discovery.sendIq(el)
+
 	def sendErrorMessage(self, to, fro, etype, explanation, condition=None, body=None):
 		if self.last_el.has_key(to) and self.last_el[to].attributes.has_key("from"):
 			LogEvent(INFO, self.jabberID, "Using pre-existing element")
@@ -352,6 +365,7 @@ class JabberConnection:
 			avatarHash = ""
 			nickname = ""
 			url = None
+			avatarType = ""
 			for child in el.elements():
 				if child.name == "status":
 					status = child.__str__()
@@ -376,11 +390,18 @@ class JabberConnection:
 							avatarHash = child2.__str__()
 						if child2.name == "nickname":
 							nickname = child2.__str__()
+							avatarType = "vcard"
+				elif child.defaultUri == globals.XAVATAR and not config.disableAvatars:
+					avatarHash = " "
+					for child2 in child.elements():
+						if child2.name == "hash":
+							avatarHash = child2.__str__()
+							avatarType = "iq"
 
 			if not ptype:
 				# ptype == None
 				if avatarHash and not config.disableAvatars:
-					self.avatarHashReceived(froj.userhost(), toj.userhost(), avatarHash)
+					self.avatarHashReceived(froj.userhost(), toj.userhost(), avatarHash, avatarType)
 				if nickname:
 					self.nicknameReceived(froj.userhost(), toj.userhost(), nickname)
 
