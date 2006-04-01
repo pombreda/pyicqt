@@ -30,13 +30,7 @@ class B(oscar.BOSConnection):
 		self.icqcon.bos = self
 		self.session = icqcon.session  # convenience
 		self.capabilities = [oscar.CAP_ICON, oscar.CAP_UTF]
-		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN1)
-		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN2)
-		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN3)
-		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN4)
-		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN5)
-		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN6)
-		if not config.disableWebPresence:
+		if config.enableWebPresence:
 			self.statusindicators = oscar.STATUS_WEBAWARE
 		self.unreadmessages = 0
 		if config.crossChat:
@@ -379,11 +373,15 @@ class B(oscar.BOSConnection):
 				self.ssigroups.append(member)
 				self.readGroup(member.users, parent=member)
 			elif isinstance(member, oscar.SSIBuddy):
-				if parent:
-					LogEvent(INFO, self.session.jabberID, "Found user %r (%r) from group %r" % (member.name, member.nick, parent.name))
+				if member.nick:
+					unick,uenc = oscar.guess_encoding(member.nick, config.encoding)
 				else:
-					LogEvent(INFO, self.session.jabberID, "Found user %r (%r) from master group" % (member.name, member.nick))
-				self.icqcon.legacyList.updateSSIContact(member.name, nick=member.nick)
+					unick = None
+				if parent:
+					LogEvent(INFO, self.session.jabberID, "Found user %r (%r) from group %r" % (member.name, unick, parent.name))
+				else:
+					LogEvent(INFO, self.session.jabberID, "Found user %r (%r) from master group" % (member.name, unick))
+				self.icqcon.legacyList.updateSSIContact(member.name, nick=unick)
 				if member.name[0].isdigit() and (not member.nick or member.name == member.nick):
 					# Hrm, lets get that nick
 					self.getnicknames.append(member.name)
@@ -429,17 +427,6 @@ class B(oscar.BOSConnection):
 			unick,uenc = oscar.guess_encoding(nick, config.encoding)
 			LogEvent(INFO, self.session.jabberID, "Found a nickname, lets update.")
 			self.icqcon.legacyList.updateNickname(uin, unick)
-			savetheseusers = []
-			for g in self.ssigroups:
-				for u in g.users:
-					if u.name == uin:
-						savetheseusers.append(u)
-			if len(savetheseusers) > 0:
-				self.startModifySSI()
-				for u in savetheseusers:
-					u.nick = nick
-					self.modifyItemSSI(u)
-				self.endModifySSI()
 
 	def warnedUser(self, oldLevel, newLevel, username):
 		LogEvent(INFO, self.session.jabberID)

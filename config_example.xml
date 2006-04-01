@@ -127,8 +127,8 @@
 	<!-- do not have PIL installed. -->
 	<!-- <disableAvatars/> -->
 
-	<!-- Disable web presence indicator. -->
-	<!-- <disableWebPresence/> -->
+	<!-- Enable web presence indicator.  This can increase ICQ spam. -->
+	<!-- <enableWebPresence/> -->
 
 	<!-- Use Jabber.com's XCP component protocol extensions. -->
 	<!-- <useXCP/> -->

@@ -397,18 +397,22 @@ class App:
 		# Check that there isn't already a PID file
 		if config.pid:
 			if os.path.isfile(config.pid):
-				pf = open(config.pid)
-				pid = int(str(pf.readline().strip()))
-				pf.close()
-				if os.name == "posix":
-					try:
-						os.kill(pid, signal.SIGHUP)
+				try:
+					pf = open(config.pid)
+					pid = int(str(pf.readline().strip()))
+					pf.close()
+					if os.name == "posix":
+						try:
+							os.kill(pid, signal.SIGHUP)
+							self.alreadyRunning()
+						except OSError:
+							# The process is still up
+							pass
+					else:
 						self.alreadyRunning()
-					except OSError:
-						# The process is still up
-						pass
-				else:
-					self.alreadyRunning()
+				except ValueError:
+					# The pid file doesn't have a pid in it
+					pass
 
 			# Create a PID file
 			pid = str(os.getpid())

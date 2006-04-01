@@ -147,12 +147,45 @@ class Session(jabw.JabberConnection):
 				self.legacycon.updateAvatar() # Default avatar
 
 		def errback(args=None):
-			LogEvent(INFO, self.jabberID, "Error fetching avatar")
+			LogEvent(INFO, self.jabberID, "Error fetching vcard (avatar)")
 			if not config.disableAvatars and self.alive: self.legacycon.updateAvatar()
 
-		LogEvent(INFO, self.jabberID, "Fetching avatar")
+		LogEvent(INFO, self.jabberID, "Fetching vcard (avatar)")
 		d = self.sendVCardRequest(to=self.jabberID, fro=config.jid)
 		d.addCallback(vCardReceived)
+		d.addErrback(errback)
+
+	def doIQAvatarUpdate(self):
+		def iqAvatarReceived(el):
+			if not self.alive: return
+			LogEvent(INFO, self.jabberID)
+			query = None
+			for e in el.elements():
+				if e.name == "query" and e.defaultUri == globals.IQAVATAR:
+					query = e
+					break
+			else:
+				if not config.disableAvatars: self.legacycon.updateAvatar() # Default avatar
+				return
+			avatarSet = False
+			for e in query.elements():
+				if e.name == "data" and not config.disableAvatars:
+					imageData = avatar.parseIQPhotoEl(e)
+					if not imageData:
+						errback() # Possibly it wasn't in a supported format?
+					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
+					self.legacycon.updateAvatar(self.avatar)
+					avatarSet = True
+			if not avatarSet and not config.disableAvatars:
+				self.legacycon.updateAvatar() # Default avatar
+
+		def errback(args=None):
+			LogEvent(INFO, self.jabberID, "Error fetching IQ-based avatar")
+			if not config.disableAvatars and self.alive: self.legacycon.updateAvatar()
+
+		LogEvent(INFO, self.jabberID, "Fetching IQ-based avatar")
+		d = self.sendIQAvatarRequest(to=self.jabberID, fro=config.jid)
+		d.addCallback(iqAvatarReceived)
 		d.addErrback(errback)
 
 	def updateNickname(self, nickname):
@@ -181,7 +214,7 @@ class Session(jabw.JabberConnection):
         
 		self.updateNickname(nickname)
 
-	def avatarHashReceived(self, source, dest, avatarHash):
+	def avatarHashReceived(self, source, dest, avatarHash, avatarType="vcard"):
 		if config.disableAvatars: return
 		if dest.find('@') > 0: return # Ignore presence packets sent to users
 
@@ -193,7 +226,10 @@ class Session(jabw.JabberConnection):
 				self.avatar = av # Stuff in the cache is always PNG
 				self.legacycon.updateAvatar(self.avatar)
 			else:
-				self.doVCardUpdate()
+				if avatarType == "vcard":
+					self.doVCardUpdate()
+				elif avatarType == "iq":
+					self.doIQAvatarUpdate()
 
 	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml, autoResponse=0):
 		if dest == config.jid:

@@ -1,3 +1,37 @@
+2006-03-31  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Added check to make sure pid file contects are an int.
+
+	* src/tlib/oscar.py:
+	Updated ICQ5 capabilities strings.
+
+	* src/legacy/icqt.py:
+	Removed ICQ5 capability identification.
+
+	* src/tlib/icqt.py:
+	* src/tlib/glue.py:
+	Fixed problem with not checking encoding of nickname in all locations.
+
+	* src/legacy/legacylist.py:
+	Fixed bug where I wasn't caring about nicknames always.
+
+	* config_example.xml:
+	* src/config.py:
+	* src/legacy/icqt.py:
+	Switched disableWebPresence to enableWebPresence. (changed default)
+
+	* tools/managessi.py:
+	Added display of nicknames.
+
+	* src/legacy/icqt.py:
+	Moved buddy nickname update to central location.
+
+	* src/jabw.py:
+	* src/session.py:
+	* src/avatar.py:
+	Added support for sending of IQ-based avatars.
+
 2006-03-23  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/glue.py:

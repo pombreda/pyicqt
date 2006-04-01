@@ -504,7 +504,8 @@ class LegacyConnection:
 			nickname = vcard.addElement("NICKNAME")
 			nickname.addContent(utils.xmlify(usercol.nick))
 			if usercol.nick:
-				self.legacyList.updateNickname(usercol.userinfo, usercol.nick)
+				unick,uenc = oscar.guess_encoding(usercol.nick, config.encoding)
+				self.legacyList.updateNickname(usercol.userinfo, unick)
 			bday = vcard.addElement("BDAY")
 			bday.addContent(utils.xmlify(usercol.birthday))
 			desc = vcard.addElement("DESC")
