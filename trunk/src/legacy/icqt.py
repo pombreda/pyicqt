@@ -123,17 +123,17 @@ class B(oscar.BOSConnection):
                 if not c: return
 
 		ptype = None
-		if user.icqStatus == 'dnd':
+		if user.icqStatus.count('dnd'):
 			show = 'dnd'
-		elif user.icqStatus == 'xa':
+		elif user.icqStatus.count('xa'):
 			show = 'xa'
-		elif user.icqStatus == 'busy':
+		elif user.icqStatus.count('busy'):
 			show = 'dnd'
-		elif user.icqStatus == 'chat':
+		elif user.icqStatus.count('chat'):
 			show = 'chat'
-		elif user.icqStatus == 'dnd':
+		elif user.icqStatus.count('dnd'):
 			show = 'dnd'
-		elif user.icqStatus == 'away':
+		elif user.icqStatus.count('away'):
 			show = 'away'
 		else:
 			show = None
@@ -286,17 +286,17 @@ class B(oscar.BOSConnection):
 		if not c: return
 
 		ptype = None
-		if user.icqStatus == 'dnd':
+		if user.icqStatus.count('dnd'):
 			show = 'dnd'
-		elif user.icqStatus == 'xa':
+		elif user.icqStatus.count('xa'):
 			show = 'xa'
-		elif user.icqStatus == 'busy':
+		elif user.icqStatus.count('busy'):
 			show = 'dnd'
-		elif user.icqStatus == 'chat':
+		elif user.icqStatus.count('chat'):
 			show = 'chat'
-		elif user.icqStatus == 'dnd':
+		elif user.icqStatus.count('dnd'):
 			show = 'dnd'
-		elif user.icqStatus == 'away':
+		elif user.icqStatus.count('away'):
 			show = 'away'
 		else:
 			show = 'away'
