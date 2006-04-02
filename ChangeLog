@@ -1,3 +1,9 @@
+2006-04-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	* src/legacy/icqt.py:
+	Identified and fixed icq status flags not being a single value.
+
 2006-03-31  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
