@@ -16,12 +16,12 @@ import md5
 
 X = os.path.sep
 
-class LegacyList:
+class BuddyList:
 	def __init__(self, session):
 		self.session = session
 		self.ssicontacts = { }
 		self.usercaps = { }
-		self.xdbcontacts = self.getLegacyList()
+		self.xdbcontacts = self.getBuddyList()
 		for c in self.xdbcontacts:
 			from glue import icq2jid
 			jabContact = self.session.contactList.createContact(icq2jid(c), "both")
@@ -235,7 +235,7 @@ class LegacyList:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick)
 			
 
-	def getLegacyList(self):
+	def getBuddyList(self):
 		LogEvent(INFO, self.session.jabberID)
 		bl = dict()
 		entities = self.session.pytrans.xdb.getList("roster", self.session.jabberID)

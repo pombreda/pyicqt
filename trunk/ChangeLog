@@ -21,6 +21,10 @@
 	* src/main.py:
 	Fixed bad call to onIq.
 
+	* src/legacy/legacylist.py:
+	* src/legacy/buddies.py:
+	Oops, forgot to add and move.
+
 2006-04-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/pubsub.py:
