@@ -18,6 +18,9 @@
 	* src/legacy/icqt.py:
 	Put buddyList back as legacyList since other things depend on it.
 
+	* src/main.py:
+	Fixed bad call to onIq.
+
 2006-04-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/pubsub.py:
