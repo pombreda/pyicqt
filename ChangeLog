@@ -25,6 +25,9 @@
 	* src/legacy/buddies.py:
 	Oops, forgot to add and move.
 
+	* src/plugins/VersionTeller.py:
+	Fixed to have proper call to disco.
+
 2006-04-09  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/pubsub.py:

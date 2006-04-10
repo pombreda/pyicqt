@@ -18,8 +18,8 @@ import globals
 class VersionTeller:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		self.pytrans.discovery.addFeature(globals.IQVERSION, self.incomingIq, config.jid)
-		self.pytrans.discovery.addFeature(globals.IQVERSION, self.incomingIq, "USER")
+		self.pytrans.disco.addFeature(globals.IQVERSION, self.incomingIq, config.jid)
+		self.pytrans.disco.addFeature(globals.IQVERSION, self.incomingIq, "USER")
 
 	def incomingIq(self, el):
 		eltype = el.getAttribute("type")
