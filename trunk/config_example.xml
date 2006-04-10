@@ -138,6 +138,7 @@
 	<!-- <saslUsername/> -->
 
 	<!-- Use Jabberd 2's component protocol extensions. -->
-	<!-- Requires saslUsername to work. -->
+	<!-- Jabberd2 requires saslUsername for this to work. -->
+	<!-- Wildfire as of 2.6.0 is able to use this *without saslUsername* -->
 	<!-- <useJ2Component/> -->
 </pyicqt>

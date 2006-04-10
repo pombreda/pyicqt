@@ -1,3 +1,137 @@
+2006-04-10  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Commented out pubsub support so I can release r180.
+
+	* src/adhoc.py:
+	* src/plugins/ConnectUsers.py:
+	* src/plugins/GatewayTranslator.py:
+	* src/plugins/IqAvatar.py:
+	* src/plugins/SearchFactory.py:
+	* src/plugins/VCardFactory.py:
+	Updated to have proper location of sendIqError.
+
+	* src/jabw.py:
+	Updated to have proper location of sendIq.
+
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	Put buddyList back as legacyList since other things depend on it.
+
+2006-04-09  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/pubsub.py:
+	Added handler for storage.
+
+2006-04-08  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/pubsub.py:
+	Updated to handle pubsub and pep.
+
+	* src/globals.py:
+	Added pubsub pieces (including pep), avatar, and nick.
+
+	* src/iq.py:
+	Renamed prefhandlers to prefixhandlers.
+
+	* src/jabw.py:
+	Added JEP-0172 nickname support.
+
+	* src/main.py:
+	Fixed bug with handling of debugLevel.
+
+	* src/legacy/icqt.py:
+	Updated to properly update ssicontact list when buddy does offline.
+
+2006-04-03  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Fixed guess_encoding .. maybe?  Who knows....
+
+	* src/adhoc.py:
+	* src/main.py:
+	Separated ad-hoc commands support.
+
+	* src/pubsub.py:
+	Started pubsub support.
+
+	* src/main.py:
+	Misc restructuring.
+
+	* src/main.py:
+	Moved primary Iq handler out from under disco.
+
+	* src/main.py:
+	* src/disco.py:
+	* src/adhoc.py:
+	* src/misciq.py:
+	* src/services:
+	* src/services/connectusers.py:
+	* src/services/gwtranslator.py:
+	* src/services/iqavatar.py:
+	* src/services/ping.py:
+	* src/services/search.py:
+	* src/services/statistics.py:
+	* src/services/vcard.py:
+	* src/services/version.py:
+	* src/legacy/services:
+	* src/legacy/services/EmailLookup.py:
+	* src/legacy/services/ConfirmAccount.py:
+	* src/legacy/glue.py:
+	* src/legacy/__init__.py:
+	Restructured to 'plug-in services' architecture.
+
+	* src/main.py:
+	* src/legacy/__init__.py:
+	* src/legacy/glue.py:
+	* src/legacy/icqt.py:
+	* src/session.py:
+	* src/web/handler.py:
+	Removed statistics handlers that I don't use.
+
+	* src/main.py:
+	* src/adhoc.py:
+	* src/jabw.py:
+	* src/disco.py:
+	* src/register.py:
+	* src/services/ConnectUsers.py:
+	* src/services/GatewayTranslator.py:
+	* src/services/IqAvatarFactory.py:
+	* src/services/SearchFactory.py:
+	* src/services/VCardFactory.py:
+	* src/services/VersionTeller.py:
+	Renamed discovery to disco and ServerDiscovery to ServiceDiscovery.
+
+	* src/main.py:
+	* src/services/ConnectUsers.py:
+	* src/services/Statistics.py:
+	* src/services/VCardFactory.py:
+	Renamed adHocCommands to adhoc.
+
+	* src/legacy/legacylist.py:
+	* src/legacy/buddies.py:
+	* src/legacy/icqt.py:
+	* src/legacy/glue.py:
+	Renamed legacylist to buddies.
+
+	* src/icqt.py:
+	* src/glue.py:
+	Renamed icqcon to oscarcon. (for easier compares)
+
+	* src/main.py:
+	* config_example.xml:
+	Removed requirement of saslUsername for useJ2Component.
+
+	* src/iq.py:
+	* src/main.py:
+	* src/disco.py:
+	Separated iq handler routines out of disco.
+
+2006-04-02  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Code cleanup a tad.
+
 2006-04-01  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:

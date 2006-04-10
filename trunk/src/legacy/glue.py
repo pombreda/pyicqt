@@ -65,27 +65,6 @@ def jid2icq(jid):
 # This function is called to handle legacy id translation to a JID
 translateAccount = icq2jid
 
-def startStats(statistics):
-	""" Fills the misciq.Statistics class with the statistics fields.
-	You must put a command_OnlineUsers and command_OnlineUsers_Desc
-	attributes into the lang classes for this to work.
-	Note that OnlineUsers is a builtin stat. You don't need to
-	reimplement it yourself. """
-	pass
-
-def updateStats(statistics):
-	""" This will get called regularly. Use it to update any global
-	statistics """
-	pass
-
-def addCommands(pytrans):
-	""" This function is expected to create handlers for legacy
-	specific ad-hoc commands, and set them up with disco as
-	appropriate """
-	import legacyiq
-	pytrans.ICQEmailLookup = legacyiq.EmailLookup(pytrans)
-	pytrans.ICQConfirmAccount = legacyiq.ConfirmAccount(pytrans)
-
 
 
 ############################################################################
@@ -94,12 +73,12 @@ def addCommands(pytrans):
 class LegacyConnection:
 	""" A glue class that connects to the legacy network """
 	def __init__(self, username, password, session):
-		import legacylist
+		import buddies
 
 		self.username = username
 		self.password = password
 		self.session = session
-		self.legacyList = legacylist.LegacyList(self.session)
+		self.legacyList = buddies.BuddyList(self.session)
 		self.savedShow = None
 		self.savedFriendly = None
 		self.savedURL = None
@@ -158,8 +137,8 @@ class LegacyConnection:
 		LogEvent(INFO, self.session.jabberID)
 		from glue import jid2icq
 		try:
-			self.session.pytrans.statistics.stats['OutgoingMessages'] += 1
-			self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
+			self.session.pytrans.serviceplugins['Statistics'].stats['OutgoingMessages'] += 1
+			self.session.pytrans.serviceplugins['Statistics'].sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
 			uin = jid2icq(target)
 			wantIcon = 0
 			if self.bos.requesticon.has_key(uin):
@@ -212,7 +191,7 @@ class LegacyConnection:
 				show = self.legacyList.ssicontacts[c]['show']
 				status = self.legacyList.ssicontacts[c]['status']
 				ptype = self.legacyList.ssicontacts[c]['presence']
-				url = self.LegacyList.ssicontacts[c]['url']
+				url = self.legacyList.ssicontacts[c]['url']
 				#FIXME, needs to be contact based updatePresence
 				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype, url=url)
 		except AttributeError:
