@@ -324,7 +324,7 @@ class PyTransport(component.Service):
 				if child.getAttribute("to") and child.getAttribute("to").find("@-internal") > 0: return
 				self.onPresence(child)
 			elif child.name == "iq":
-				self.disco.onIq(child)
+				self.iq.onIq(child)
 			elif child.name == "bind": 
 				self.onBind(child)
 
