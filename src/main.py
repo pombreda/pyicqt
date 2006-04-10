@@ -38,14 +38,14 @@ for o, v in opts:
 	elif o in ("-b", "--background"):
                 daemonizeme = True
 	elif o in ("-d", "--debug"):
-		config.debugLevel = "2"
+		config.debugLevel = 2
 	elif o in ("-D", "--Debug"):
-		config.debugLevel = "3"
+		config.debugLevel = 3
 	elif o in ("-g", "--garbage"):
 		import gc
 		gc.set_debug(gc.DEBUG_LEAK|gc.DEBUG_STATS)
 	elif o in ("-t", "--traceback"):
-		config.debugLevel = "1"
+		config.debugLevel = 1
 	elif o in ("-l", "--log"):
 		config.debugFile = v
 	elif o in ("-o", "--option"):
@@ -144,9 +144,11 @@ import xdb
 import avatar
 import session
 import jabw
+import iq
 import disco
+import adhoc
+import pubsub
 import register
-import misciq
 import legacy
 import lang
 import globals
@@ -157,40 +159,67 @@ class PyTransport(component.Service):
 	j2bound = 0
 	def __init__(self):
 		LogEvent(INFO)
-		# Discovery, as well as some builtin features
-		self.discovery = disco.ServerDiscovery(self)
-		self.discovery.addIdentity("gateway", legacy.id, legacy.name, config.jid)
-		self.discovery.addFeature(globals.XHTML, None, "USER")
 
+		### Database prep-work
+		# Open our spool
 		self.xdb = xdb.XDB(config.jid)
+		# We need to enable our avatar cache
 		if not config.disableAvatars: self.avatarCache = avatar.AvatarCache()
-		self.registermanager = register.RegisterManager(self)
-		self.adHocCommands = misciq.AdHocCommands(self)
-		self.gatewayTranslator = misciq.GatewayTranslator(self)
-		self.versionTeller = misciq.VersionTeller(self)
-		self.pingService = misciq.PingService(self)
-		self.vCardFactory = misciq.VCardFactory(self)
-		#self.searchFactory = misciq.SearchFactory(self)
-		if not config.disableAvatars: self.IqAvatarFactory = misciq.IqAvatarFactory(self)
-		self.statistics = misciq.Statistics(self)
-		self.connectUsers = misciq.ConnectUsers(self)
-		legacy.addCommands(self)
-		self.startTime = int(time.time())
 
+		### Lets load some key/base functionality handlers
+		# Service discovery support
+		self.iq = iq.IqHandler(self)
+		# Service discovery support
+		self.disco = disco.ServiceDiscovery(self)
+		# Ad-hoc commands support
+		self.adhoc = adhoc.AdHocCommands(self)
+		# Pubsub/PEP support
+		#self.pubsub = pubsub.PublishSubscribe(self)
+		# Registration support
+		self.registermanager = register.RegisterManager(self)
+
+		# Lets add some known built-in features to discovery
+		self.disco.addIdentity("gateway", legacy.id, legacy.name, config.jid)
+		self.disco.addFeature(globals.XHTML, None, "USER")
+
+		# Lets load the base and legacy service plugins
+		self.serviceplugins = {}
+		self.loadPlugins("src/services")
+		self.loadPlugins("src/legacy/services")
+
+		# Misc tracking variables
+		self.startTime = int(time.time())
 		self.xmlstream = None
 		self.sessions = {}
-		
 		# Message IDs
 		self.messageID = 0
 		
+		# Routine cleanup/updates/etc
 		self.loopCall = task.LoopingCall(self.loopCall)
 		self.loopCall.start(60.0)
 		
 		# Display active sessions if debug mode is on
 		#if config.debugOn:
 		#	twisted.python.log.addObserver(self.exceptionLogger)
-		
-	
+
+
+	def loadPlugins(self, dir):
+		imppath = dir.replace("src/", "").replace("/", ".")
+		files = os.listdir(dir);
+		for i in range(len(files)):
+			if files[i] == "__init__.py": continue
+			if files[i].endswith(".py"):
+				classname = files[i].replace(".py","")
+				if self.serviceplugins.has_key(classname):
+					print "Unable to load service plugin %s: Duplicate plugin???" % classname
+					continue
+				try:
+					exec("from %s import %s" % (imppath, classname))
+					exec("self.serviceplugins['%s'] = %s.%s(self)" % (classname, classname, classname))
+				except Exception, e:
+					print "Unable to load service plugin %s: %s" % (classname, e)
+
+
 	def removeMe(self):
 		LogEvent(INFO)
 		for session in self.sessions.copy():
@@ -220,8 +249,7 @@ class PyTransport(component.Service):
 		#		for res in self.sessions[key].resourceList:
 		#			debug.log("\t\t" + res)
         
-		self.statistics.stats["Uptime"] = int(time.time()) - self.startTime
-		legacy.updateStats(self.statistics)
+		self.serviceplugins['Statistics'].stats["Uptime"] = int(time.time()) - self.startTime
 		if numsessions > 0:
 			oldDict = self.sessions.copy()
 			self.sessions = {}
@@ -236,7 +264,7 @@ class PyTransport(component.Service):
 	def componentConnected(self, xmlstream):
 		LogEvent(INFO)
 		self.xmlstream = xmlstream
-		self.xmlstream.addObserver("/iq", self.discovery.onIq)
+		self.xmlstream.addObserver("/iq", self.iq.onIq)
 		self.xmlstream.addObserver("/presence", self.onPresence)
 		self.xmlstream.addObserver("/message", self.onMessage)
 		self.xmlstream.addObserver("/bind", self.onBind)
@@ -253,13 +281,15 @@ class PyTransport(component.Service):
 			x.attributes["protocol-version"] = "1.0"
 			x.attributes["config-ns"] = legacy.url + "/component"
 			self.send(pres)
-		if config.saslUsername and config.useJ2Component:
+		#if config.saslUsername and config.useJ2Component:
+		if config.useJ2Component:
 			LogEvent(INFO, "", "J2C binding to %r" % config.jid)
 			bind = Element((None,"bind"))
 			#bind.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
 			bind.attributes["name"] = config.jid
 			self.send(bind)
-		if config.saslUsername and config.useJ2Component:
+		#if config.saslUsername and config.useJ2Component:
+		if config.useJ2Component:
 			self.j2bound = 1
 
 		self.sendInvitations()
@@ -294,7 +324,7 @@ class PyTransport(component.Service):
 				if child.getAttribute("to") and child.getAttribute("to").find("@-internal") > 0: return
 				self.onPresence(child)
 			elif child.name == "iq":
-				self.discovery.onIq(child)
+				self.disco.onIq(child)
 			elif child.name == "bind": 
 				self.onBind(child)
 

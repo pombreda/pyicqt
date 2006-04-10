@@ -221,13 +221,13 @@ class WebInterface_status(WebInterface_template):
 
 	def render_statistics(self, ctx, data):
 		ret = T.table(border = 0,width = "100%",cellspacing=5,cellpadding=2)
-		for key in self.pytrans.statistics.stats:
+		for key in self.pytrans.serviceplugins['Statistics'].stats:
 			label = lang.get("statistics_%s" % key, config.lang)
 			description = lang.get("statistics_%s_Desc" % key, config.lang)
 
 			row = T.tr[
 				T.th(align = "right")[label+":"],
-				T.td[self.pytrans.statistics.stats[key]],
+				T.td[self.pytrans.serviceplugins['Statistics'].stats[key]],
 				T.td[description]
 			]
 			ret[row]
@@ -249,9 +249,9 @@ class WebInterface_status(WebInterface_template):
 			jid = self.pytrans.sessions[key].jabberID
 			row = T.tr[
 				T.td[jid],
-				T.td(align = "center")[self.pytrans.statistics.sessionstats[jid]['IncomingMessages']],
-				T.td(align = "center")[self.pytrans.statistics.sessionstats[jid]['OutgoingMessages']],
-				T.td(align = "center")[self.pytrans.statistics.sessionstats[jid]['Connections']]
+				T.td(align = "center")[self.pytrans.serviceplugins['Statistics'].sessionstats[jid]['IncomingMessages']],
+				T.td(align = "center")[self.pytrans.serviceplugins['Statistics'].sessionstats[jid]['OutgoingMessages']],
+				T.td(align = "center")[self.pytrans.serviceplugins['Statistics'].sessionstats[jid]['Connections']]
 			]
 			ret[row]
 		return ret

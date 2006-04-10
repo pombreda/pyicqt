@@ -9,7 +9,7 @@ import disco
 import globals
 
 
-def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None):
+def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None, nickname=None):
 	""" Sends a Jabber message """
 	LogEvent(INFO)
 	el = Element((None, "message"))
@@ -24,6 +24,11 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None):
 		x.attributes["xmlns"] = globals.IQDELAY
 		x.attributes["from"] = fro
 		x.attributes["stamp"] = delay
+
+	if nickname:
+		n = el.addElement("nick")
+		n.attributes["xmlns"] = globals.NICK
+		n.addContent(nickname)
 
 	b = el.addElement("body")
 	b.addContent(utils.xmlify(body))
@@ -82,6 +87,10 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 			xx.attributes["xmlns"] = globals.XAVATAR
 			h = xx.addElement("hash")
 			h.addContent(avatarHash)
+		if nickname:
+			n = el.addElement("nick")
+			n.attributes["xmlns"] = globals.NICK
+			n.addContent(nickname)
 		if payload:
 			for p in payload:
 				el.addChild(p)
@@ -136,7 +145,7 @@ class JabberConnection:
 		
 		return (froj.userhost() == self.jabberID) # Compare with the Jabber ID that we're looking at
 	
-	def sendMessage(self, to, fro, body, mtype=None, delay=None, xhtml=None):
+	def sendMessage(self, to, fro, body, mtype=None, delay=None, xhtml=None, nickname=None):
 		""" Sends a Jabber message 
 		For this message to have a <x xmlns="jabber:x:delay"/>
 		you must pass a correctly formatted timestamp (See JEP0091)
@@ -145,7 +154,7 @@ class JabberConnection:
 		if xhtml and not self.hasCapability(globals.XHTML):
 			# User doesn't support XHTML, so kill it.
 			xhtml = None
-		sendMessage(self.pytrans, to, fro, body, mtype, delay, xhtml)
+		sendMessage(self.pytrans, to, fro, body, mtype, delay, xhtml, nickname)
 
 	def sendTypingNotification(self, to, fro, typing):
 		""" Sends the user the contact's current typing notification status """
@@ -186,7 +195,7 @@ class JabberConnection:
 		el.attributes["id"] = self.pytrans.makeMessageID()
 		vCard = el.addElement("vCard")
 		vCard.attributes["xmlns"] = globals.VCARD
-		return self.pytrans.discovery.sendIq(el)
+		return self.pytrans.iq.sendIq(el)
 
 	def sendIQAvatarRequest(self, to, fro):
 		""" Requests the the IQ-based avatar of 'to'
@@ -199,7 +208,7 @@ class JabberConnection:
 		el.attributes["id"] = self.pytrans.makeMessageID()
 		query = el.addElement("query")
 		query.attributes["xmlns"] = globals.IQAVATAR
-		return self.pytrans.discovery.sendIq(el)
+		return self.pytrans.iq.sendIq(el)
 
 	def sendErrorMessage(self, to, fro, etype, explanation, condition=None, body=None):
 		if self.last_el.has_key(to) and self.last_el[to].attributes.has_key("from"):
@@ -251,7 +260,7 @@ class JabberConnection:
 		query = iq.addElement("query")
 		query.attributes["xmlns"] = globals.DISCO_INFO
 
-		self.pytrans.discovery.sendIq(iq).addCallback(self.gotCapabilities)
+		self.pytrans.iq.sendIq(iq).addCallback(self.gotCapabilities)
 
 	def gotCapabilities(self, el):
 		fro = el.getAttribute("from")

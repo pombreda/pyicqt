@@ -15,7 +15,7 @@ class RegisterManager:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
 		if not config.disableRegister:
-			self.pytrans.discovery.addFeature(globals.IQREGISTER, self.incomingRegisterIq, config.jid)
+			self.pytrans.disco.addFeature(globals.IQREGISTER, self.incomingRegisterIq, config.jid)
 		LogEvent(INFO)
 	
 	def removeRegInfo(self, jabberID):

@@ -75,11 +75,11 @@ class Session(jabw.JabberConnection):
 		self.doVCardUpdate()
 		LogEvent(INFO, self.jabberID, "Created!")
 
-		self.pytrans.statistics.stats["TotalSessions"] += 1
-		self.pytrans.statistics.stats["OnlineSessions"] += 1
-		if len(self.pytrans.sessions)+1 > self.pytrans.statistics.stats["MaxConcurrentSessions"]:
-			self.pytrans.statistics.stats["MaxConcurrentSessions"] = len(self.pytrans.sessions)+1
-		self.pytrans.statistics.sessionUpdate(self.jabberID, "Connections", 1)
+		self.pytrans.serviceplugins['Statistics'].stats["TotalSessions"] += 1
+		self.pytrans.serviceplugins['Statistics'].stats["OnlineSessions"] += 1
+		if len(self.pytrans.sessions)+1 > self.pytrans.serviceplugins['Statistics'].stats["MaxConcurrentSessions"]:
+			self.pytrans.serviceplugins['Statistics'].stats["MaxConcurrentSessions"] = len(self.pytrans.sessions)+1
+		self.pytrans.serviceplugins['Statistics'].sessionUpdate(self.jabberID, "Connections", 1)
 	
 	def removeMe(self):
 		""" Safely removes the session object, including sending <presence type="unavailable"/> messages for each legacy related item on the user's contact list """
@@ -99,7 +99,7 @@ class Session(jabw.JabberConnection):
 			if self.registeredmunge:
 				tmpjid = tmpjid + "/registered"
 			self.sendPresence(to=self.jabberID, fro=tmpjid, ptype="unavailable")
-			self.pytrans.statistics.stats["OnlineSessions"] -= 1
+			self.pytrans.serviceplugins['Statistics'].stats["OnlineSessions"] -= 1
 
 		# Clean up stuff on the legacy service end (including sending offline presences for all contacts)
 		if self.legacycon:
