@@ -3,26 +3,23 @@
 
 import utils
 from tlib.twistwrap import Element
-import legacy
 import config
 from debug import LogEvent, INFO, WARN, ERROR
-import sys
 import globals
-import twisted.copyright
 
-class VersionTeller:
+class LastActivity:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		self.pytrans.disco.addFeature(globals.IQVERSION, self.incomingIq, config.jid)
-		self.pytrans.disco.addFeature(globals.IQVERSION, self.incomingIq, "USER")
+		self.pytrans.disco.addFeature(globals.IQLAST, self.incomingIq, config.jid)
+		self.pytrans.disco.addFeature(globals.IQLAST, self.incomingIq, "USER")
 
 	def incomingIq(self, el):
 		eltype = el.getAttribute("type")
 		if eltype != "get": return # Only answer "get" stanzas
 
-		self.sendVersion(el)
+		self.sendLastActivity(el)
 
-	def sendVersion(self, el):
+	def sendLastActivity(self, el):
 		LogEvent(INFO)
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
@@ -31,12 +28,7 @@ class VersionTeller:
 		if el.getAttribute("id"):
 			iq.attributes["id"] = el.getAttribute("id")
 		query = iq.addElement("query")
-		query.attributes["xmlns"] = globals.IQVERSION
-		name = query.addElement("name")
-		name.addContent(legacy.name)
-		version = query.addElement("version")
-		version.addContent(legacy.version)
-		os = query.addElement("os")
-		os.addContent("Python " + sys.version.split(' ')[0] + "/" + sys.platform + ", Twisted " + twisted.copyright.version)
+		query.attributes["xmlns"] = globals.IQLAST
+		query.attributes["seconds"] = "0"
 
 		self.pytrans.send(iq)

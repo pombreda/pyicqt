@@ -1,14 +1,34 @@
+2006-04-13  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	Added actual failure on lack of loading plugin.
+
+	* src/services/EntityTime.py:
+	Added jabber:iq:time handler.
+
+	* src/services/EntityTime.py:
+	* src/services/VersionTeller.py:
+	Cleanup.
+
+	* src/globals.py:
+	Added jabber:iq:last.
+	Added jabber:iq:time.
+
+	* src/services/VersionTeller.py:
+	Added twisted version to os string.
+	Shortened python version string.
+
 2006-04-10  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
 	Commented out pubsub support so I can release r180.
 
 	* src/adhoc.py:
-	* src/plugins/ConnectUsers.py:
-	* src/plugins/GatewayTranslator.py:
-	* src/plugins/IqAvatar.py:
-	* src/plugins/SearchFactory.py:
-	* src/plugins/VCardFactory.py:
+	* src/services/ConnectUsers.py:
+	* src/services/GatewayTranslator.py:
+	* src/services/IqAvatar.py:
+	* src/services/SearchFactory.py:
+	* src/services/VCardFactory.py:
 	Updated to have proper location of sendIqError.
 
 	* src/jabw.py:
@@ -25,7 +45,7 @@
 	* src/legacy/buddies.py:
 	Oops, forgot to add and move.
 
-	* src/plugins/VersionTeller.py:
+	* src/services/VersionTeller.py:
 	Fixed to have proper call to disco.
 
 2006-04-09  Daniel Henninger  <jadestorm@nc.rr.com>
