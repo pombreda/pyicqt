@@ -218,6 +218,7 @@ class PyTransport(component.Service):
 					exec("self.serviceplugins['%s'] = %s.%s(self)" % (classname, classname, classname))
 				except Exception, e:
 					print "Unable to load service plugin %s: %s" % (classname, e)
+					raise
 
 
 	def removeMe(self):
