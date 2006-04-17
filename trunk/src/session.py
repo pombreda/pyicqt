@@ -139,7 +139,7 @@ class Session(jabw.JabberConnection):
 				if e.name == "PHOTO" and not config.disableAvatars:
 					imageData = avatar.parsePhotoEl(e)
 					if not imageData:
-						errback() # Possibly it wasn't in a supported format?
+						errback("Invalid image data") # Possibly it wasn't in a supported format?
 					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
 					self.legacycon.updateAvatar(self.avatar)
 					avatarSet = True

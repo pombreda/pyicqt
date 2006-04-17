@@ -31,7 +31,7 @@ class IqHandler:
 
 		def checkDeferred():
 			if not d.called:
-				d.errback()
+				d.errback("Timeout")
 				del self.deferredIqs[(jid, ID)]
 
 		jid = el.getAttribute("to")

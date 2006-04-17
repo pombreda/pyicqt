@@ -50,7 +50,7 @@ class AdHocCommands:
 					self.commands[node](el)
 					handled = True
 			if not handled:
-				LogEvent(INFO, "", "Unknown Ad-Hoc command received")
+				LogEvent(WARN, "", "Unknown Ad-Hoc command received")
 				self.pytrans.iq.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 
 
@@ -62,7 +62,8 @@ class AdHocCommands:
 		iq = Element((None, "iq"))
 		iq.attributes["to"] = to
 		iq.attributes["from"] = config.jid
-		iq.attributes["id"] = ID
+		if ID:
+			iq.attributes["id"] = ID
 		iq.attributes["type"] = "result"
 
 		query = iq.addElement("query")
