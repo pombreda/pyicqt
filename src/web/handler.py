@@ -55,7 +55,6 @@ class WebInterface_template(rend.Page):
 			jabberHost = config.mainServer
 		LogEvent(INFO, "", "Port = %r" % jabberPort)
 		p = portal.Portal(XMPPRealm())
-		#p.registerChecker(XMPPChecker(config.mainServer, 5222))
 		p.registerChecker(XMPPChecker(jabberHost, jabberPort))
 		creds = credentials.UsernamePassword(username, password)
 		return p.login(creds, None, IXMPPAvatar).addCallback(
@@ -63,6 +62,8 @@ class WebInterface_template(rend.Page):
 			self._loginFailed, ctx)
 
 	def _loginSucceeded(self, avatarInfo, ctx):
+		#LogEvent(INFO, "", "%r" % avatarInfo)
+		#avatarInfo[0].logout()
 		return rend.Page.renderHTTP(self, ctx)
 
 	def _loginFailed(self, result, ctx):
