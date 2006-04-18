@@ -47,6 +47,7 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None, nick
 			pass
 
 	pytrans.send(el)
+	sendArchive(pytrans, to, fro, body)
 
 def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[], url=None):
 	if ptype == "subscribe":
@@ -97,7 +98,6 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 
 	pytrans.send(el)
 
-
 def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None, el=Element((None, "message"))):
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
@@ -116,6 +116,25 @@ def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None,
 		b = el.addElement("body")
 		b.addContent(body)
 	pytrans.send(el)
+
+def sendArchive(pytrans, to, fro, body):
+	""" Archive Jabber message if archive element set in config.xml """
+	""" send iq xml packet to server specified in archive element """
+	""" Configured for DataSink """
+	""" THIS IS NOT COMPLIANT WITH JEP-0136 """
+	if config.messageArchiveJID:
+		LogEvent(INFO) 
+		iq = Element((None, "iq"))
+		iq.attributes["type"] = "set"
+		iq.attributes["from"] = to
+		iq.attributes["to"] = config.messageArchiveJID
+		myarchive = iq.addElement("archive")
+		mymessage = myarchive.addElement("message")
+		mymessage.attributes["to"] = to
+		mymessage.attributes["from"] = fro
+		mybody = mymessage.addElement("body")
+		mybody.addContent(utils.xmlify(body))
+		pytrans.iq.sendIq(iq)
 
 
 
@@ -155,6 +174,11 @@ class JabberConnection:
 			# User doesn't support XHTML, so kill it.
 			xhtml = None
 		sendMessage(self.pytrans, to, fro, body, mtype, delay, xhtml, nickname)
+
+	def sendArchive(self, to, fro, body):
+		""" Sends an Archive message (see JEP-0136) """
+		LogEvent(INFO, self.jabberID)
+		sendArchive(self.pytrans, to, fro, body)
 
 	def sendTypingNotification(self, to, fro, typing):
 		""" Sends the user the contact's current typing notification status """

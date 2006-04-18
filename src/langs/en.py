@@ -7,6 +7,7 @@
 class en: # English - James Bunton <mailto:james@delx.cjb.net>/Daniel Henninger <mailto:jadestorm@nc.rr.com>
 	# Text that may get sent to the user. Useful for translations. Keep any %s symbols you see or you will have troubles later
 	sessiongreeting = u"This is an experimental gateway, PyICQ-t. If you experience problems please contact Daniel Henninger <jadestorm@nc.rr.com>"
+	authenticatetext = u"WARNING: Registration is a two-step process.  First, please enter your local username and your local password.  If you enter a valid username and password, you will get a 'Registration Successful' message.  Then, click Register again, and you will be prompted for your AIM username and password."
 	registertext = u"Please type your ICQ user id number into the username field and your password."
 	notloggedin = u"Error. You must log into the transport before sending messages."
 	notregistered = u"Sorry. You do not appear to be registered with this transport. Please register and try again. If you are having trouble registering please contact your Jabber administrator."

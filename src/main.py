@@ -156,7 +156,7 @@ import globals
 
 
 class PyTransport(component.Service):
-	j2bound = 0
+	routewrap = 0
 	def __init__(self):
 		LogEvent(INFO)
 
@@ -282,24 +282,20 @@ class PyTransport(component.Service):
 			x.attributes["protocol-version"] = "1.0"
 			x.attributes["config-ns"] = legacy.url + "/component"
 			self.send(pres)
-		#if config.saslUsername and config.useJ2Component:
-		if config.useJ2Component:
-			LogEvent(INFO, "", "J2C binding to %r" % config.jid)
+		if config.useComponentBinding:
+			LogEvent(INFO, "", "Component binding to %r" % config.jid)
 			bind = Element((None,"bind"))
-			#bind.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
 			bind.attributes["name"] = config.jid
 			self.send(bind)
-		#if config.saslUsername and config.useJ2Component:
-		if config.useJ2Component:
-			self.j2bound = 1
+		if config.useRouteWrap:
+			self.routewrap = 1
 
 		self.sendInvitations()
 
 	def send(self, obj):
-		if self.j2bound == 1 and type(obj) == Element:
+		if self.routewrap == 1 and type(obj) == Element:
 			to = obj.getAttribute("to")
 			route = Element((None,"route"))
-			#route.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
 			route.attributes["from"] = config.jid
 			route.attributes["to"] = jid.JID(to).host
 			route.addChild(obj)
@@ -313,7 +309,7 @@ class PyTransport(component.Service):
 	def componentDisconnected(self):
 		LogEvent(INFO)
 		self.xmlstream = None
-		self.j2bound = 0
+		self.routewrap = 0
 
 	def onRouteMessage(self, el):
 		LogEvent(INFO)

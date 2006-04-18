@@ -11,6 +11,53 @@ import jabw
 import config
 import globals
 
+def authenticate_ldap(user, pwd):
+	""" use ldap to authenticate user before """
+	""" granting registration rights """
+	import ldap
+	LogEvent(INFO, "", "Performing authentication")
+	try:
+		l = ldap.open(config.authRegister_LDAP["server"])
+		l.simple_bind_s(config.authRegister_LDAP["rootDN"], config.authRegister_LDAP["password"])
+		LogEvent(INFO, "", "Bound to LDAP server")
+		searchterm = config.authRegister_LDAP["uidAttr"] + "=" + user
+		ldap_result_id = l.search(config.authRegister_LDAP["baseDN"], ldap.SCOPE_SUBTREE, searchterm, None)
+		LogEvent(INFO, "", "Performed search")
+
+		result_type, result_data = l.result(ldap_result_id, 0)
+		LogEvent(INFO, "", "Got search results")
+
+		if (result_data == []):
+			return "false"
+		else:
+			if result_type == ldap.RES_SEARCH_ENTRY:
+				LogEvent(INFO, "", "Getting acct data")
+				acctdata = result_data[0]
+				result_data = []
+				acctdn = acctdata[0]
+				acctdata = []
+
+		LogEvent(INFO, "", acctdn)
+		if(acctdn == ""):
+			#user does not exist
+			return "false"
+		else:
+			#user exists, see if password is valid
+			try:
+				l1 = ldap.open(config.authRegister_LDAP["server"])
+				l1.simple_bind_s(acctdn, pwd)
+				#worked, valid info
+				return "true"
+			except:
+				#problem, return false
+				return "false"
+	except:
+		#problem, return false
+		LogEvent(INFO, "", "Error performing authentication")
+                return "false"
+
+
+
 class RegisterManager:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
@@ -35,11 +82,98 @@ class RegisterManager:
 		# Check what type the Iq is..
 		itype = incoming.getAttribute("type")
 		LogEvent(INFO)
-		if(itype == "get"):
-			self.sendRegistrationFields(incoming)
-		elif(itype == "set"):
-			self.updateRegistration(incoming)
-		
+		if itype == "get":
+			if config.authRegister:
+				# Check to see if they're registered
+				source = jid.JID(incoming.getAttribute("from")).userhost()
+				result = self.pytrans.xdb.getRegistration(source)
+				if result:
+					self.sendRegistrationFields(incoming)
+				else:
+					# Must first submit local credentials
+					self.sendLocalRegistrationFields(incoming)
+                        else:
+				# Send real registration form
+				self.sendRegistrationFields(incoming)
+		elif itype == "set":
+			if config.authRegister:
+				# Check to see if they're registered by local credentials
+				source = jid.JID(incoming.getAttribute("from")).userhost()
+				result = self.pytrans.xdb.getRegistration(source)
+				username = ""
+				password = ""
+				if result:
+					username, password = result
+				if username == "local" and password == "local":
+					# Update real credentials
+					self.updateRegistration(incoming)
+				else:
+					# Must first validate local credentials
+					self.validateLocalRegistration(incoming)
+                        else:
+				# Update real credentials
+				self.updateRegistration(incoming)
+
+	def sendLocalRegistrationFields(self, incoming):
+		# Construct a reply with the fields they must fill out
+		LogEvent(INFO)
+		reply = Element((None, "iq"))
+		reply.attributes["from"] = config.jid
+		reply.attributes["to"] = incoming.getAttribute("from")
+		reply.attributes["id"] = incoming.getAttribute("id")
+		reply.attributes["type"] = "result"
+		reply.attributes["authenticate"] = "true"
+		query = reply.addElement("query")
+		query.attributes["xmlns"] = globals.IQREGISTER
+		instructions = query.addElement("instructions")
+		ulang = utils.getLang(incoming)
+		instructions.addContent(lang.get("authenticatetext", ulang))
+		userEl = query.addElement("username")
+		passEl = query.addElement("password")
+                
+		self.pytrans.send(reply)
+        
+	def validateLocalRegistration(self, incoming):
+		# Grab the username and password
+		LogEvent(INFO)
+		source = jid.JID(incoming.getAttribute("from")).userhost()
+		ulang = utils.getLang(incoming)
+		username = None
+		password = None
+                
+		for queryFind in incoming.elements():
+			if queryFind.name == "query":
+				for child in queryFind.elements():
+					try:
+						if child.name == "username":
+							username = child.__str__().lower()
+						elif child.name == "password":
+							password = child.__str__()
+					except AttributeError, TypeError:
+						continue # Ignore any errors, we'll check everything below
+
+		if username and password and len(username) > 0 and len(password) > 0:
+			# Valid authentication data
+			LogEvent(INFO, "", "Authenticating user")
+			try:
+				if config.authRegister == "LDAP":
+					result = authenticate_ldap(username, password)
+				else:
+					result = "true"
+				if result == "true":
+					self.pytrans.xdb.setRegistration(source, "local", "local")
+					LogEvent(INFO, "", "Updated XDB")
+					self.successReply(incoming)
+					LogEvent(INFO, "", "Authenticated user")
+				else:
+					self.xdbErrorReply(incoming)
+					LogEvent(INFO, "", "Authentication failure")
+			except:
+				self.xdbErrorReply(incoming)
+				raise
+		else:
+			self.badRequestReply(incoming)
+
 	def sendRegistrationFields(self, incoming):
 		# Construct a reply with the fields they must fill out
 		LogEvent(INFO)
@@ -59,10 +193,11 @@ class RegisterManager:
 		# Check to see if they're registered
 		source = jid.JID(incoming.getAttribute("from")).userhost()
 		result = self.pytrans.xdb.getRegistration(source)
-		if(result):
+		if result:
 			username, password = result
-			userEl.addContent(username)
-			query.addElement("registered")
+			if username != "local":
+				userEl.addContent(username)
+				query.addElement("registered")
 		
 		self.pytrans.send(reply)
 	
@@ -96,7 +231,7 @@ class RegisterManager:
 					except AttributeError, TypeError:
 						continue # Ignore any errors, we'll check everything below
 		
-		if(username and password and len(username) > 0 and len(password) > 0):
+		if username and password and len(username) > 0 and len(password) > 0:
 			# Valid registration data
 			LogEvent(INFO, "", "Updating XDB")
 			try:
@@ -106,7 +241,7 @@ class RegisterManager:
 				LogEvent(INFO, "", "Sent a result Iq")
 				(user, host, res) = jid.parse(incoming.getAttribute("from"))
 				jabw.sendPresence(self.pytrans, to=user + "@" + host, fro=config.jid, ptype="subscribe")
-				if(config.registerMessage):
+				if config.registerMessage:
 					jabw.sendMessage(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, body=config.registerMessage)
 			except:
 				self.xdbErrorReply(incoming)
