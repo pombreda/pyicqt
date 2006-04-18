@@ -65,6 +65,8 @@ class GatewayTranslator:
 			query.attributes["xmlns"] = globals.IQGATEWAY
 			prompt = query.addElement("prompt")
 			prompt.addContent(legacy.translateAccount(legacyaccount))
+			jid = query.addElement("jid")
+			jid.addContent(legacy.translateAccount(legacyaccount))
 			
 			self.pytrans.send(iq)
 		

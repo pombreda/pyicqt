@@ -137,8 +137,39 @@
 	<!-- secret, above, is used for sasl password -->
 	<!-- <saslUsername/> -->
 
-	<!-- Use Jabberd 2's component protocol extensions. -->
-	<!-- Jabberd2 requires saslUsername for this to work. -->
-	<!-- Wildfire as of 2.6.0 is able to use this *without saslUsername* -->
-	<!-- <useJ2Component/> -->
+	<!-- Use external component binding. -->
+	<!-- This dodges the need to manually configure all jids that talk to this transport. -->
+	<!-- Jabberd2 requires saslUsername and useRouteWrap for this to work. -->
+	<!-- Wildfire as of 2.6.0 requires just this. -->
+	<!-- <useComponentBinding/> -->
+
+	<!-- Wrap stanzas in <route> stanza. -->
+	<!-- Jabberd2 requires this for useComponentBinding. -->
+	<!-- <useRouteWrap/> -->
+
+	<!-- JID of message archive service -->
+	<!-- <messageArchiveJID>datasink.example.org</messageArchiveJID> -->
+
+	<!-- If registration authentication is used, enter the method -->
+	<!-- Auth configs often require additional options to be specified. -->
+	<!-- See associated config entries per authRegister example. -->
+	<!-- NOTE: limited to LDAP for now -->
+
+	<!-- THIS IS UNTESTED AS OF YET -->
+	<!-- <authRegister>LDAP</authRegister> -->
+	<!-- For LDAP auth, make sure to uncomment <authRegister_LDAP> -->
+	<!-- and </authRegister_LDAP> and fill out the options in between. -->
+	<!-- <authRegister_LDAP> -->
+	<!-- The fqdn or ip address of the LDAP server -->
+	<!-- <server>ldap.example.org</server> -->
+	<!-- The Root DN to be used to perform LDAP searches -->
+	<!-- <rootDN>CN=Administrator,CN=Users,DC=example,DC=org</rootDN> -->
+	<!-- The password for the Root DN -->
+	<!-- <password>SECRET</password> -->
+	<!-- The Base DN to search for users -->
+	<!-- <baseDN>DC=example,DC=org</baseDN> -->
+	<!-- The attribute to search for the user ID. -->
+	<!-- 'samAccountname' in Windows, 'uid' on most other systems -->
+	<!-- <uidAttr>samAccountname</uidAttr> -->
+	<!-- </authRegister_LDAP> -->
 </pyicqt>

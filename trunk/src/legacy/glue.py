@@ -171,13 +171,16 @@ class LegacyConnection:
 					charset = "unicode"
 				LogEvent(INFO, self.session.jabberID, "Encoding %r" % encoding)
 				self.bos.sendMessage(uin, [[message,charset]], offline=offline, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
+				self.session.sendArchive(target, self.session.jabberID, message)
 			else:
 				if xhtml and not config.disableXHTML:
 					xhtml = utils.xhtml_to_aimhtml(xhtml)
 					self.bos.sendMessage(uin, xhtml, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
+					self.session.sendArchive(target, self.session.jabberID, message)
 				else:
 					htmlized = oscar.html(message)
 					self.bos.sendMessage(uin, htmlized, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
+					self.session.sendArchive(target, self.session.jabberID, message)
 		except AttributeError:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 

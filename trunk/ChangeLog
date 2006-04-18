@@ -1,3 +1,24 @@
+2006-04-17  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Added Uri Shaked's SMS code.
+
+	* src/config.py:
+	* config_example.xml:
+	* src/langs/en.py:
+	* src/register.py:
+	* src/jabw.py:
+	* src/legacy/glue.py:
+	Added support for JEP-0136 (message archiving) and ldap register auth.
+
+	* src/config.py:
+	* config_example.xml:
+	* src/main.py:
+	Migrated from useJ2Component to useRouteWrap and useComponentBinding.
+
+	* src/services/GatewayTranslator.py:
+	Fixed return of prompt to jid as specified in JEP-0100.
+
 2006-04-16  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
