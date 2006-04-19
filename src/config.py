@@ -8,6 +8,13 @@
 
 if type(True) != bool: from bool import bool
 
+class DeprecatedVariable:
+	def __init__(self, msg):
+		self.msg = msg
+
+	def __call__(self):
+		print "WARNING: %s" % self.msg
+
 jid = "icq.localhost"
 compjid = ""
 spooldir = ".."
@@ -19,6 +26,7 @@ reactor = ""
 port = 5347
 webport = 0
 secret = "secret"
+websecret = DeprecatedVariable("websecret is no longer used as web interface auths against JID now.")
 lang = "en"
 encoding = "iso-8859-1"
 icqServer = "login.icq.com"
@@ -41,11 +49,13 @@ xdbDriver_xmlfiles = {}
 useXCP = bool(False)
 useComponentBinding = bool(False)
 useRouteWrap = bool(False)
+useJ2Component = DeprecatedVariable("useJ2Component has been split up into useComponentBinding and useRouteWrap.")
 saslUsername = ""
 avatarsOnlyOnChat = bool(False)
 disableDefaultAvatar = bool(False)
 disableAvatars = bool(False)
 enableWebPresence = bool(False)
+disableWebPresence = DeprecatedVariable("disableWebPresence is now the default; use enableWebPresence to re-enable this functionality.")
 disableMailNotifications = bool(False)
 messageArchiveJID = ""
 authRegister = ""
