@@ -27,7 +27,7 @@ def importFile(conffile):
 		cdata = child.__str__()
 		children = [x for x in child.elements()]
 		if not hasattr(config, tag):
-			LogEvent(WARN, "", "Ignoring unrecognized configuration option %r" % tag)
+			print "Ignoring unrecognized configuration option %r" % tag
 		elif type(getattr(config, tag)) == dict:
 			# For options like <settings><username>blar</username><password>foo</password></settings>
 			try:
@@ -40,7 +40,7 @@ def importFile(conffile):
 					myDict[n] = s
 					LogEvent(INFO, "", "Adding %r=%r to config dictionary %r" % (n, s, tag))
 			except AttributeError:
-				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
+				print "Ignoring configuration option %r" % tag
 		elif type(getattr(config, tag)) == list:
 			# For options like <admins><jid>user1@host.com</jid><jid>user2@host.com</jid></admins>
 			try:
@@ -52,7 +52,7 @@ def importFile(conffile):
 					LogEvent(INFO, "", "Adding %r to config list %r" % (s, tag))
 					myList.append(s)
 			except AttributeError:
-				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
+				print "Ignoring configuration option %r" % tag
 		elif type(getattr(config, tag)) == str:
 			# For config options like <ip>127.0.0.1</ip>
 			try:
@@ -61,7 +61,7 @@ def importFile(conffile):
 				LogEvent(INFO, "", "Setting config option %r = %r" % (tag, cdata))
 				setattr(config, tag, cdata)
 			except AttributeError:
-				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
+				print "Ignoring configuration option %r" % tag
 		elif type(getattr(config, tag)) == int:
 			# For config options like <port>5347</port>
 			try:
@@ -74,7 +74,7 @@ def importFile(conffile):
 					# Isn't an integer apparantly.
 					invalidError("Tag %r in your configuration file should be an integer (ie, must have numeric cdata)." % (tag))
 			except AttributeError:
-				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
+				print "Ignoring configuration option %r" % tag
 		elif type(getattr(config, tag)) == bool:
 			# For config options like <crossChat/>
 			try:
@@ -83,9 +83,12 @@ def importFile(conffile):
 				LogEvent(INFO, "", "Enabling config option %r" % (tag))
 				setattr(config, tag, True)
 			except AttributeError:
-				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
+				print "Ignoring configuration option %r" % tag
+		elif isinstance(getattr(config, tag), config.DeprecatedVariable):
+			# For deprecated options, we will display a warning
+			getattr(config, tag)()
 		else:
-			LogEvent(WARN, "", "Ignoring unrecognized configuration option %r" % (tag))
+			print "Ignoring unrecognized configuration option %r [unrecognized type %s]" % (tag, type(getattr(config, tag)))
 
 def importOptions(options):
 	for o in options:

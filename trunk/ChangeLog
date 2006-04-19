@@ -1,3 +1,19 @@
+2006-04-18  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/legacy/icqt.py:
+	* src/legacy/glue.py:
+	Updated to use guess_encoding with vcard type data.
+
+	* src/xmlconfig.py:
+	Updated to shout more about config options.
+
+	* src/config.py:
+	* src/xmlconfig.py:
+	Added functionality to complain about deprecated variables.
+
+	* src/web/xmppcred.py:
+	Added functionality to make web auth handler NOT keep trying.
+
 2006-04-17  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:

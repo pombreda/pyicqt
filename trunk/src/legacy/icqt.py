@@ -70,7 +70,8 @@ class B(oscar.BOSConnection):
 	def gotUserInfo(self, id, type, userinfo):
 		if userinfo:
 			for i in range(len(userinfo)):
-				userinfo[i] = userinfo[i].decode(config.encoding, "replace").encode("utf-8", "replace")
+				#userinfo[i] = userinfo[i].decode(config.encoding, "replace").encode("utf-8", "replace")
+				userinfo[i],uenc = oscar.guess_encoding(userinfo[i], config.encoding)
 		if self.oscarcon.userinfoCollection[id].gotUserInfo(id, type, userinfo):
 			# True when all info packages has been received
 			self.oscarcon.gotvCard(self.oscarcon.userinfoCollection[id])
