@@ -1,7 +1,6 @@
 # Copyright 2005-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
-import utils
 import config
 from twisted.internet import reactor
 from tlib.twistwrap import Element
@@ -11,6 +10,7 @@ import sha
 import base64
 import os
 import os.path
+import imgmanip
 
 SPOOL_UMASK = 0077
 
@@ -25,7 +25,7 @@ def parsePhotoEl(photo):
 			imageType = e.__str__()
 	
 	if imageType != "image/png":
-		imageData = utils.convertToPNG(imageData)
+		imageData = imgmanip.convertToPNG(imageData)
 	
 	return imageData
 
@@ -37,7 +37,7 @@ def parseIQPhotoEl(photo):
 	LogEvent(INFO)
 	
 	if imageType != "image/png":
-		imageData = utils.convertToPNG(imageData)
+		imageData = imgmanip.convertToPNG(imageData)
 	
 	return imageData
 
