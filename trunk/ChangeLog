@@ -3,6 +3,10 @@
 	* src/avatar.py:
 	Fixed stupid bug with avatar conversion.
 
+	* src/jabw.py:
+	* src/session.py:
+	Improved IQ-based avatar support.
+
 2006-04-18  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/legacy/icqt.py:

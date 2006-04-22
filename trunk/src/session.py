@@ -127,7 +127,7 @@ class Session(jabw.JabberConnection):
 				if e.name == "vCard" and e.defaultUri == globals.VCARD:
 					vCard = e
 					break
-			else:
+			if not vCard:
 				if not config.disableAvatars: self.legacycon.updateAvatar() # Default avatar
 				return
 			avatarSet = False
@@ -156,15 +156,21 @@ class Session(jabw.JabberConnection):
 		d.addErrback(errback)
 
 	def doIQAvatarUpdate(self):
-		def iqAvatarReceived(el):
+		def errback(args=None):
+			LogEvent(INFO, self.jabberID, "Error fetching IQ-based avatar")
+			if not config.disableAvatars and self.alive: self.legacycon.updateAvatar()
+
+		def storageAvatarReceived(el):
 			if not self.alive: return
-			LogEvent(INFO, self.jabberID)
+			LogEvent(INFO, self.jabberID, "%s" % el.toXml())
+			qtype = el.getAttribute("type")
+			if qtype == "error": return
 			query = None
 			for e in el.elements():
-				if e.name == "query" and e.defaultUri == globals.IQAVATAR:
+				if e.name == "query" and e.defaultUri == globals.STORAGEAVATAR:
 					query = e
 					break
-			else:
+			if not query:
 				if not config.disableAvatars: self.legacycon.updateAvatar() # Default avatar
 				return
 			avatarSet = False
@@ -179,11 +185,40 @@ class Session(jabw.JabberConnection):
 			if not avatarSet and not config.disableAvatars:
 				self.legacycon.updateAvatar() # Default avatar
 
-		def errback(args=None):
-			LogEvent(INFO, self.jabberID, "Error fetching IQ-based avatar")
-			if not config.disableAvatars and self.alive: self.legacycon.updateAvatar()
+		def iqAvatarReceived(el):
+			if not self.alive: return
+			LogEvent(INFO, self.jabberID, "%s" % el.toXml())
+			qtype = el.getAttribute("type")
+			if qtype == "error":
+				LogEvent(INFO, self.jabberID, "That didn't work, let's try an IQ-storage-based avatar")
+				d = self.sendStorageAvatarRequest(to=self.jabberID, fro=config.jid)
+				d.addCallback(storageAvatarReceived)
+				d.addErrback(errback)
+				
+			query = None
+			for e in el.elements():
+				if e.name == "query" and e.defaultUri == globals.IQAVATAR:
+					query = e
+					break
+			if not query:
+				if not config.disableAvatars: self.legacycon.updateAvatar() # Default avatar
+				return
+			avatarSet = False
+			for e in query.elements():
+				if e.name == "data" and not config.disableAvatars:
+					imageData = avatar.parseIQPhotoEl(e)
+					if not imageData:
+						errback() # Possibly it wasn't in a supported format?
+					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
+					self.legacycon.updateAvatar(self.avatar)
+					avatarSet = True
+			if not avatarSet and not config.disableAvatars:
+				self.legacycon.updateAvatar() # Default avatar
 
 		LogEvent(INFO, self.jabberID, "Fetching IQ-based avatar")
+		highestActive = self.highestResource()
+		if not highestActive: return
+		d = self.sendIQAvatarRequest(to=self.jabberID+"/"+highestActive, fro=config.jid)
 		d = self.sendIQAvatarRequest(to=self.jabberID, fro=config.jid)
 		d.addCallback(iqAvatarReceived)
 		d.addErrback(errback)

@@ -225,6 +225,7 @@ class JabberConnection:
 		""" Requests the the IQ-based avatar of 'to'
 		Returns a Deferred which fires when the IQ result has been received.
 		"""
+		LogEvent(INFO, self.jabberID)
 		el = Element((None, "iq"))
 		el.attributes["to"] = to
 		el.attributes["from"] = fro
@@ -232,6 +233,20 @@ class JabberConnection:
 		el.attributes["id"] = self.pytrans.makeMessageID()
 		query = el.addElement("query")
 		query.attributes["xmlns"] = globals.IQAVATAR
+		return self.pytrans.iq.sendIq(el)
+
+	def sendStorageAvatarRequest(self, to, fro):
+		""" Requests the the IQ-storage-based avatar of 'to'
+		Returns a Deferred which fires when the IQ result has been received.
+		"""
+		LogEvent(INFO, self.jabberID)
+		el = Element((None, "iq"))
+		el.attributes["to"] = to
+		el.attributes["from"] = fro
+		el.attributes["type"] = "get"
+		el.attributes["id"] = self.pytrans.makeMessageID()
+		query = el.addElement("query")
+		query.attributes["xmlns"] = globals.STORAGEAVATAR
 		return self.pytrans.iq.sendIq(el)
 
 	def sendErrorMessage(self, to, fro, etype, explanation, condition=None, body=None):
