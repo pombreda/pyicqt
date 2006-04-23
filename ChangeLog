@@ -1,3 +1,9 @@
+2006-04-21  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/services/RosterRetrieval.py:
+	* src/langs/en.py:
+	Added roster retrieval functionality.
+
 2006-04-20  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/avatar.py:
