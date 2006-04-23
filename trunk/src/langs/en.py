@@ -21,6 +21,7 @@ class en: # English - James Bunton <mailto:james@delx.cjb.net>/Daniel Henninger 
 	searchinstructions = u"Fill in either the e-mail address field or any number of the other fields to search the ICQ directory for matching users.  If the e-mail address is filled in, all other fields are ignored."
 	command_CommandList = u"PyICQt Commands"
 	command_Statistics = u"Statistics for PyICQt"
+	command_RosterRetrieval = u"Retrieve Roster Contents"
 	command_ConnectUsers = u"Connect all registered users"
 	command_Done = u"Command completed"
 	command_NoSession = u"You must be logged in to use this command."
