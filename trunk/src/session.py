@@ -219,7 +219,6 @@ class Session(jabw.JabberConnection):
 		highestActive = self.highestResource()
 		if not highestActive: return
 		d = self.sendIQAvatarRequest(to=self.jabberID+"/"+highestActive, fro=config.jid)
-		d = self.sendIQAvatarRequest(to=self.jabberID, fro=config.jid)
 		d.addCallback(iqAvatarReceived)
 		d.addErrback(errback)
 

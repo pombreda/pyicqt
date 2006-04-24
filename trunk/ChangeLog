@@ -1,3 +1,8 @@
+2006-04-22  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/session.py:
+	Updated to stop sending double avatar requests.
+
 2006-04-21  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/services/RosterRetrieval.py:
