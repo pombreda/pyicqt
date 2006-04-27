@@ -143,6 +143,7 @@ import debug
 import xdb
 import avatar
 import session
+import svninfo
 import jabw
 import iq
 import disco
@@ -159,6 +160,10 @@ class PyTransport(component.Service):
 	routewrap = 0
 	def __init__(self):
 		LogEvent(INFO)
+		try:
+			LogEvent(INFO, "", "SVN r" + svninfo.getSVNVersion())
+		except:
+			pass
 
 		### Database prep-work
 		# Open our spool
