@@ -31,8 +31,8 @@ def parsePhotoEl(photo):
 
 def parseIQPhotoEl(photo):
 	""" Pass the iq-based photo element as an avatar, returns the avatar imageData """
-	imageType = e.getAttribute("mimetype")
-	imageData = base64.decodestring(e.__str__())
+	imageType = photo.getAttribute("mimetype")
+	imageData = base64.decodestring(photo.__str__())
 
 	LogEvent(INFO)
 	

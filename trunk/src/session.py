@@ -72,7 +72,7 @@ class Session(jabw.JabberConnection):
 			self.sendMessage(to=self.jabberID, fro=config.jid, body=config.sessionGreeting)
 		self.updateNickname("")
 		self.updateDescription("")
-		self.doVCardUpdate()
+		self.doVCardUpdate(punttoiq=True)
 		LogEvent(INFO, self.jabberID, "Created!")
 
 		self.pytrans.serviceplugins['Statistics'].stats["TotalSessions"] += 1
@@ -118,7 +118,7 @@ class Session(jabw.JabberConnection):
 		
 		LogEvent(INFO, self.jabberID, "Removed!")
 
-	def doVCardUpdate(self):
+	def doVCardUpdate(self, punttoiq=False):
 		def vCardReceived(el):
 			if not self.alive: return
 			LogEvent(INFO, self.jabberID)
@@ -128,7 +128,11 @@ class Session(jabw.JabberConnection):
 					vCard = e
 					break
 			if not vCard:
-				if not config.disableAvatars: self.legacycon.updateAvatar() # Default avatar
+				if not config.disableAvatars:
+					if punttoiq:
+						self.doIQAvatarUpdate()
+					else:
+						self.legacycon.updateAvatar() # Default avatar
 				return
 			avatarSet = False
 			for e in vCard.elements():
@@ -139,16 +143,23 @@ class Session(jabw.JabberConnection):
 				if e.name == "PHOTO" and not config.disableAvatars:
 					imageData = avatar.parsePhotoEl(e)
 					if not imageData:
-						errback("Invalid image data") # Possibly it wasn't in a supported format?
+						errback(Exception("Invalid image data")) # Possibly it wasn't in a supported format?
 					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
 					self.legacycon.updateAvatar(self.avatar)
 					avatarSet = True
 			if not avatarSet and not config.disableAvatars:
-				self.legacycon.updateAvatar() # Default avatar
+				if punttoiq:
+					self.doIQAvatarUpdate()
+				else:
+					self.legacycon.updateAvatar() # Default avatar
 
 		def errback(args=None):
 			LogEvent(INFO, self.jabberID, "Error fetching vcard (avatar)")
-			if not config.disableAvatars and self.alive: self.legacycon.updateAvatar()
+			if not config.disableAvatars and self.alive:
+				if punttoiq:
+					self.doIQAvatarUpdate()
+				else:
+					self.legacycon.updateAvatar() # Default avatar
 
 		LogEvent(INFO, self.jabberID, "Fetching vcard (avatar)")
 		d = self.sendVCardRequest(to=self.jabberID, fro=config.jid)
@@ -162,7 +173,7 @@ class Session(jabw.JabberConnection):
 
 		def storageAvatarReceived(el):
 			if not self.alive: return
-			LogEvent(INFO, self.jabberID, "%s" % el.toXml())
+			LogEvent(INFO, self.jabberID)
 			qtype = el.getAttribute("type")
 			if qtype == "error": return
 			query = None
@@ -178,7 +189,7 @@ class Session(jabw.JabberConnection):
 				if e.name == "data" and not config.disableAvatars:
 					imageData = avatar.parseIQPhotoEl(e)
 					if not imageData:
-						errback() # Possibly it wasn't in a supported format?
+						errback(Exception("Invalid image data")) # Possibly it wasn't in a supported format?
 					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
 					self.legacycon.updateAvatar(self.avatar)
 					avatarSet = True
@@ -187,7 +198,7 @@ class Session(jabw.JabberConnection):
 
 		def iqAvatarReceived(el):
 			if not self.alive: return
-			LogEvent(INFO, self.jabberID, "%s" % el.toXml())
+			LogEvent(INFO, self.jabberID)
 			qtype = el.getAttribute("type")
 			if qtype == "error":
 				LogEvent(INFO, self.jabberID, "That didn't work, let's try an IQ-storage-based avatar")
@@ -208,7 +219,7 @@ class Session(jabw.JabberConnection):
 				if e.name == "data" and not config.disableAvatars:
 					imageData = avatar.parseIQPhotoEl(e)
 					if not imageData:
-						errback() # Possibly it wasn't in a supported format?
+						errback(Exception("Invalid image data")) # Possibly it wasn't in a supported format?
 					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
 					self.legacycon.updateAvatar(self.avatar)
 					avatarSet = True

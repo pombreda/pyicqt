@@ -1,3 +1,17 @@
+2006-04-26  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/avatar.py:
+	Fixed iq:avatar parser.
+
+	* src/iq.py:
+	* src/session.py:
+	Fixed errback exception handling.
+
+	* src/svninfo.py:
+	* src/main.py:
+	* src/services/VersionTeller.py:
+	Added (and modified a slight bit) James's svn version stuff.
+
 2006-04-22  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/session.py:
