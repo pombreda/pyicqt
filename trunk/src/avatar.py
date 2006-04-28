@@ -97,14 +97,14 @@ class AvatarCache:
 		Returns an Avatar object. """
 		avatar = Avatar(imageData, self)
 		key = avatar.getImageHash()
-		LogEvent(INFO, "", "Setting avatar %r" % (key))
+		LogEvent(INFO, msg="Setting avatar %r" % (key))
 		prev_umask = os.umask(SPOOL_UMASK)
 		try:
 			f = open(self.dir(key) + key, 'wb')
 			f.write(imageData)
 			f.close()
 		except IOError, e:
-			LogEvent(WARN, "", "IOError writing to avatar %r - %r" % (key, str(e)))
+			LogEvent(WARN, msg="IOError writing to avatar %r - %r" % (key, str(e)))
 		os.umask(prev_umask)
 		return avatar
 	
@@ -119,12 +119,12 @@ class AvatarCache:
 		try:
 			filename = self.dir(key) + key
 			if os.path.isfile(filename):
-				LogEvent(INFO, "", "Getting avatar %r" % (key))
+				LogEvent(INFO, msg="Getting avatar %r" % (key))
 				f = open(filename, 'rb')
 				data = f.read()
 				f.close()
 				return data
 			else:
-				LogEvent(INFO, "", "Avatar not found %r" % (key))
+				LogEvent(INFO, msg="Avatar not found %r" % (key))
 		except IOError, e:
-			LogEvent(INFO, "", "IOError reading avatar %r - %r" % (key, str(e)))
+			LogEvent(INFO, msg="IOError reading avatar %r - %r" % (key, str(e)))

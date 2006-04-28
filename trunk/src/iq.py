@@ -56,24 +56,24 @@ class IqHandler:
 			froj = jid.JID(fro)
 			to = jid.JID(to).full()
 		except Exception, e:
-			LogEvent(INFO, "", "Dropping IQ because of stringprep error")
+			LogEvent(INFO, msg="Dropping IQ because of stringprep error")
 
 		# Check if it's a response to a sent IQ
 		if self.deferredIqs.has_key((fro, ID)) and (iqType == "error" or iqType == "result"):
-			LogEvent(INFO, "", "Doing callback")
+			LogEvent(INFO, msg="Doing callback")
 			self.deferredIqs[(fro, ID)].callback(el)
 			del self.deferredIqs[(fro, ID)]
 			return
 
 		if not (iqType == "get" or iqType == "set"): return # Not interested
 
-		LogEvent(INFO, "", "Looking for handler")
+		LogEvent(INFO, msg="Looking for handler")
 		for query in el.elements():
 			xmlns = query.defaultUri
 			node = query.getAttribute("node")
 
 			if self.handlers.has_key(xmlns):
-				LogEvent(INFO, "", "Namespace handler found")
+				LogEvent(INFO, msg="Namespace handler found")
 				handler = self.handlers[xmlns]
 				if handler:
 					handler(el)
@@ -81,14 +81,14 @@ class IqHandler:
 
 			for prefix in self.prefixhandlers.keys():
 				if xmlns.startswith(prefix):
-					LogEvent(INFO, "", "Namespace prefix handler found")
+					LogEvent(INFO, msg="Namespace prefix handler found")
 					handler = self.prefixhandlers[prefix]
 					if handler:
 						handler(el)
 						return
 
 			# Still hasn't been handled
-			LogEvent(WARN, "", "Unknown Iq Request")
+			LogEvent(WARN, msg="Unknown Iq Request")
 			self.sendIqError(to=fro, fro=to, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 
 	def sendIqError(self, to, fro, ID, xmlns, etype, condition):

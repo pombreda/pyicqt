@@ -7,7 +7,7 @@ from config import xdbDriver
 
 try:
 	exec("from %s import XDB, housekeep" % xdbDriver)
-	LogEvent(INFO, "", "Using XDB driver %s" % xdbDriver)
+	LogEvent(INFO, msg="Using XDB driver %s" % xdbDriver, skipargs=True)
 except:
 	print("No valid XDB driver specified, exiting...")
 	raise

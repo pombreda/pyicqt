@@ -72,31 +72,35 @@ class WARN : pass
 class ERROR: pass
 
 class LogEvent:
-	def __init__(self, category=INFO, ident="", msg="", log=True):
+	def __init__(self, category=INFO, ident="", msg="", log=True, skipargs=False):
 		self.category, self.ident, self.msg = category, ident, msg
 		frame = sys._getframe(1)
 		# Get the class name
 		s = str(frame.f_locals.get("self", frame.f_code.co_filename))
 		self.klass = s[s.find(".")+1:s.find(" ")]
+		if self.klass == "p": self.klass = ""
 		self.method = frame.f_code.co_name
+		if self.method == "?": self.method = ""
 		self.args = frame.f_locals
+		self.skipargs = skipargs
 		if log:
 			self.log()
 	
 	def __str__(self):
 		args = {}
-		for key in self.args.keys():
-			if key == "self":
-				#args["self"] = "instance"
-				continue
-			val = self.args[key]
-			args[key] = val
-			try:
-				if len(val) > 128:
-					args[key] = "Oversize arg"
-			except:
-				# If its not an object with length, assume that it can't be too big. Hope that's a good assumption.
-				pass
+		if not self.skipargs:
+			for key in self.args.keys():
+				if key == "self":
+					#args["self"] = "instance"
+					continue
+				val = self.args[key]
+				args[key] = val
+				try:
+					if len(val) > 128:
+						args[key] = "Oversize arg"
+				except:
+					# If its not an object with length, assume that it can't be too big. Hope that's a good assumption.
+					pass
 		category = str(self.category).split(".")[1]
 		return "%s :: %s :: %s :: %s :: %s :: %s" % (category, str(self.ident), str(self.klass), self.method, str(args), self.msg)
 	

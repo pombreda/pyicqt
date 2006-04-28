@@ -26,7 +26,7 @@ class VCardFactory:
 			self.pytrans.iq.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns="vcard-temp", etype="cancel", condition="feature-not-implemented")
 			return
 
-		LogEvent(INFO, "", "Sending vCard")
+		LogEvent(INFO, msg="Sending vCard")
 
 		toGateway = not (to.find('@') > 0)
 		if not toGateway:

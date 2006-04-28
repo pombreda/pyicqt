@@ -15,29 +15,29 @@ def authenticate_ldap(user, pwd):
 	""" use ldap to authenticate user before """
 	""" granting registration rights """
 	import ldap
-	LogEvent(INFO, "", "Performing authentication")
+	LogEvent(INFO, msg="Performing authentication")
 	try:
 		l = ldap.open(config.authRegister_LDAP["server"])
 		l.simple_bind_s(config.authRegister_LDAP["rootDN"], config.authRegister_LDAP["password"])
-		LogEvent(INFO, "", "Bound to LDAP server")
+		LogEvent(INFO, msg="Bound to LDAP server")
 		searchterm = config.authRegister_LDAP["uidAttr"] + "=" + user
 		ldap_result_id = l.search(config.authRegister_LDAP["baseDN"], ldap.SCOPE_SUBTREE, searchterm, None)
-		LogEvent(INFO, "", "Performed search")
+		LogEvent(INFO, msg="Performed search")
 
 		result_type, result_data = l.result(ldap_result_id, 0)
-		LogEvent(INFO, "", "Got search results")
+		LogEvent(INFO, msg="Got search results")
 
 		if (result_data == []):
 			return "false"
 		else:
 			if result_type == ldap.RES_SEARCH_ENTRY:
-				LogEvent(INFO, "", "Getting acct data")
+				LogEvent(INFO, msg="Getting acct data")
 				acctdata = result_data[0]
 				result_data = []
 				acctdn = acctdata[0]
 				acctdata = []
 
-		LogEvent(INFO, "", acctdn)
+		LogEvent(INFO, msg=acctdn)
 		if(acctdn == ""):
 			#user does not exist
 			return "false"
@@ -53,7 +53,7 @@ def authenticate_ldap(user, pwd):
 				return "false"
 	except:
 		#problem, return false
-		LogEvent(INFO, "", "Error performing authentication")
+		LogEvent(INFO, msg="Error performing authentication")
                 return "false"
 
 
@@ -75,7 +75,7 @@ class RegisterManager:
 			pass
 		
 		self.pytrans.xdb.removeRegistration(jabberID)
-		LogEvent(INFO, "", "done")
+		LogEvent(INFO, msg="done")
 	
 	
 	def incomingRegisterIq(self, incoming):
@@ -154,7 +154,7 @@ class RegisterManager:
 
 		if username and password and len(username) > 0 and len(password) > 0:
 			# Valid authentication data
-			LogEvent(INFO, "", "Authenticating user")
+			LogEvent(INFO, msg="Authenticating user")
 			try:
 				if config.authRegister == "LDAP":
 					result = authenticate_ldap(username, password)
@@ -162,12 +162,12 @@ class RegisterManager:
 					result = "true"
 				if result == "true":
 					self.pytrans.xdb.setRegistration(source, "local", "local")
-					LogEvent(INFO, "", "Updated XDB")
+					LogEvent(INFO, msg="Updated XDB")
 					self.successReply(incoming)
-					LogEvent(INFO, "", "Authenticated user")
+					LogEvent(INFO, msg="Authenticated user")
 				else:
 					self.xdbErrorReply(incoming)
-					LogEvent(INFO, "", "Authentication failure")
+					LogEvent(INFO, msg="Authentication failure")
 			except:
 				self.xdbErrorReply(incoming)
 				raise
@@ -219,26 +219,26 @@ class RegisterManager:
 							password = child.__str__()
 						elif(child.name == "remove"):
 							# The user wants to unregister the transport! Gasp!
-							LogEvent(INFO, "", "Unregistering")
+							LogEvent(INFO, msg="Unregistering")
 							try:
 								self.removeRegInfo(source)
 								self.successReply(incoming)
 							except:
 								self.xdbErrorReply(incoming)
 								return
-							LogEvent(INFO, "", "Unregistered!")
+							LogEvent(INFO, msg="Unregistered!")
 							return
 					except AttributeError, TypeError:
 						continue # Ignore any errors, we'll check everything below
 		
 		if username and password and len(username) > 0 and len(password) > 0:
 			# Valid registration data
-			LogEvent(INFO, "", "Updating XDB")
+			LogEvent(INFO, msg="Updating XDB")
 			try:
 				self.pytrans.xdb.setRegistration(source, username, password)
-				LogEvent(INFO, "", "Updated XDB")
+				LogEvent(INFO, msg="Updated XDB")
 				self.successReply(incoming)
-				LogEvent(INFO, "", "Sent a result Iq")
+				LogEvent(INFO, msg="Sent a result Iq")
 				(user, host, res) = jid.parse(incoming.getAttribute("from"))
 				jabw.sendPresence(self.pytrans, to=user + "@" + host, fro=config.jid, ptype="subscribe")
 				if config.registerMessage:

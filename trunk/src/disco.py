@@ -64,9 +64,9 @@ class ServiceDiscovery:
 			froj = jid.JID(fro)
 			to = jid.JID(to).full()
 		except Exception, e:
-			LogEvent(INFO, "", "Dropping IQ because of stringprep error")
+			LogEvent(INFO, msg="Dropping IQ because of stringprep error")
 
-		LogEvent(INFO, "", "Looking for handler")
+		LogEvent(INFO, msg="Looking for handler")
 
 		for query in el.elements():
 			xmlns = query.defaultUri
@@ -88,7 +88,7 @@ class ServiceDiscovery:
 				return
 
 			# Still hasn't been handled
-			LogEvent(WARN, "", "Unknown Iq Request")
+			LogEvent(WARN, msg="Unknown Iq Request")
 			self.pytrans.iq.sendIqError(to=fro, fro=to, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 
 	def sendDiscoInfoResponse(self, to, ID, ulang, jid):
@@ -108,7 +108,7 @@ class ServiceDiscovery:
 
 		# Add any identities
 		for (category, ctype, name) in self.identities.get(searchjid, []):
-			LogEvent(INFO, "", "Found identity %r %r %r" % (category, ctype, name))
+			LogEvent(INFO, msg="Found identity %r %r %r" % (category, ctype, name))
 			identity = query.addElement("identity")
 			identity.attributes["category"] = category
 			identity.attributes["type"] = ctype
@@ -116,7 +116,7 @@ class ServiceDiscovery:
 		
 		# Add any supported features
 		for var in self.features.get(searchjid, []):
-			LogEvent(INFO, "", "Found feature %r" % (var))
+			LogEvent(INFO, msg="Found feature %r" % (var))
 			feature = query.addElement("feature")
 			feature.attributes["var"] = var
 
@@ -140,7 +140,7 @@ class ServiceDiscovery:
 		for node in self.nodes.get(searchjid, []):
 			handler, name, rootnode = self.nodes[jid][node]
 			if rootnode:
-				LogEvent(INFO, "", "Found node %r" % (node))
+				LogEvent(INFO, msg="Found node %r" % (node))
 				name = lang.get(name, ulang)
 				item = query.addElement("item")
 				item.attributes["jid"] = jid

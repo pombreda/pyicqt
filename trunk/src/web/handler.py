@@ -39,7 +39,7 @@ class WebInterface_template(rend.Page):
 		username = request.getUser()
 		password = request.getPassword()
 		if not username or not password: return self._loginFailed(None, ctx)
-		LogEvent(INFO, "", repr(username))
+		LogEvent(INFO, msg=repr(username))
 		jabberPort = 5222
 		port_sep = username.find("%")
 		if port_sep != -1:
@@ -53,7 +53,7 @@ class WebInterface_template(rend.Page):
 			jabberHost = j.host
 		else:
 			jabberHost = config.mainServer
-		LogEvent(INFO, "", "Port = %r" % jabberPort)
+		LogEvent(INFO, msg="Port = %r" % jabberPort)
 		p = portal.Portal(XMPPRealm())
 		p.registerChecker(XMPPChecker(jabberHost, jabberPort, tryonce=1))
 		creds = credentials.UsernamePassword(username, password)
@@ -101,7 +101,7 @@ class WebInterface_template(rend.Page):
 # Root Node
 class WebInterface(WebInterface_template):
 	def childFactory(self, ctx, name):
-		LogEvent(INFO, "", "childFactory %s %s" % (ctx, name))
+		LogEvent(INFO, msg="childFactory %s %s" % (ctx, name))
 
 		if name == "account":
 			return WebInterface_account(pytrans=self.pytrans)
