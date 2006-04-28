@@ -55,7 +55,7 @@ class GatewayTranslator:
 		
 		
 		if legacyaccount and len(legacyaccount) > 0:
-			LogEvent(INFO, "", "Sending translated account")
+			LogEvent(INFO, msg="Sending translated account")
 			iq = Element((None, "iq"))
 			iq.attributes["type"] = "result"
 			iq.attributes["from"] = config.jid

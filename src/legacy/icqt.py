@@ -45,7 +45,7 @@ class B(oscar.BOSConnection):
 
 	def initDone(self):
 		if not hasattr(self, "session") or not self.session:
-			LogEvent(INFO, "", "No session!")
+			LogEvent(INFO, msg="No session!")
 			return
 		self.requestSelfInfo().addCallback(self.gotSelfInfo)
 		#self.requestSelfInfo() # experimenting with no callback

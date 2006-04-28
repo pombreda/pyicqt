@@ -38,7 +38,7 @@ def importFile(conffile):
 					n = child.name
 					s = child.__str__()
 					myDict[n] = s
-					LogEvent(INFO, "", "Adding %r=%r to config dictionary %r" % (n, s, tag))
+					LogEvent(INFO, msg="Adding %r=%r to config dictionary %r" % (n, s, tag), skipargs=True)
 			except AttributeError:
 				print "Ignoring configuration option %r" % tag
 		elif type(getattr(config, tag)) == list:
@@ -49,7 +49,7 @@ def importFile(conffile):
 				myList = getattr(config, tag)
 				for child in children:
 					s = child.__str__()
-					LogEvent(INFO, "", "Adding %r to config list %r" % (s, tag))
+					LogEvent(INFO, msg="Adding %r to config list %r" % (s, tag), skipargs=True)
 					myList.append(s)
 			except AttributeError:
 				print "Ignoring configuration option %r" % tag
@@ -58,7 +58,7 @@ def importFile(conffile):
 			try:
 				if not cdata:
 					invalidError("Tag %r in your configuration file should be a string (ie, must have cdata)." % (tag))
-				LogEvent(INFO, "", "Setting config option %r = %r" % (tag, cdata))
+				LogEvent(INFO, msg="Setting config option %r = %r" % (tag, cdata), skipargs=True)
 				setattr(config, tag, cdata)
 			except AttributeError:
 				print "Ignoring configuration option %r" % tag
@@ -67,7 +67,7 @@ def importFile(conffile):
 			try:
 				if not cdata:
 					invalidError("Tag %r in your configuration file should be an integer (ie, must have numeric cdata)." % (tag))
-				LogEvent(INFO, "", "Setting config option %r = %r" % (tag, cdata))
+				LogEvent(INFO, msg="Setting config option %r = %r" % (tag, cdata), skipargs=True)
 				try:
 					setattr(config, tag, int(cdata))
 				except:
@@ -80,7 +80,7 @@ def importFile(conffile):
 			try:
 				if cdata:
 					invalidError("Tag %r in your configuration file should be a boolean (ie, no cdata)." % (tag))
-				LogEvent(INFO, "", "Enabling config option %r" % (tag))
+				LogEvent(INFO, msg="Enabling config option %r" % (tag), skipargs=True)
 				setattr(config, tag, True)
 			except AttributeError:
 				print "Ignoring configuration option %r" % tag
@@ -92,11 +92,11 @@ def importFile(conffile):
 
 def importOptions(options):
 	for o in options:
-		LogEvent(INFO, "", "Setting config option %r = %r" % (o, options[o]))
+		LogEvent(INFO, msg="Setting config option %r = %r" % (o, options[o]), skipargs=True)
 		setattr(config, o, options[o])
 
 def Import(file = None, options = None):
-	LogEvent(INFO, "", "Created configuration entity")
+	LogEvent(INFO, msg="Created configuration entity", skipargs=True)
 	if file != None:
 		importFile(file)
 	if options != None:

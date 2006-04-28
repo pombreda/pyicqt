@@ -60,7 +60,7 @@ class PubSubStorage:
 			f.write(el.toXml())
 			f.close()
 		except IOError, e:
-			LogEvent(WARN, "", "IOError writing to node %r - %r" % (jid, node))
+			LogEvent(WARN, msg="IOError writing to node %r - %r" % (jid, node))
 		os.umask(prev_umask)
 	
 	def getItem(self, jid, node, itemid):
@@ -68,10 +68,10 @@ class PubSubStorage:
 		try:
 			filename = self.dir(jid, node) + itemid + ".xml"
 			if os.path.isfile(filename):
-				LogEvent(INFO, "", "Getting item %r - %r" % (node, itemid))
+				LogEvent(INFO, msg="Getting item %r - %r" % (node, itemid))
 				document = utils.parseFile(filename)
 				return document
 			else:
-				LogEvent(INFO, "", "Avatar not found %r" % (key))
+				LogEvent(INFO, msg="Avatar not found %r" % (key))
 		except IOError, e:
-			LogEvent(INFO, "", "IOError reading item %r - %r" % (node, itemid))
+			LogEvent(INFO, msg="IOError reading item %r - %r" % (node, itemid))

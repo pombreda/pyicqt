@@ -29,7 +29,7 @@ class AdHocCommands:
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
 
-		LogEvent(INFO, "", "Looking for handler")
+		LogEvent(INFO, msg="Looking for handler")
 
 		node = None
 		for child in el.elements():
@@ -50,7 +50,7 @@ class AdHocCommands:
 					self.commands[node](el)
 					handled = True
 			if not handled:
-				LogEvent(WARN, "", "Unknown Ad-Hoc command received")
+				LogEvent(WARN, msg="Unknown Ad-Hoc command received")
 				self.pytrans.iq.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 
 
@@ -79,7 +79,7 @@ class AdHocCommands:
 		self.pytrans.send(iq)
 
 	def sendCommandInfoResponse(self, to, ID):
-		LogEvent(INFO, "", "Replying to disco#info")
+		LogEvent(INFO, msg="Replying to disco#info")
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = config.jid
@@ -94,7 +94,7 @@ class AdHocCommands:
 		self.pytrans.send(iq)
 
 	def sendCommandItemsResponse(self, to, ID):
-		LogEvent(INFO, "", "Replying to disco#items")
+		LogEvent(INFO, msg="Replying to disco#items")
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
 		iq.attributes["from"] = config.jid

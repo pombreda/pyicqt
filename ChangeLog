@@ -1,3 +1,41 @@
+2006-04-27  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/debug.py:
+	* src/main.py:
+	Moved debugging around a tad.
+
+	* src/main.py:
+	Added improved support for reactors.  User can now pick whatever
+	reactor they want, with some that are 'known' to work.
+	cf reactor added for OS X.  cf stills needs to be tested more though.
+
+	* src/debug.py:
+	* src/main.py:
+	* src/xdb/__init__.py:
+	Added support for skipping display of 'args'.
+
+	* src/debug.py:
+	Minor prettying.
+
+	* src/xmlconfig.py:
+	* src/register.py:
+	* src/utils.py:
+	* src/pubsub.py:
+	* src/main.py:
+	* src/iq.py:
+	* src/disco.py:
+	* src/avatar.py:
+	* src/adhoc.py:
+	* src/services/GatewayTranslator.py:
+	* src/services/IqAvatarFactory.py:
+	* src/services/VCardFactory.py:
+	* src/web/handler.py:
+	* src/xdb/legacyaimtransport.py:
+	* src/xdb/legacyjittransport.py:
+	* src/xdb/xmlfiles.py:
+	* src/legacy/icqt.py:
+	Cleaned up LogEvent call just a tad.
+
 2006-04-26  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/avatar.py:

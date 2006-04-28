@@ -31,7 +31,7 @@ class IqAvatarFactory:
 			self.pytrans.iq.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="cancel", condition="feature-not-implemented")
 			return
 
-		LogEvent(INFO, "", "Retrieving avatar")
+		LogEvent(INFO, msg="Retrieving avatar")
 
 		if not self.pytrans.sessions.has_key(froj.userhost()):
 			self.pytrans.iq.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="auth", condition="not-authorized")

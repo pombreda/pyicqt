@@ -58,7 +58,7 @@ def xmlify(s):
 
 def xhtml_to_aimhtml(s):
 	try:
-		LogEvent(INFO, "", "Got %r" % s)
+		LogEvent(INFO, msg="Got %r" % s)
 
 		# Convert the spans to fonts!
 		s = re.sub("<(/?)span",r"<\1font",s)
@@ -69,10 +69,10 @@ def xhtml_to_aimhtml(s):
 		# AIMHTML might croke on these
 		s = re.sub("<br/>","<br>",s)
 
-		LogEvent(INFO, "", "Made %r" % s)
+		LogEvent(INFO, msg="Made %r" % s)
 		return s
 	except:
-		LogEvent(INFO, "", "Failed")
+		LogEvent(INFO, msg="Failed")
 		return None
 
 def lower_element(match):
@@ -112,7 +112,7 @@ def prepxhtml(s):
 	try:
 		s=s.encode("utf-8","replace")
 
-		LogEvent(INFO, "", "Got %r" % s)
+		LogEvent(INFO, msg="Got %r" % s)
 
 		s = re.sub(">+",">",s)
 		s = re.sub("<+","<",s)
@@ -122,11 +122,11 @@ def prepxhtml(s):
 
 		all_regex = re.compile('</?[^>]*>'); 
 		try: s=all_regex.sub(lower_element, s);
-		except: LogEvent(INFO, "", "Unable to do lowercase stuff")
+		except: LogEvent(INFO, msg="Unable to do lowercase stuff")
 
 		font_regex = re.compile('<font [^>]*>',re.X);
 		try: s=font_regex.sub(font_to_span, s);
-		except: LogEvent(INFO, "", "Unable to do font-to-span stuff")
+		except: LogEvent(INFO, msg="Unable to do font-to-span stuff")
 
 		s = re.sub("</?(html|HTML)[^>]*>","",s)
 
@@ -161,10 +161,10 @@ def prepxhtml(s):
 		# Make sure our root tag is properly namespaced
 		ret = "<html xmlns=\""+globals.XHTML+"\">%s</html>"%ret;
 
-		LogEvent(INFO, "", "Made %r" % ret)
+		LogEvent(INFO, msg="Made %r" % ret)
 		return ret.encode("utf-8","replace")
 	except:
-		LogEvent(INFO, "", "Failed")
+		LogEvent(INFO, msg="Failed")
 		return None
 	
 def utf8encode(text):
