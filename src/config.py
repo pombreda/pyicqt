@@ -60,3 +60,6 @@ disableMailNotifications = bool(False)
 messageArchiveJID = ""
 authRegister = ""
 authRegister_LDAP = {}
+disableIQAvatars = bool(False)
+disableVCardAvatars = bool(False)
+disablePEPAvatars = bool(False)

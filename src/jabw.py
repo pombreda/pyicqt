@@ -50,9 +50,9 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None, nick
 	sendArchive(pytrans, to, fro, body)
 
 def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[], url=None):
-	if ptype == "subscribe":
-		(user,host,res) = jid.parse(to)
-		to = "%s@%s" % (user, host)
+	if ptype in ["subscribe", "subscribed", "unsubscribe", "unsubscribed"]:
+		to = jid.intern(to).userhost()
+		fro = jid.intern(fro).userhost()
 
 	el = Element((None, "presence"))
 	el.attributes["to"] = to
@@ -74,27 +74,33 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 		s = el.addElement("url")
 		s.addContent(url)
 
-	if ptype != "probe":
-		x = el.addElement("x")
-		x.attributes["xmlns"] = globals.VCARDUPDATE
-		if avatarHash and not config.disableAvatars:
+	if not ptype:
+		if avatarHash and not config.disableAvatars and not config.disableVCardAvatars:
+			x = el.addElement("x")
+			x.attributes["xmlns"] = globals.VCARDUPDATE
 			p = x.addElement("photo")
 			p.addContent(avatarHash)
+
 		if nickname:
+			x = el.addElement("x")
+			x.attributes["xmlns"] = globals.VCARDUPDATE
 			n = x.addElement("nickname")
 			n.addContent(nickname)
-		if avatarHash and not config.disableAvatars:
-			xx = el.addElement("x")
-			xx.attributes["xmlns"] = globals.XAVATAR
-			h = xx.addElement("hash")
+
+		if avatarHash and not config.disableAvatars and not config.disableIQAvatars:
+			x = el.addElement("x")
+			x.attributes["xmlns"] = globals.XAVATAR
+			h = x.addElement("hash")
 			h.addContent(avatarHash)
-		if nickname:
+
+		if nickname and ptype == "subscribe":
 			n = el.addElement("nick")
 			n.attributes["xmlns"] = globals.NICK
 			n.addContent(nickname)
-		if payload:
-			for p in payload:
-				el.addChild(p)
+
+	if payload:
+		for p in payload:
+			el.addChild(p)
 
 	pytrans.send(el)
 

@@ -176,7 +176,7 @@ class PyTransport(component.Service):
 		# Ad-hoc commands support
 		self.adhoc = adhoc.AdHocCommands(self)
 		# Pubsub/PEP support
-		#self.pubsub = pubsub.PublishSubscribe(self)
+		self.pubsub = pubsub.PublishSubscribe(self)
 		# Registration support
 		self.registermanager = register.RegisterManager(self)
 
@@ -197,8 +197,8 @@ class PyTransport(component.Service):
 		self.messageID = 0
 		
 		# Routine cleanup/updates/etc
-		self.loopCall = task.LoopingCall(self.loopCall)
-		self.loopCall.start(60.0)
+		self.loopTask = task.LoopingCall(self.loopFunc)
+		self.loopTask.start(60.0)
 		
 		# Display active sessions if debug mode is on
 		#if config.debugOn:
@@ -242,7 +242,7 @@ class PyTransport(component.Service):
 		self.messageID += 1
 		return str(self.messageID)
 	
-	def loopCall(self):
+	def loopFunc(self):
 		numsessions = len(self.sessions)
 
 		#if config.debugOn and numsessions > 0:

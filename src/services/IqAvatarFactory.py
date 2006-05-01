@@ -11,7 +11,7 @@ import globals
 class IqAvatarFactory:
 	def __init__(self, pytrans):
 		self.pytrans = pytrans
-		if not config.disableAvatars:
+		if not config.disableAvatars and not config.disableIQAvatars:
 			self.pytrans.disco.addFeature(globals.IQAVATAR, self.incomingIq, "USER")
 			self.pytrans.disco.addFeature(globals.STORAGEAVATAR, self.incomingIq, "USER")
 

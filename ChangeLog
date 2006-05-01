@@ -1,3 +1,26 @@
+2006-04-30  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/config.py:
+	* config_example.xml:
+	* src/session.py:
+	* src/services/IqAvatarFactory.py:
+	* src/jabw.py:
+	Added options to disable each avatar style separately.
+
+	* src/jabw.py:
+	Tweaked to handle removal of resources more normally.
+
+	* src/contact.py:
+	Added more nickname functionality.
+
+	* src/main.py:
+	Tweaked loop call stuff.
+
+	* src/pubsub.py:
+	* src/main.py:
+	* src/contact.py:
+	Began adding support for PEP avatars and nicknames (.. maybe?)
+
 2006-04-27  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/debug.py:

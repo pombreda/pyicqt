@@ -8,6 +8,9 @@ import config
 import lang
 from debug import LogEvent, INFO, WARN, ERROR
 import globals
+import os
+
+SPOOL_UMASK = 0077
 
 class PublishSubscribe:
 	def __init__(self, pytrans):
@@ -31,24 +34,38 @@ class PublishSubscribe:
 		toj = jid.JID(to)
 		ID = el.getAttribute("id")
 
+	def localPublish(self, jid, node, itemid, el):
+		self.storage.setItem(jid, node, itemid, el)
+
 
 
 class PubSubStorage:
 	""" Manages pubsub nodes on disk. Nodes are stored according to
 	their jid and node.  The layout is config.spooldir / config.jid / pubsub / pubsub jid / node.
-	That said, nodes can also have /'s in them, so we will utilize the
-	file system to store these in a 'nice' layout. """
+        That said, nodes can also have /'s in them, so we will utilize the
+        file system to store these in a 'nice' layout. """
+
 
 	def dir(self, jid, node):
 		""" Returns the full path to the directory that a 
 		particular key is in. Creates that directory if it doesn't already exist. """
 		X = os.path.sep
-		d = os.path.abspath(config.spooldir) + X + config.jid + X + "pubsub" + X + utils.mangle(jid) + X + node.replace('/', X) + X
+		d = os.path.abspath(config.spooldir) + X + config.jid + X + "pubsub" + X + utils.mangle(jid) + X + self.nodeToPath(node) + X
 		prev_umask = os.umask(SPOOL_UMASK)
 		if not os.path.exists(d):
 			os.makedirs(d)
 		os.umask(prev_umask)
 		return d
+
+	def nodeToPath(self, node):
+		X = os.path.sep
+		path = node.replace('//', X+'_'+X).replace('/', X)
+		return path
+
+	def pathToNode(self, path):
+		X = os.path.sep
+		node = path.replace(X, '/').replace(X+'_'+X, '//')
+		return node
 	
 	def setItem(self, jid, node, itemid, el):
 		""" Writes an item to disk according to its jid, node, and

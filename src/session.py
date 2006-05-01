@@ -119,6 +119,10 @@ class Session(jabw.JabberConnection):
 		LogEvent(INFO, self.jabberID, "Removed!")
 
 	def doVCardUpdate(self, punttoiq=False):
+		if config.disableVCardAvatars:
+			self.doIQAvatarUpdate()
+			return
+
 		def vCardReceived(el):
 			if not self.alive: return
 			LogEvent(INFO, self.jabberID)
@@ -167,6 +171,8 @@ class Session(jabw.JabberConnection):
 		d.addErrback(errback)
 
 	def doIQAvatarUpdate(self):
+		if config.disableIQAvatars: return
+
 		def errback(args=None):
 			LogEvent(INFO, self.jabberID, "Error fetching IQ-based avatar")
 			if not config.disableAvatars and self.alive: self.legacycon.updateAvatar()
@@ -271,9 +277,9 @@ class Session(jabw.JabberConnection):
 				self.avatar = av # Stuff in the cache is always PNG
 				self.legacycon.updateAvatar(self.avatar)
 			else:
-				if avatarType == "vcard":
+				if avatarType == "vcard" and not config.disableVCardAvatars:
 					self.doVCardUpdate()
-				elif avatarType == "iq":
+				elif avatarType == "iq" and not config.disableIQAvatars:
 					self.doIQAvatarUpdate()
 
 	def messageReceived(self, source, resource, dest, destr, mtype, body, noerror, xhtml, autoResponse=0):
