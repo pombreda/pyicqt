@@ -81,6 +81,18 @@
 	<!-- (uncomment to disable) -->
 	<!-- <disableDefaultAvatar/> -->
 
+	<!-- Disable use of iq-based avatars (JEP-0008) -->
+	<!-- (uncomment to disable) -->
+	<!-- <disableIQAvatars/> -->
+
+	<!-- Disable use of vcard-based avatars (JEP-0153) -->
+	<!-- (uncomment to disable) -->
+	<!-- <disableVCardAvatars/> -->
+
+	<!-- Disable use of PEP-based avatars (JEP-0084) -->
+	<!-- (uncomment to disable) -->
+	<!-- <disablePEPAvatars/> -->
+
 	<!-- You can choose which users you wish to have as administrators. These users can perform some tasks with Ad-Hoc commands that others cannot -->
 	<admins>
 	<!--<jid>admin@host.com</jid>-->
