@@ -1,3 +1,12 @@
+2006-05-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/disco.py:
+	Added ability to have user-specific handlers.
+	Added ability to kill name in identity.
+
+	* src/pubsub.py:
+	Updated to handle disco responses for pubsub stuff.
+
 2006-04-30  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/config.py:

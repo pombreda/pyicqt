@@ -20,8 +20,14 @@ class PublishSubscribe:
 
 		# Add disco entries without handlers.  We're going to set up
 		# our own general handler, we'll do that in a moment.
-		self.pytrans.disco.addFeature(globals.PUBSUB, None, config.jid)
-		self.pytrans.disco.addFeature(globals.PUBSUBPEP, None, config.jid)
+		self.pytrans.disco.addIdentity("pubsub", "pep", None, "USER")
+		self.pytrans.disco.addFeature(globals.PUBSUB, None, "USER")
+		self.pytrans.disco.addFeature(globals.PUBSUBPEP, None, "USER")
+		self.pytrans.disco.addFeature(globals.PUBSUBACCESSPRES, None, "UJSER")
+
+		# Now we need to tell disco that we're going to possibly
+		# add items on behave of the user.
+		self.pytrans.disco.addUserItemHandler(self.userDiscoItems)
 
 		# Set up the pubsub prefix handler.
 		self.pytrans.iq.addHandler(globals.PUBSUB, self.incomingIq, prefix=1)
@@ -33,6 +39,13 @@ class PublishSubscribe:
 		to = el.getAttribute("to")
 		toj = jid.JID(to)
 		ID = el.getAttribute("id")
+
+	def userDiscoItems(self, jid, query):
+		nodes = self.storage.getNodeList(jid)
+		for n in nodes:
+			item = query.addElement("item")
+			item.attributes["jid"] = jid
+			item.attributes["node"] = n
 
 	def localPublish(self, jid, node, itemid, el):
 		self.storage.setItem(jid, node, itemid, el)
@@ -92,3 +105,28 @@ class PubSubStorage:
 				LogEvent(INFO, msg="Avatar not found %r" % (key))
 		except IOError, e:
 			LogEvent(INFO, msg="IOError reading item %r - %r" % (node, itemid))
+
+	def getNodeList(self, jid):
+		""" Retrieves a list of all of the pubsub/pep items for a
+		particular jid.  Here we need to hunt through the file system
+		and construct Node ids from what we find. """
+		nodes = []
+		X = os.path.sep
+		pubsubbase = os.path.abspath(config.spooldir)+X+config.jid+X+"pubsub"+X+utils.mangle(jid)
+
+		if not os.path.isdir(pubsubbase):
+			return nodes
+
+		def findfiles(dir=pubsubbase):
+			for e in os.listdir(dir):
+				if e == "." or e == "..": continue
+				path=dir+X+e
+				if os.path.isdir(path):
+					findfiles(path)
+				elif path.endswith(".xml"):
+					dir = dir.replace(pubsubbase+X,"",1)
+					if not nodes.count(dir):
+						nodes.append(self.pathToNode(dir))
+
+		findfiles()
+		return nodes
