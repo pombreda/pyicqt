@@ -22,6 +22,8 @@ class ServiceDiscovery:
 		self.identities = {}
 		self.features = {}
 		self.nodes = {}
+		self.userInfoHandlers = []
+		self.userItemHandlers = []
 		
 		self.addFeature(globals.DISCO, None, config.jid)
 		self.addFeature(globals.DISCO, None, "USER")
@@ -52,6 +54,16 @@ class ServiceDiscovery:
 		if not self.nodes.has_key(jid):
 			self.nodes[jid] = {}
 		self.nodes[jid][node] = (handler, name, rootnode)
+
+	def addUserItemHandler(self, handler):
+		""" Adds an extra handler to disco items requests directed at users """
+		LogEvent(INFO)
+		self.userItemHandlers.append(handler)
+
+	def addUserInfoHandler(self, handler):
+		""" Adds an extra handler to disco info requests directed at users """
+		LogEvent(INFO)
+		self.userInfoHandlers.append(handler)
 
 	def incomingIq(self, el):
 		""" Decides what to do with an IQ """
@@ -112,13 +124,19 @@ class ServiceDiscovery:
 			identity = query.addElement("identity")
 			identity.attributes["category"] = category
 			identity.attributes["type"] = ctype
-			identity.attributes["name"] = name
+			if name:
+				identity.attributes["name"] = name
 		
 		# Add any supported features
 		for var in self.features.get(searchjid, []):
 			LogEvent(INFO, msg="Found feature %r" % (var))
 			feature = query.addElement("feature")
 			feature.attributes["var"] = var
+
+		if searchjid == "USER":
+			# Add any user specific identities/features
+			for hndl in self.userInfoHandlers:
+				hndl(jid, query)
 
 		self.pytrans.send(iq)
 
@@ -146,5 +164,10 @@ class ServiceDiscovery:
 				item.attributes["jid"] = jid
 				item.attributes["node"] = node
 				item.attributes["name"] = name
+
+		if searchjid == "USER":
+			# Add any user specific items
+			for hndl in self.userItemHandlers:
+				hndl(jid, query)
 		
 		self.pytrans.send(iq)
