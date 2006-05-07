@@ -1,3 +1,10 @@
+2006-05-07  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/config.py:
+	* src/legacy/icqt.py:
+	* config_example.xml:
+	Added ability to disable away im-messages.
+
 2006-05-01  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/disco.py:
