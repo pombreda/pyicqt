@@ -224,7 +224,7 @@ class B(oscar.BOSConnection):
 		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype=mtype, xhtml=xhtml)
 		self.session.pytrans.serviceplugins['Statistics'].stats['IncomingMessages'] += 1
 		self.session.pytrans.serviceplugins['Statistics'].sessionUpdate(self.session.jabberID, 'IncomingMessages', 1)
-		if self.awayMessage and not "auto" in flags:
+		if not config.disableAwayMessage and self.awayMessage and not "auto" in flags:
 			if not self.awayResponses.has_key(user.name) or self.awayResponses[user.name] < (time.time() - 900):
 				#self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
 				self.sendMessage(user.name, "Away message: "+self.awayMessage, autoResponse=1)

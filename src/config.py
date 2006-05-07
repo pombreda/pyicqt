@@ -63,3 +63,4 @@ authRegister_LDAP = {}
 disableIQAvatars = bool(False)
 disableVCardAvatars = bool(False)
 disablePEPAvatars = bool(False)
+disableAwayMessage = bool(False)

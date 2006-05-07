@@ -142,6 +142,11 @@
 	<!-- Enable web presence indicator.  This can increase ICQ spam. -->
 	<!-- <enableWebPresence/> -->
 
+	<!-- Disable automatic send (via im) of away message when away set. -->
+	<!-- Note that away messages are -in addition to- the away status -->
+	<!-- message. -->
+	<!-- <disableAwayMessage/> -->
+
 	<!-- Use Jabber.com's XCP component protocol extensions. -->
 	<!-- <useXCP/> -->
 
