@@ -63,14 +63,14 @@ class Avatar:
 		type = photo.addElement("TYPE")
 		type.addContent("image/png")
 		binval = photo.addElement("BINVAL")
-		binval.addContent(base64.encodestring(self.getImageData()))
+		binval.addContent(base64.encodestring(self.getImageData()).replace("\n", ""))
 		return photo
 
 	def makeDataElement(self):
 		""" Returns an XML Element that can be put into a jabber:x:avatar IQ stanza. """
 		data = Element((None, "data"))
 		data["mimetype"] = "image/png"
-		data.addContent(base64.encodestring(self.getImageData()))
+		data.addContent(base64.encodestring(self.getImageData()).replace("\n", ""))
 		return data
 	
 	def __eq__(self, other):

@@ -8,6 +8,10 @@
 	* src/services/IqAvatarFactory.py:
 	Switched defaultUri to uri.
 
+	* src/avatar.py:
+	* src/contact.py:
+	Killed newlines in base64 encodings.
+
 2006-05-07  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/config.py:

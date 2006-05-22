@@ -175,7 +175,7 @@ class Contact:
 
 			d = Element((None, "data"))
 			d.attributes["xmlns"] = globals.AVATARDATA
-			d.addContent(base64.encodestring(avatarData))
+			d.addContent(base64.encodestring(avatarData).replace("\n",""))
 			self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.AVATARDATA, avatarHash, d)
 
 			m = Element((None, "metadata"))
