@@ -33,7 +33,7 @@ class AdHocCommands:
 
 		node = None
 		for child in el.elements():
-			xmlns = child.defaultUri
+			xmlns = child.uri
 			node = child.getAttribute("node")
 
 			handled = False

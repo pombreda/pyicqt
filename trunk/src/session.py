@@ -128,7 +128,7 @@ class Session(jabw.JabberConnection):
 			LogEvent(INFO, self.jabberID)
 			vCard = None
 			for e in el.elements():
-				if e.name == "vCard" and e.defaultUri == globals.VCARD:
+				if e.name == "vCard" and e.uri == globals.VCARD:
 					vCard = e
 					break
 			if not vCard:
@@ -184,7 +184,7 @@ class Session(jabw.JabberConnection):
 			if qtype == "error": return
 			query = None
 			for e in el.elements():
-				if e.name == "query" and e.defaultUri == globals.STORAGEAVATAR:
+				if e.name == "query" and e.uri == globals.STORAGEAVATAR:
 					query = e
 					break
 			if not query:
@@ -214,7 +214,7 @@ class Session(jabw.JabberConnection):
 				
 			query = None
 			for e in el.elements():
-				if e.name == "query" and e.defaultUri == globals.IQAVATAR:
+				if e.name == "query" and e.uri == globals.IQAVATAR:
 					query = e
 					break
 			if not query:

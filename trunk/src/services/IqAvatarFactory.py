@@ -23,7 +23,7 @@ class IqAvatarFactory:
 		ID = el.getAttribute("id")
 		for query in el.elements():
 			if(query.name == "query"):
-				xmlns = query.defaultUri
+				xmlns = query.uri
 		if not xmlns:
 			self.pytrans.iq.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns=xmlns, etype="cancel", condition="bad-request")
 			return
