@@ -1,3 +1,13 @@
+2006-05-22  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/session.py:
+	* src/jabw.py:
+	* src/adhoc.py:
+	* src/iq.py:
+	* src/disco.py:
+	* src/services/IqAvatarFactory.py:
+	Switched defaultUri to uri.
+
 2006-05-07  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/config.py:

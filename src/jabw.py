@@ -310,7 +310,7 @@ class JabberConnection:
 	def gotCapabilities(self, el):
 		fro = el.getAttribute("from")
 		for e in el.elements():
-			if e.name == "query" and e.defaultUri == globals.DISCO_INFO:
+			if e.name == "query" and e.uri == globals.DISCO_INFO:
 				for item in e.elements():
 					if item.name == "feature":
 						var = item.getAttribute("var")
@@ -427,17 +427,17 @@ class JabberConnection:
 					show = child.__str__()
 				elif child.name == "priority":
 					priority = child.__str__()
-				elif child.defaultUri == globals.TUNE:
+				elif child.uri == globals.TUNE:
 					for child2 in child.elements():
-						if child2.defaultUri == globals.XOOB:
+						if child2.uri == globals.XOOB:
 							for child3 in child2.elements():
 								if child3.name == "url":
 									url=child3.__str__()
-				elif child.defaultUri == globals.XOOB:
+				elif child.uri == globals.XOOB:
 					for child2 in child.elements():
 						if child2.name == "url":
 							url=child2.__str__()
-				elif child.defaultUri == globals.VCARDUPDATE and not config.disableAvatars:
+				elif child.uri == globals.VCARDUPDATE and not config.disableAvatars:
 					avatarHash = " "
 					for child2 in child.elements():
 						if child2.name == "photo":
@@ -445,7 +445,7 @@ class JabberConnection:
 						if child2.name == "nickname":
 							nickname = child2.__str__()
 							avatarType = "vcard"
-				elif child.defaultUri == globals.XAVATAR and not config.disableAvatars:
+				elif child.uri == globals.XAVATAR and not config.disableAvatars:
 					avatarHash = " "
 					for child2 in child.elements():
 						if child2.name == "hash":

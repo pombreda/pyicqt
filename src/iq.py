@@ -69,7 +69,7 @@ class IqHandler:
 
 		LogEvent(INFO, msg="Looking for handler")
 		for query in el.elements():
-			xmlns = query.defaultUri
+			xmlns = query.uri
 			node = query.getAttribute("node")
 
 			if self.handlers.has_key(xmlns):
