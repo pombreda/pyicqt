@@ -81,12 +81,62 @@ class SSICmd(cmd.Cmd):
 			self.bos.showBuddyList()
 		elif pcs[0] == "icons":
 			self.bos.showIconList()
+		elif pcs[0] == "visibility":
+			self.bos.showVisibility()
+		elif pcs[0] == "permissions":
+			self.bos.showPermissions()
 		else:
 			self.help_show()
 	def help_show(self):
 		print "show (type): displays information for one of the following types"
 		print "   buddies       list of groups and buddies"
 		print "   icons         list of buddy icons"
+		print "   visibility    show visibility setting"
+		print "   permissions   show permission setting"
+	def do_set(self, rest):
+		pcs = rest.split()
+		if len(pcs) != 2:
+			self.help_set()
+			return
+		if pcs[0] == "visibility":
+			if pcs[1] == "all":
+				self.bos.setVisibility('\xff\xff\xff\xff')
+			elif pcs[1] == "notaim":
+				self.bos.setVisibility('\x00\x00\x00\x04')
+			elif pcs[1] == "none":
+				self.bos.setVisibility(None)
+			else:
+				self.help_set()
+		elif pcs[0] == "permissions":
+			if pcs[1] == "permitall":
+				self.bos.setPermissions(0x01)
+			elif pcs[1] == "denyall":
+				self.bos.setPermissions(0x02)
+			elif pcs[1] == "permitsome":
+				self.bos.setPermissions(0x03)
+			elif pcs[1] == "denysome":
+				self.bos.setPermissions(0x04)
+			elif pcs[1] == "permitbuddies":
+				self.bos.setPermissions(0x05)
+			elif pcs[1] == "none":
+				self.bos.setPermissions(None)
+			else:
+				self.help_set()
+		else:
+			self.help_set()
+	def help_set(self):
+		print "set (item) (value): sets one of the following items to a supported value"
+		print "   visibility    whether others can see you"
+		print "      all            visible to anyone"
+		print "      notaim         not visible to aim folk"
+		print "      none           unset visibility setting"
+		print "   permissions   who is permitted to see(?) you"
+		print "      permitall      anyone can see(?) you"
+		print "      denyall        no one can see(?) you"
+		print "      permitsome     specified folk can see(?) you"
+		print "      denysome       everyone but specified folk can see(?) you"
+		print "      permitbuddies  only permit buddies to see (?) you"
+		print "      none           unset permissions setting"
 	def do_quit(self, rest):
 		self.bos.stopKeepAlive()
 		self.bos.disconnect()
@@ -102,6 +152,7 @@ class B(oscar.BOSConnection):
 		self.requestSSI().addCallback(self.gotBuddyList)
 	def gotBuddyList(self, l):
 		self.ssi = l
+		print "SSI: %s" % str(self.ssi)
 		self.clientReady()
 		SSICmd(self).cmdloop()
 	def showBuddyList(self):
@@ -114,6 +165,32 @@ class B(oscar.BOSConnection):
 		if self.ssi is not None and self.ssi[5] is not None:
 			for i in self.ssi[5]:
 				print "Icon[%d,%d,%s]: %s" % (i.groupID,i.buddyID,i.name,binascii.hexlify(i.iconSum))
+	def showVisibility(self):
+		if self.ssi is not None and self.ssi[4] is not None:
+			print "Visibility: %s" % (self.ssi[4])
+		else:
+			print "Visibility: not set"
+	def showPermissions(self):
+		if self.ssi is not None and self.ssi[3] is not None:
+			print "Permissions: %s" % (self.ssi[3])
+		else:
+			print "Permissions: not set"
+	def setVisibility(self, setting):
+		if self.ssi is not None and self.ssi[8] is not None:
+			self.ssi[8].visibility = setting
+			self.startModifySSI()
+			self.modifyItemSSI(self.ssi[8])
+			self.endModifySSI()
+		else:
+			print "Not supported yet, you don't have pdinfo in your ssi at all."
+	def setPermissions(self, setting):
+		if self.ssi is not None and self.ssi[8] is not None:
+			self.ssi[8].permitMode = setting
+			self.startModifySSI()
+			self.modifyItemSSI(self.ssi[8])
+			self.endModifySSI()
+		else:
+			print "Not supported yet, you don't have pdinfo in your ssi at all."
 	def removeBuddy(self, groupid, buddyid):
 		savethisuser = None
 		savethisgroup = None
