@@ -35,7 +35,8 @@ if not PASS:
 	PASS = getpass.getpass('Password: ')
 if SN[0].isdigit():
 	icqMode = 1
-	hostport = ('login.icq.com', 5238)
+	#hostport = ('login.icq.com', 5238)
+	hostport = ('login.icq.com', 5190)
 else:
 	hostport = ('login.oscar.aol.com', 5190)
 	icqMode = 0
@@ -137,6 +138,10 @@ class SSICmd(cmd.Cmd):
 		print "      denysome       everyone but specified folk can see(?) you"
 		print "      permitbuddies  only permit buddies to see (?) you"
 		print "      none           unset permissions setting"
+	#def do_reload(self, rest):
+	#	self.bos.requestBuddyList()
+	#	print "Loading buddy list..."
+	#def help_reload(self): print "reload: reloads your ssi"
 	def do_quit(self, rest):
 		self.bos.stopKeepAlive()
 		self.bos.disconnect()
@@ -149,12 +154,18 @@ class B(oscar.BOSConnection):
 	capabilities = []
 	ssi = []
 	def initDone(self):
+		self.requestBuddyList()
 		self.requestSSI().addCallback(self.gotBuddyList)
+	def requestBuddyList(self):
+		self.requestSSI().addCallback(self.gotReloadedBuddyList)
 	def gotBuddyList(self, l):
 		self.ssi = l
 		print "SSI: %s" % str(self.ssi)
 		self.clientReady()
 		SSICmd(self).cmdloop()
+	def gotReloadedBuddyList(self, l):
+		self.ssi = l
+		print "SSI: %s" % str(self.ssi)
 	def showBuddyList(self):
 		if self.ssi is not None and self.ssi[0] is not None:
 			for g in self.ssi[0]:
