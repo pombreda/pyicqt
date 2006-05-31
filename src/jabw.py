@@ -9,7 +9,7 @@ import disco
 import globals
 
 
-def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None, nickname=None):
+def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None):
 	""" Sends a Jabber message """
 	LogEvent(INFO)
 	el = Element((None, "message"))
@@ -21,22 +21,17 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None, nick
 
 	if delay:
 		x = el.addElement("x")
-		x.attributes["xmlns"] = globals.IQDELAY
+		x.attributes["xmlns"] = "jabber:x:delay"
 		x.attributes["from"] = fro
 		x.attributes["stamp"] = delay
-
-	if nickname:
-		n = el.addElement("nick")
-		n.attributes["xmlns"] = globals.NICK
-		n.addContent(nickname)
 
 	b = el.addElement("body")
 	b.addContent(utils.xmlify(body))
 	x = el.addElement("x")
-	x.attributes["xmlns"] = globals.XEVENT
+	x.attributes["xmlns"] = "jabber:x:event"
 	composing = x.addElement("composing")
 	xx = el.addElement("active")
-	xx.attributes["xmlns"] = globals.CHATSTATES
+	xx.attributes["xmlns"] = "http://jabber.org/protocol/chatstates"
 
 	if xhtml and not config.disableXHTML:
 		try:
@@ -47,12 +42,11 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None, nick
 			pass
 
 	pytrans.send(el)
-	sendArchive(pytrans, to, fro, body)
 
 def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[], url=None):
-	if ptype in ["subscribe", "subscribed", "unsubscribe", "unsubscribed"]:
-		to = jid.intern(to).userhost()
-		fro = jid.intern(fro).userhost()
+	if ptype == "subscribe":
+		(user,host,res) = jid.parse(to)
+		to = "%s@%s" % (user, host)
 
 	el = Element((None, "presence"))
 	el.attributes["to"] = to
@@ -70,39 +64,30 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 		s.addContent(priority)
 	if url:
 		s = el.addElement("x")
-		s.attributes["xmlns"] = globals.XOOB
+		s.attributes["xmlns"] = "jabber:x:oob"
 		s = el.addElement("url")
 		s.addContent(url)
 
-	if not ptype:
-		if avatarHash and not config.disableAvatars and not config.disableVCardAvatars:
-			x = el.addElement("x")
-			x.attributes["xmlns"] = globals.VCARDUPDATE
+	if ptype != "probe":
+		x = el.addElement("x")
+		x.attributes["xmlns"] = "vcard-temp:x:update"
+		if avatarHash and not config.disableAvatars:
 			p = x.addElement("photo")
 			p.addContent(avatarHash)
-
 		if nickname:
-			x = el.addElement("x")
-			x.attributes["xmlns"] = globals.VCARDUPDATE
 			n = x.addElement("nickname")
 			n.addContent(nickname)
-
-		if avatarHash and not config.disableAvatars and not config.disableIQAvatars:
-			x = el.addElement("x")
-			x.attributes["xmlns"] = globals.XAVATAR
-			h = x.addElement("hash")
+		if avatarHash and not config.disableAvatars:
+			xx = el.addElement("x")
+			xx.attributes["xmlns"] = "jabber:x:avatar"
+			h = xx.addElement("hash")
 			h.addContent(avatarHash)
-
-		if nickname and ptype == "subscribe":
-			n = el.addElement("nick")
-			n.attributes["xmlns"] = globals.NICK
-			n.addContent(nickname)
-
-	if payload:
-		for p in payload:
-			el.addChild(p)
+		if payload:
+			for p in payload:
+				el.addChild(p)
 
 	pytrans.send(el)
+
 
 def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None, el=Element((None, "message"))):
 	el.attributes["to"] = to
@@ -113,34 +98,15 @@ def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None,
 	error.attributes["code"] = str(utils.errorCodeMap[condition])
 	if condition:
 		desc = error.addElement(condition)
-		desc.attributes["xmlns"] = globals.XMPP_STANZAS
+		desc.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
 	text = error.addElement("text")
-	text.attributes["xmlns"] = globals.XMPP_STANZAS
+	text.attributes["xmlns"] = "urn:ietf:params:xml:ns:xmpp-stanzas"
 	text.addContent(explanation)
 
 	if body and len(body) > 0:
 		b = el.addElement("body")
 		b.addContent(body)
 	pytrans.send(el)
-
-def sendArchive(pytrans, to, fro, body):
-	""" Archive Jabber message if archive element set in config.xml """
-	""" send iq xml packet to server specified in archive element """
-	""" Configured for DataSink """
-	""" THIS IS NOT COMPLIANT WITH JEP-0136 """
-	if config.messageArchiveJID:
-		LogEvent(INFO) 
-		iq = Element((None, "iq"))
-		iq.attributes["type"] = "set"
-		iq.attributes["from"] = to
-		iq.attributes["to"] = config.messageArchiveJID
-		myarchive = iq.addElement("archive")
-		mymessage = myarchive.addElement("message")
-		mymessage.attributes["to"] = to
-		mymessage.attributes["from"] = fro
-		mybody = mymessage.addElement("body")
-		mybody.addContent(utils.xmlify(body))
-		pytrans.iq.sendIq(iq)
 
 
 
@@ -170,21 +136,15 @@ class JabberConnection:
 		
 		return (froj.userhost() == self.jabberID) # Compare with the Jabber ID that we're looking at
 	
-	def sendMessage(self, to, fro, body, mtype=None, delay=None, xhtml=None, nickname=None):
+	def sendMessage(self, to, fro, body, mtype=None, delay=None, xhtml=None):
 		""" Sends a Jabber message 
-		For this message to have a <x xmlns="jabber:x:delay"/>
-		you must pass a correctly formatted timestamp (See JEP0091)
+		For this message to have a <x xmlns="jabber:x:delay"/> you must pass a correctly formatted timestamp (See JEP0091)
 		"""
 		LogEvent(INFO, self.jabberID)
 		if xhtml and not self.hasCapability(globals.XHTML):
 			# User doesn't support XHTML, so kill it.
 			xhtml = None
-		sendMessage(self.pytrans, to, fro, body, mtype, delay, xhtml, nickname)
-
-	def sendArchive(self, to, fro, body):
-		""" Sends an Archive message (see JEP-0136) """
-		LogEvent(INFO, self.jabberID)
-		sendArchive(self.pytrans, to, fro, body)
+		sendMessage(self.pytrans, to, fro, body, mtype, delay, xhtml)
 
 	def sendTypingNotification(self, to, fro, typing):
 		""" Sends the user the contact's current typing notification status """
@@ -194,7 +154,7 @@ class JabberConnection:
 			el.attributes["to"] = to
 			el.attributes["from"] = fro
 			x = el.addElement("x")
-			x.attributes["xmlns"] = globals.XEVENT
+			x.attributes["xmlns"] = "jabber:x:event"
 			if typing:
 				composing = x.addElement("composing") 
 			id = x.addElement("id")
@@ -210,7 +170,7 @@ class JabberConnection:
 			el.attributes["to"] = to
 			el.attributes["from"] = fro
 			x = el.addElement(state)
-			x.attributes["xmlns"] = globals.CHATSTATES
+			x.attributes["xmlns"] = "http://jabber.org/protocol/chatstates"
 			self.pytrans.send(el)
 
 	def sendVCardRequest(self, to, fro):
@@ -224,36 +184,8 @@ class JabberConnection:
 		el.attributes["type"] = "get"
 		el.attributes["id"] = self.pytrans.makeMessageID()
 		vCard = el.addElement("vCard")
-		vCard.attributes["xmlns"] = globals.VCARD
-		return self.pytrans.iq.sendIq(el)
-
-	def sendIQAvatarRequest(self, to, fro):
-		""" Requests the the IQ-based avatar of 'to'
-		Returns a Deferred which fires when the IQ result has been received.
-		"""
-		LogEvent(INFO, self.jabberID)
-		el = Element((None, "iq"))
-		el.attributes["to"] = to
-		el.attributes["from"] = fro
-		el.attributes["type"] = "get"
-		el.attributes["id"] = self.pytrans.makeMessageID()
-		query = el.addElement("query")
-		query.attributes["xmlns"] = globals.IQAVATAR
-		return self.pytrans.iq.sendIq(el)
-
-	def sendStorageAvatarRequest(self, to, fro):
-		""" Requests the the IQ-storage-based avatar of 'to'
-		Returns a Deferred which fires when the IQ result has been received.
-		"""
-		LogEvent(INFO, self.jabberID)
-		el = Element((None, "iq"))
-		el.attributes["to"] = to
-		el.attributes["from"] = fro
-		el.attributes["type"] = "get"
-		el.attributes["id"] = self.pytrans.makeMessageID()
-		query = el.addElement("query")
-		query.attributes["xmlns"] = globals.STORAGEAVATAR
-		return self.pytrans.iq.sendIq(el)
+		vCard.attributes["xmlns"] = "vcard-temp"
+		return self.pytrans.discovery.sendIq(el)
 
 	def sendErrorMessage(self, to, fro, etype, explanation, condition=None, body=None):
 		if self.last_el.has_key(to) and self.last_el[to].attributes.has_key("from"):
@@ -305,12 +237,12 @@ class JabberConnection:
 		query = iq.addElement("query")
 		query.attributes["xmlns"] = globals.DISCO_INFO
 
-		self.pytrans.iq.sendIq(iq).addCallback(self.gotCapabilities)
+		self.pytrans.discovery.sendIq(iq).addCallback(self.gotCapabilities)
 
 	def gotCapabilities(self, el):
 		fro = el.getAttribute("from")
 		for e in el.elements():
-			if e.name == "query" and e.uri == globals.DISCO_INFO:
+			if e.name == "query" and e.defaultUri == globals.DISCO_INFO:
 				for item in e.elements():
 					if item.name == "feature":
 						var = item.getAttribute("var")
@@ -356,10 +288,10 @@ class JabberConnection:
 				error = child.__str__()
 			elif child.name == "html":
 				xhtml = child.toXml()
-			elif child.name == "noerror" and child.uri == globals.SAPO_NOERROR:
+			elif child.name == "noerror" and child.uri == "sapo:noerror":
 				noerror = True
 			elif child.name == "x":
-				if child.uri == globals.XEVENT:
+				if child.uri == "jabber:x:event":
 					messageEvent = True
 					composing = False
 					for deepchild in child.elements():
@@ -367,7 +299,7 @@ class JabberConnection:
 							composing = True
 							break
 			elif child.name == "composing" or child.name == "active" or child.name == "paused" or child.name == "inactive" or child.name == "gone":
-				if child.uri==globals.CHATSTATES:
+				if child.uri=="http://jabber.org/protocol/chatstates":
 					chatStates = True
 					chatStateEvent = child.name
 		
@@ -419,7 +351,6 @@ class JabberConnection:
 			avatarHash = ""
 			nickname = ""
 			url = None
-			avatarType = ""
 			for child in el.elements():
 				if child.name == "status":
 					status = child.__str__()
@@ -427,35 +358,28 @@ class JabberConnection:
 					show = child.__str__()
 				elif child.name == "priority":
 					priority = child.__str__()
-				elif child.uri == globals.TUNE:
+				elif child.defaultUri == "http://jabber.org/protocol/tune":
 					for child2 in child.elements():
-						if child2.uri == globals.XOOB:
+						if child2.defaultUri == "jabber:x:oob":
 							for child3 in child2.elements():
 								if child3.name == "url":
 									url=child3.__str__()
-				elif child.uri == globals.XOOB:
+				elif child.defaultUri == "jabber:x:oob":
 					for child2 in child.elements():
 						if child2.name == "url":
 							url=child2.__str__()
-				elif child.uri == globals.VCARDUPDATE and not config.disableAvatars:
+				elif child.defaultUri == "vcard-temp:x:update" and not config.disableAvatars:
 					avatarHash = " "
 					for child2 in child.elements():
 						if child2.name == "photo":
 							avatarHash = child2.__str__()
 						if child2.name == "nickname":
 							nickname = child2.__str__()
-							avatarType = "vcard"
-				elif child.uri == globals.XAVATAR and not config.disableAvatars:
-					avatarHash = " "
-					for child2 in child.elements():
-						if child2.name == "hash":
-							avatarHash = child2.__str__()
-							avatarType = "iq"
 
 			if not ptype:
 				# ptype == None
 				if avatarHash and not config.disableAvatars:
-					self.avatarHashReceived(froj.userhost(), toj.userhost(), avatarHash, avatarType)
+					self.avatarHashReceived(froj.userhost(), toj.userhost(), avatarHash)
 				if nickname:
 					self.nicknameReceived(froj.userhost(), toj.userhost(), nickname)
 

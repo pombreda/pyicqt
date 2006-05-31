@@ -16,17 +16,15 @@ import md5
 
 X = os.path.sep
 
-class BuddyList:
+class LegacyList:
 	def __init__(self, session):
 		self.session = session
 		self.ssicontacts = { }
 		self.usercaps = { }
-		self.xdbcontacts = self.getBuddyList()
+		self.xdbcontacts = self.getLegacyList()
 		for c in self.xdbcontacts:
 			from glue import icq2jid
 			jabContact = self.session.contactList.createContact(icq2jid(c), "both")
-			if self.xdbcontacts[c].has_key("nickname"):
-				jabContact.updateNickname(self.xdbcontacts[c]["nickname"], push=False)
 			if not config.disableAvatars:
 				if self.xdbcontacts[c].has_key("shahash"):
 					LogEvent(INFO, self.session.jabberID, "Setting custom avatar for %s" %(c))
@@ -163,36 +161,10 @@ class BuddyList:
 		c = self.session.contactList.findContact(icq2jid(contact))
 		if c:
 			LogEvent(INFO, self.session.jabberID)
-			if not self.xdbcontacts.has_key(contact.lower()):
-				self.xdbcontacts[contact.lower()] = {}
 			if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
 				c.updateNickname(nick, push=True)
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick)
-				self.session.pytrans.xdb.setListEntry("roster", self.session.jabberID, contact.lower(), payload=self.xdbcontacts[contact.lower()])
-
-		try:
-			bos = self.session.legacycon.bos
-			savetheseusers = []
-			savethesegroups = []
-			for g in bos.ssigroups:
-				found = False
-				for u in g.users:
-					if u.name.lower() == contact.lower():
-						savetheseusers.append(u)
-						found = True
-				if found:
-					savethesegroups.append(g)
-			if len(savetheseusers) > 0:
-				bos.startModifySSI()
-				for u in savetheseusers:
-					u.nick = nick
-					bos.modifyItemSSI(u)
-				for g in savethesegroups:
-					bos.modifyItemSSI(g)
-				bos.endModifySSI()
-		except:
-			raise
 
 	def updateSSIContact(self, contact, presence="unavailable", show=None, status=None, nick=None, ipaddr=None, lanipaddr=None, lanipport=None, icqprotocol=None, url=None):
 		from glue import icq2jid
@@ -235,7 +207,7 @@ class BuddyList:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick)
 			
 
-	def getBuddyList(self):
+	def getLegacyList(self):
 		LogEvent(INFO, self.session.jabberID)
 		bl = dict()
 		entities = self.session.pytrans.xdb.getList("roster", self.session.jabberID)

@@ -18,9 +18,6 @@ if __name__ == "__main__":
 	print "PyICQt.py from the root of the distribution instead."
 	sys.exit(0)
 
-from debug import LogEvent, INFO, WARN, ERROR
-import debug
-
 from tlib.twistwrap import VersionNumber
 if VersionNumber(sys.version[:3]) < VersionNumber("2.2"):
 	print("You are using version %s of Python, at least 2.2 is required." % (sys.version[:3]))
@@ -41,14 +38,14 @@ for o, v in opts:
 	elif o in ("-b", "--background"):
                 daemonizeme = True
 	elif o in ("-d", "--debug"):
-		config.debugLevel = 2
+		config.debugLevel = "2"
 	elif o in ("-D", "--Debug"):
-		config.debugLevel = 3
+		config.debugLevel = "3"
 	elif o in ("-g", "--garbage"):
 		import gc
 		gc.set_debug(gc.DEBUG_LEAK|gc.DEBUG_STATS)
 	elif o in ("-t", "--traceback"):
-		config.debugLevel = 1
+		config.debugLevel = "1"
 	elif o in ("-l", "--log"):
 		config.debugFile = v
 	elif o in ("-o", "--option"):
@@ -67,7 +64,6 @@ for o, v in opts:
 		print "   -o <var>=<setting>  set config var to setting"
 		sys.exit(0)
 #reload(debug)
-debug.reloadConfig()
 
 #if config.extendedDebugOn:
 #	from twisted.python import log
@@ -88,48 +84,44 @@ if os.name == "posix":
 	import signal
 	signal.signal(signal.SIGHUP, reloadConfig)
 
-selectWarning = "Unable to install any good reactors (kqueue, cf, epoll, poll).\nWe fell back to using select. You may have scalability problems.\nThis reactor will not support more than 1024 connections +at a time.  You may silence this message by choosing 'select' or 'default' as your reactor in the transport config."
-if config.reactor and len(config.reactor) > 0:
+if config.reactor:
 	# They picked their own reactor. Lets install it.
 	del sys.modules["twisted.internet.reactor"]
-	reactorconv = {
-		"epoll":"epollreactor",
-		"poll":"pollreactor",
-		"kqueue":"kqreactor",
-		"cf":"cfreactor",
-		"select":"selectreactor"
-	}
-	if reactorconv.has_key(config.reactor):
-		reactorname = reactorconv[config.reactor]
-	else:
-		reactorname = config.reactor
-	try:
-		exec("from twisted.internet import %s as setreactor" % reactorname)
-		setreactor.install()
-		LogEvent(INFO, msg="Enabled reactor %s" % reactorname, skipargs=True)
-	except:
+	if config.reactor == "epoll":
+		from twisted.internet import epollreactor
+		epollreactor.install()
+	elif config.reactor == "poll":
+		from twisted.internet import pollreactor
+		pollreactor.install()
+	elif config.reactor == "kqueue":
+		from twisted.internet import kqreactor
+		kqreactor.install()
+	elif len(config.reactor) > 0:
 		print "Unknown reactor: ", config.reactor, ". Using default, select(), reactor."
-		from twisted.internet import default as bestreactor
-		print selectWarning
 else:
 	# Find the best reactor
 	del sys.modules["twisted.internet.reactor"]
-	reactorchoices = ["epollreactor", "kqreactor", "cfreactor",
-		"pollreactor", "selectreactor", "default"]
-	for choice in reactorchoices:
-		try:
-			exec("from twisted.internet import %s as bestreactor" % choice)
-			if choice in ["selectreactor","default"]:
-				print selectWarning
-			LogEvent(INFO, msg="Enabled reactor %s" % reactorname, skipargs=True)
-			break
-		except:
-			pass
 	try:
-		bestreactor.install()
-	except:
-		print "Unable to find a reactor.\nExiting..."
-		sys.exit(1)
+		from twisted.internet import epollreactor as bestreactor
+		#LogEvent(INFO, "", "Found and using epollreactor")
+	except ImportError:
+		try:
+			from twisted.internet import kqreactor as bestreactor
+			#LogEvent(INFO, "", "Found and using kqreactor")
+		except ImportError:
+			try:
+				from twisted.internet import pollreactor as bestreactor
+				#LogEvent(INFO, "", "Found and using pollreactor")
+			except ImportError:
+				try:
+					from twisted.internet import default as bestreactor
+					print "Unable to install any good reactors (kqueue, epoll, poll)."
+					print "We fell back to using select. You may have scalability problems."
+					print "This reactor will not support more than 1024 connections at a time."
+				except ImportError:
+					print "Unable to find a reactor.\nExiting..."
+					sys.exit(1)
+	bestreactor.install()
 
 
 from twisted.internet import reactor, task
@@ -137,16 +129,15 @@ from twisted.internet.defer import Deferred
 import twisted.python.log
 from tlib.twistwrap import component, jid, Element
 
+from debug import LogEvent, INFO, WARN, ERROR
+import debug
 import xdb
 import avatar
 import session
-import svninfo
 import jabw
-import iq
 import disco
-import adhoc
-import pubsub
 import register
+import misciq
 import legacy
 import lang
 import globals
@@ -154,75 +145,43 @@ import globals
 
 
 class PyTransport(component.Service):
-	routewrap = 0
+	j2bound = 0
 	def __init__(self):
 		LogEvent(INFO)
-		try:
-			LogEvent(INFO, msg="SVN r" + svninfo.getSVNVersion())
-		except:
-			pass
+		# Discovery, as well as some builtin features
+		self.discovery = disco.ServerDiscovery(self)
+		self.discovery.addIdentity("gateway", legacy.id, legacy.name, config.jid)
+		self.discovery.addFeature(globals.XHTML, None, "USER")
 
-		### Database prep-work
-		# Open our spool
 		self.xdb = xdb.XDB(config.jid)
-		# We need to enable our avatar cache
 		if not config.disableAvatars: self.avatarCache = avatar.AvatarCache()
-
-		### Lets load some key/base functionality handlers
-		# Service discovery support
-		self.iq = iq.IqHandler(self)
-		# Service discovery support
-		self.disco = disco.ServiceDiscovery(self)
-		# Ad-hoc commands support
-		self.adhoc = adhoc.AdHocCommands(self)
-		# Pubsub/PEP support
-		self.pubsub = pubsub.PublishSubscribe(self)
-		# Registration support
 		self.registermanager = register.RegisterManager(self)
-
-		# Lets add some known built-in features to discovery
-		self.disco.addIdentity("gateway", legacy.id, legacy.name, config.jid)
-		self.disco.addFeature(globals.XHTML, None, "USER")
-
-		# Lets load the base and legacy service plugins
-		self.serviceplugins = {}
-		self.loadPlugins("src/services")
-		self.loadPlugins("src/legacy/services")
-
-		# Misc tracking variables
+		self.adHocCommands = misciq.AdHocCommands(self)
+		self.gatewayTranslator = misciq.GatewayTranslator(self)
+		self.versionTeller = misciq.VersionTeller(self)
+		self.pingService = misciq.PingService(self)
+		self.vCardFactory = misciq.VCardFactory(self)
+		#self.searchFactory = misciq.SearchFactory(self)
+		if not config.disableAvatars: self.IqAvatarFactory = misciq.IqAvatarFactory(self)
+		self.statistics = misciq.Statistics(self)
+		self.connectUsers = misciq.ConnectUsers(self)
+		legacy.addCommands(self)
 		self.startTime = int(time.time())
+
 		self.xmlstream = None
 		self.sessions = {}
+		
 		# Message IDs
 		self.messageID = 0
 		
-		# Routine cleanup/updates/etc
-		self.loopTask = task.LoopingCall(self.loopFunc)
-		self.loopTask.start(60.0)
+		self.loopCall = task.LoopingCall(self.loopCall)
+		self.loopCall.start(60.0)
 		
 		# Display active sessions if debug mode is on
 		#if config.debugOn:
 		#	twisted.python.log.addObserver(self.exceptionLogger)
-
-
-	def loadPlugins(self, dir):
-		imppath = dir.replace("src/", "").replace("/", ".")
-		files = os.listdir(dir);
-		for i in range(len(files)):
-			if files[i] == "__init__.py": continue
-			if files[i].endswith(".py"):
-				classname = files[i].replace(".py","")
-				if self.serviceplugins.has_key(classname):
-					print "Unable to load service plugin %s: Duplicate plugin???" % classname
-					continue
-				try:
-					exec("from %s import %s" % (imppath, classname))
-					exec("self.serviceplugins['%s'] = %s.%s(self)" % (classname, classname, classname))
-				except Exception, e:
-					print "Unable to load service plugin %s: %s" % (classname, e)
-					raise
-
-
+		
+	
 	def removeMe(self):
 		LogEvent(INFO)
 		for session in self.sessions.copy():
@@ -242,7 +201,7 @@ class PyTransport(component.Service):
 		self.messageID += 1
 		return str(self.messageID)
 	
-	def loopFunc(self):
+	def loopCall(self):
 		numsessions = len(self.sessions)
 
 		#if config.debugOn and numsessions > 0:
@@ -252,14 +211,15 @@ class PyTransport(component.Service):
 		#		for res in self.sessions[key].resourceList:
 		#			debug.log("\t\t" + res)
         
-		self.serviceplugins['Statistics'].stats["Uptime"] = int(time.time()) - self.startTime
+		self.statistics.stats["Uptime"] = int(time.time()) - self.startTime
+		legacy.updateStats(self.statistics)
 		if numsessions > 0:
 			oldDict = self.sessions.copy()
 			self.sessions = {}
 			for key in oldDict:
 				session = oldDict[key]
 				if not session.alive:
-					LogEvent(WARN, msg="Ghost session found")
+					LogEvent(WARN, "", "Ghost session found")
 					# Don't add it to the new dictionary. Effectively removing it
 				else:
 					self.sessions[key] = session
@@ -267,7 +227,7 @@ class PyTransport(component.Service):
 	def componentConnected(self, xmlstream):
 		LogEvent(INFO)
 		self.xmlstream = xmlstream
-		self.xmlstream.addObserver("/iq", self.iq.onIq)
+		self.xmlstream.addObserver("/iq", self.discovery.onIq)
 		self.xmlstream.addObserver("/presence", self.onPresence)
 		self.xmlstream.addObserver("/message", self.onMessage)
 		self.xmlstream.addObserver("/bind", self.onBind)
@@ -278,26 +238,28 @@ class PyTransport(component.Service):
 			pres.attributes["to"] = "presence@-internal"
 			pres.attributes["from"] = config.compjid
 			x = pres.addElement("x")
-			x.attributes["xmlns"] = globals.COMPPRESENCE
-			x.attributes["xmlns:config"] = globals.CONFIG
+			x.attributes["xmlns"] = "http://www.jabber.com/schemas/component-presence.xsd"
+			x.attributes["xmlns:config"] = "http://www.jabber.com/config"
 			x.attributes["config:version"] = "1"
 			x.attributes["protocol-version"] = "1.0"
 			x.attributes["config-ns"] = legacy.url + "/component"
 			self.send(pres)
-		if config.useComponentBinding:
-			LogEvent(INFO, msg="Component binding to %r" % config.jid)
+		if config.saslUsername and config.useJ2Component:
+			LogEvent(INFO, "", "J2C binding to %r" % config.jid)
 			bind = Element((None,"bind"))
+			#bind.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
 			bind.attributes["name"] = config.jid
 			self.send(bind)
-		if config.useRouteWrap:
-			self.routewrap = 1
+		if config.saslUsername and config.useJ2Component:
+			self.j2bound = 1
 
 		self.sendInvitations()
 
 	def send(self, obj):
-		if self.routewrap == 1 and type(obj) == Element:
+		if self.j2bound == 1 and type(obj) == Element:
 			to = obj.getAttribute("to")
 			route = Element((None,"route"))
+			#route.attributes["xmlns"] = "http://jabberd.jabberstudio.org/ns/component/1.0"
 			route.attributes["from"] = config.jid
 			route.attributes["to"] = jid.JID(to).host
 			route.addChild(obj)
@@ -311,7 +273,7 @@ class PyTransport(component.Service):
 	def componentDisconnected(self):
 		LogEvent(INFO)
 		self.xmlstream = None
-		self.routewrap = 0
+		self.j2bound = 0
 
 	def onRouteMessage(self, el):
 		LogEvent(INFO)
@@ -323,7 +285,7 @@ class PyTransport(component.Service):
 				if child.getAttribute("to") and child.getAttribute("to").find("@-internal") > 0: return
 				self.onPresence(child)
 			elif child.name == "iq":
-				self.iq.onIq(child)
+				self.discovery.onIq(child)
 			elif child.name == "bind": 
 				self.onBind(child)
 
@@ -344,7 +306,7 @@ class PyTransport(component.Service):
 		try:
 			froj = jid.JID(fro)
 		except Exception, e:
-			LogEvent(WARN, msg="Failed stringprep")
+			LogEvent(WARN, "", "Failed stringprep")
 			return
 		if self.sessions.has_key(froj.userhost()):
 			self.sessions[froj.userhost()].onMessage(el)
@@ -354,7 +316,7 @@ class PyTransport(component.Service):
 			for child in el.elements():
 				if child.name == "body":
 					body = child.__str__()
-			LogEvent(INFO, msg="Sending error response to a message outside of seession")
+			LogEvent(INFO, "", "Sending error response to a message outside of seession")
 			jabw.sendErrorMessage(self, fro, to, "auth", "not-authorized", lang.get("notloggedin", ulang), body)
 	
 	def onPresence(self, el):
@@ -366,7 +328,7 @@ class PyTransport(component.Service):
 			froj = jid.JID(fro)
 			toj = jid.JID(to)
 		except Exception, e:
-			LogEvent(WARN, msg="Failed stringprep")
+			LogEvent(WARN, "", "Failed stringprep")
 			return
 
 		if self.sessions.has_key(froj.userhost()):
@@ -377,21 +339,21 @@ class PyTransport(component.Service):
 			if to.find('@') < 0:
 				# If the presence packet is to the transport (not a user) and there isn't already a session
 				if not ptype: # Don't create a session unless they're sending available presence
-					LogEvent(INFO, msg="Attempting to create a new session")
+					LogEvent(INFO, "", "Attempting to create a new session")
 					s = session.makeSession(self, froj.userhost(), ulang, toj)
 					if s:
 						self.sessions[froj.userhost()] = s
-						LogEvent(INFO, msg="New session created")
+						LogEvent(INFO, "", "New session created")
 						# Send the first presence
 						s.onPresence(el)
 						# Get the capabilities
 						s.getCapabilities(el)
 					else:
-						LogEvent(INFO, msg="Failed to create session")
+						LogEvent(INFO, "", "Failed to create session")
 						jabw.sendMessage(self, to=froj.userhost(), fro=config.jid, body=lang.get("notregistered", ulang))
 				
 				elif ptype != "error":
-					LogEvent(INFO, msg="Sending unavailable presence to non-logged in user")
+					LogEvent(INFO, "", "Sending unavailable presence to non-logged in user")
 					pres = Element((None, "presence"))
 					pres.attributes["from"] = to
 					pres.attributes["to"] = fro
@@ -402,20 +364,20 @@ class PyTransport(component.Service):
 			elif ptype and (ptype.startswith("subscribe") or ptype.startswith("unsubscribe")):
 				# They haven't logged in, and are trying to change subscription to a user
 				# Lets log them in and then do it
-				LogEvent(INFO, msg="New session created")
+				LogEvent(INFO, "", "New session created")
 				s = session.makeSession(self, froj.userhost(), ulang, toj)
 				if s:
 					self.sessions[froj.userhost()] = s
-					LogEvent(INFO, msg="New session created")
+					LogEvent(INFO, "", "New session created")
 					# Tell the session there's a new resource
-					s.handleResourcePresence(froj.userhost(), froj.resource, toj.userhost(), toj.resource, 0, None, None, None, None)
+					s.handleResourcePresence(froj.userhost(), froj.resource, toj.userhost(), toj.resource, 0, None, None, None)
 					# Send this subscription
 					s.onPresence(el)
 
 	def sendInvitations(self):              
 		if config.enableAutoInvite:
 			for jid in self.xdb.getRegistrationList():
-				LogEvent(INFO, msg="Inviting %r" % jid)
+				LogEvent(INFO, "", "Inviting %r" % jid)
 				jabw.sendPresence(self, jid, config.jid, ptype="probe")
 				jabw.sendPresence(self, jid, "%s/registered" % (config.jid), ptype="probe")
 
@@ -426,22 +388,18 @@ class App:
 		# Check that there isn't already a PID file
 		if config.pid:
 			if os.path.isfile(config.pid):
-				try:
-					pf = open(config.pid)
-					pid = int(str(pf.readline().strip()))
-					pf.close()
-					if os.name == "posix":
-						try:
-							os.kill(pid, signal.SIGHUP)
-							self.alreadyRunning()
-						except OSError:
-							# The process is still up
-							pass
-					else:
+				pf = open(config.pid)
+				pid = int(str(pf.readline().strip()))
+				pf.close()
+				if os.name == "posix":
+					try:
+						os.kill(pid, signal.SIGHUP)
 						self.alreadyRunning()
-				except ValueError:
-					# The pid file doesn't have a pid in it
-					pass
+					except OSError:
+						# The process is still up
+						pass
+				else:
+					self.alreadyRunning()
 
 			# Create a PID file
 			pid = str(os.getpid())
@@ -450,7 +408,7 @@ class App:
 			pf.close()
 
 		# Initialize debugging
-		#debug.reloadConfig()
+		debug.reloadConfig()
 
 		jid = config.jid
 		if config.useXCP and config.compjid: jid = config.compjid
@@ -495,13 +453,13 @@ def main():
 	xdb.housekeep()
 
 	app = App()
-	if config.webport:
+	if hasattr(config, "webport") and config.webport:
 		try:
 			from nevow import appserver
 			import web
 			site = appserver.NevowSite(web.WebInterface(pytrans=app.transportSvc))
-			reactor.listenTCP(config.webport, site)
-			LogEvent(INFO, msg="Web interface activated")
+			reactor.listenTCP(int(config.webport), site)
+			LogEvent(INFO, "", "Web interface activated")
 		except:
-			LogEvent(WARN, msg="Unable to start web interface.  Either Nevow is not installed or you need a more recent version of Twisted.  (>= 2.0.0.0)")
+			LogEvent(WARN, "", "Unable to start web interface.  Either Nevow is not installed or you need a more recent version of Twisted.  (>= 2.0.0.0)")
 	reactor.run()

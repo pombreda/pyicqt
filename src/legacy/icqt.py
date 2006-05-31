@@ -19,18 +19,24 @@ import md5
 # BOSConnection
 #############################################################################
 class B(oscar.BOSConnection):
-	def __init__(self,username,cookie,oscarcon):
+	def __init__(self,username,cookie,icqcon):
 		self.chats = list()
 		self.ssigroups = list()
 		self.ssiiconsum = list()
 		self.requesticon = {}
 		self.awayResponses = {}
-		self.oscarcon = oscarcon
+		self.icqcon = icqcon
 		self.authorizationRequests = [] # buddies that need authorization
-		self.oscarcon.bos = self
-		self.session = oscarcon.session  # convenience
+		self.icqcon.bos = self
+		self.session = icqcon.session  # convenience
 		self.capabilities = [oscar.CAP_ICON, oscar.CAP_UTF]
-		if config.enableWebPresence:
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN1)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN2)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN3)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN4)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN5)
+		self.capabilities.append(oscar.CAP_ICQ5UNKNOWN6)
+		if not config.disableWebPresence:
 			self.statusindicators = oscar.STATUS_WEBAWARE
 		self.unreadmessages = 0
 		if config.crossChat:
@@ -40,12 +46,11 @@ class B(oscar.BOSConnection):
 			self.socksProxyServer = config.socksProxyServer
 			self.socksProxyPort = config.socksProxyPort
 		if config.icqPort:
-			self.connectPort = config.icqPort
-		self.defaultEncoding = config.encoding
+			self.connectPort = int(config.icqPort)
 
 	def initDone(self):
 		if not hasattr(self, "session") or not self.session:
-			LogEvent(INFO, msg="No session!")
+			LogEvent(INFO, "", "No session!")
 			return
 		self.requestSelfInfo().addCallback(self.gotSelfInfo)
 		#self.requestSelfInfo() # experimenting with no callback
@@ -56,7 +61,7 @@ class B(oscar.BOSConnection):
 		message = "ICQ connection lost! Reason: %s" % reason
 		LogEvent(INFO, self.session.jabberID, message)
 		try:
-			self.oscarcon.alertUser(message)
+			self.icqcon.alertUser(message)
 		except:
 			pass
 
@@ -70,12 +75,11 @@ class B(oscar.BOSConnection):
 	def gotUserInfo(self, id, type, userinfo):
 		if userinfo:
 			for i in range(len(userinfo)):
-				#userinfo[i] = userinfo[i].decode(config.encoding, "replace").encode("utf-8", "replace")
-				userinfo[i],uenc = oscar.guess_encoding(userinfo[i], config.encoding)
-		if self.oscarcon.userinfoCollection[id].gotUserInfo(id, type, userinfo):
+				userinfo[i] = userinfo[i].decode(config.encoding, "replace")
+		if self.icqcon.userinfoCollection[id].gotUserInfo(id, type, userinfo):
 			# True when all info packages has been received
-			self.oscarcon.gotvCard(self.oscarcon.userinfoCollection[id])
-			del self.oscarcon.userinfoCollection[id]
+			self.icqcon.gotvCard(self.icqcon.userinfoCollection[id])
+			del self.icqcon.userinfoCollection[id]
 
 	def buddyAdded(self, uin):
 		from glue import icq2jid
@@ -124,20 +128,7 @@ class B(oscar.BOSConnection):
                 if not c: return
 
 		ptype = None
-		if user.icqStatus.count('dnd'):
-			show = 'dnd'
-		elif user.icqStatus.count('xa'):
-			show = 'xa'
-		elif user.icqStatus.count('busy'):
-			show = 'dnd'
-		elif user.icqStatus.count('chat'):
-			show = 'chat'
-		elif user.icqStatus.count('dnd'):
-			show = 'dnd'
-		elif user.icqStatus.count('away'):
-			show = 'away'
-		else:
-			show = None
+		show = None
 		status = user.status
 		encoding = user.statusencoding
 		url = user.url
@@ -153,10 +144,8 @@ class B(oscar.BOSConnection):
 		if user.idleTime:
 			if user.idleTime>60*24:
 				idle_time = "Idle %d days"%(user.idleTime/(60*24))
-				if not show: show = "xa"
 			elif user.idleTime>60:
 				idle_time = "Idle %d hours"%(user.idleTime/(60))
-				if not show: show = "away"
 			else:
 				idle_time = "Idle %d minutes"%(user.idleTime)
 			if status:
@@ -165,26 +154,31 @@ class B(oscar.BOSConnection):
 				status=idle_time
 
 		if user.iconmd5sum != None and not config.disableAvatars and not config.avatarsOnlyOnChat:
-			if self.oscarcon.legacyList.diffAvatar(user.name, md5Hash=binascii.hexlify(user.iconmd5sum)):
+			if self.icqcon.legacyList.diffAvatar(user.name, md5Hash=binascii.hexlify(user.iconmd5sum)):
 				LogEvent(INFO, self.session.jabberID, "Retrieving buddy icon for %s" % user.name)
 				self.retrieveBuddyIconFromServer(user.name, user.iconmd5sum, user.icontype).addCallback(self.gotBuddyIconFromServer)
 			else:
 				LogEvent(INFO, self.session.jabberID, "Buddy icon is the same, using what we have for %s" % user.name)
 
 		if user.caps:
-			self.oscarcon.legacyList.setCapabilities(user.name, user.caps)
+			self.icqcon.legacyList.setCapabilities(user.name, user.caps)
 		status = status.encode("utf-8", "replace")
 		if user.flags.count("away"):
 			self.getAway(user.name).addCallback(self.sendAwayPresence, user)
 		else:
 			c.updatePresence(show=show, status=status, ptype=ptype, url=url)
-			self.oscarcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
+			self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
-	def gotBuddyIconFromServer(self, (contact, icontype, iconhash, iconlen, icondata)):
+	def gotBuddyIconFromServer(self, iconinfo):
 		if config.disableAvatars: return
+		contact = iconinfo[0]
+		icontype = iconinfo[1]
+		iconhash = iconinfo[2]
+		iconlen = iconinfo[3]
+		icondata = iconinfo[4]
 		LogEvent(INFO, self.session.jabberID, "%s: hash: %s, len: %d" % (contact, binascii.hexlify(iconhash), iconlen))
 		if iconlen > 0 and iconlen != 90: # Some ICQ clients send crap
-			self.oscarcon.legacyList.updateAvatar(contact, icondata, md5Hash=iconhash)
+			self.icqcon.legacyList.updateAvatar(contact, icondata, md5Hash=iconhash)
 
 	def offlineBuddy(self, user):
 		from glue import icq2jid 
@@ -196,7 +190,6 @@ class B(oscar.BOSConnection):
 		status = None
 		ptype = "unavailable"
 		c.updatePresence(show=show, status=status, ptype=ptype)
-		self.oscarcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status)
 
 	def receiveMessage(self, user, multiparts, flags):
 		from glue import icq2jid
@@ -222,24 +215,24 @@ class B(oscar.BOSConnection):
 			mtype = "headline"
 
 		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype=mtype, xhtml=xhtml)
-		self.session.pytrans.serviceplugins['Statistics'].stats['IncomingMessages'] += 1
-		self.session.pytrans.serviceplugins['Statistics'].sessionUpdate(self.session.jabberID, 'IncomingMessages', 1)
-		if not config.disableAwayMessage and self.awayMessage and not "auto" in flags:
+		self.session.pytrans.statistics.stats['IncomingMessages'] += 1
+		self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'IncomingMessages', 1)
+		if self.awayMessage and not "auto" in flags:
 			if not self.awayResponses.has_key(user.name) or self.awayResponses[user.name] < (time.time() - 900):
 				#self.sendMessage(user.name, "Away message: "+self.awayMessage.encode("iso-8859-1", "replace"), autoResponse=1)
 				self.sendMessage(user.name, "Away message: "+self.awayMessage, autoResponse=1)
 				self.awayResponses[user.name] = time.time()
 
 		if "icon" in flags and not config.disableAvatars:
-			if self.oscarcon.legacyList.diffAvatar(user.name, numHash=user.iconcksum):
+			if self.icqcon.legacyList.diffAvatar(user.name, numHash=user.iconcksum):
 				LogEvent(INFO, self.session.jabberID, "User %s has a buddy icon we want, will ask for it next message." % user.name)
 				self.requesticon[user.name] = 1
 			else:
 				LogEvent(INFO, self.session.jabberID, "User %s has a icon that we already have." % user.name)
 
-		if "iconrequest" in flags and hasattr(self.oscarcon, "myavatar") and not config.disableAvatars:
+		if "iconrequest" in flags and hasattr(self.icqcon, "myavatar") and not config.disableAvatars:
 			LogEvent(INFO, self.session.jabberID, "User %s wants our icon, so we're sending it." % user.name)
-			icondata = self.oscarcon.myavatar
+			icondata = self.icqcon.myavatar
 			self.sendIconDirect(user.name, icondata, wantAck=1)
 
 	def receiveWarning(self, newLevel, user):
@@ -288,21 +281,7 @@ class B(oscar.BOSConnection):
 		if not c: return
 
 		ptype = None
-		if user.icqStatus.count('dnd'):
-			show = 'dnd'
-		elif user.icqStatus.count('xa'):
-			show = 'xa'
-		elif user.icqStatus.count('busy'):
-			show = 'dnd'
-		elif user.icqStatus.count('chat'):
-			show = 'chat'
-		elif user.icqStatus.count('dnd'):
-			show = 'dnd'
-		elif user.icqStatus.count('away'):
-			show = 'away'
-		else:
-			show = 'away'
-
+		show = "away"
 		status = oscar.dehtml(msg[1]) # Removes any HTML tags
 		url = user.url
 
@@ -341,7 +320,7 @@ class B(oscar.BOSConnection):
 				status=idle_time
 
 		c.updatePresence(show=show, status=status, ptype=ptype)
-		self.oscarcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
+		self.icqcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status, ipaddr=user.icqIPaddy, lanipaddr=user.icqLANIPaddy, lanipport=user.icqLANIPport, icqprotocol=user.icqProtocolVersion, url=url)
 
 	def gotSelfInfo(self, user):
 		LogEvent(INFO, self.session.jabberID)
@@ -354,58 +333,38 @@ class B(oscar.BOSConnection):
 	def receivedIconUploadRequest(self, iconhash):
 		if config.disableAvatars: return
 		LogEvent(INFO, self.session.jabberID, "%s" % binascii.hexlify(iconhash))
-		if hasattr(self.oscarcon, "myavatar"):
-			LogEvent(INFO, self.session.jabberID, "I have an icon, sending it on, %d" % len(self.oscarcon.myavatar))
-			self.uploadBuddyIconToServer(self.oscarcon.myavatar, len(self.oscarcon.myavatar)).addCallback(self.uploadedBuddyIconToServer)
-			#del self.oscarcon.myavatar
+		if hasattr(self.icqcon, "myavatar"):
+			LogEvent(INFO, self.session.jabberID, "I have an icon, sending it on, %d" % len(self.icqcon.myavatar))
+			self.uploadBuddyIconToServer(self.icqcon.myavatar, len(self.icqcon.myavatar)).addCallback(self.uploadedBuddyIconToServer)
+			#del self.icqcon.myavatar
 
 	def receivedIconDirect(self, user, icondata):
 		if config.disableAvatars: return
 		LogEvent(INFO, self.session.jabberID, "%s [%d]" % (user.name, user.iconlen))
 		if user.iconlen > 0 and user.iconlen != 90: # Some ICQ clients send crap
-			self.oscarcon.legacyList.updateAvatar(user.name, icondata, numHash=user.iconcksum)
+			self.icqcon.legacyList.updateAvatar(user.name, icondata, numHash=user.iconcksum)
 
 	def uploadedBuddyIconToServer(self, iconchecksum):
 		LogEvent(INFO, self.session.jabberID, "%s" % (iconchecksum))
 
-	def readGroup(self, memberlist, parent=None):
-		for member in memberlist:
-			if isinstance(member, oscar.SSIGroup):
-				LogEvent(INFO, self.session.jabberID, "Found group %s" % (member.name))
-				self.ssigroups.append(member)
-				self.readGroup(member.users, parent=member)
-			elif isinstance(member, oscar.SSIBuddy):
-				if member.nick:
-					unick,uenc = oscar.guess_encoding(member.nick, config.encoding)
-				else:
-					unick = None
-				if parent:
-					LogEvent(INFO, self.session.jabberID, "Found user %r (%r) from group %r" % (member.name, unick, parent.name))
-				else:
-					LogEvent(INFO, self.session.jabberID, "Found user %r (%r) from master group" % (member.name, unick))
-				self.oscarcon.legacyList.updateSSIContact(member.name, nick=unick)
-				if member.name[0].isdigit() and (not member.nick or member.name == member.nick):
-					# Hrm, lets get that nick
-					self.getnicknames.append(member.name)
-			else:
-				LogEvent(INFO, self.session.jabberID, "Found unknown SSI entity: %r" % member)
-			
 	def gotBuddyList(self, l):
 		LogEvent(INFO, self.session.jabberID, "%s" % (str(l)))
-		self.getnicknames = list()
+		getnicknames = list()
 		if l is not None and l[0] is not None:
-			self.readGroup(l[0])
+			for g in l[0]:
+				LogEvent(INFO, self.session.jabberID, "Found group %s" % (g.name))
+				self.ssigroups.append(g)
+				for u in g.users:
+					LogEvent(INFO, self.session.jabberID, "Got user %r (%r) from group %r" % (u.name, u.nick, g.name))
+					self.icqcon.legacyList.updateSSIContact(u.name, nick=u.nick)
+					if u.name[0].isdigit() and (not u.nick or u.name == u.nick):
+						# Hrm, lets get that nick
+						getnicknames.append(u.name)
 		if l is not None and l[5] is not None:
 			for i in l[5]:
 				LogEvent(INFO, self.session.jabberID, "Found icon %s" % (str(i)))
 				self.ssiiconsum.append(i)
 		self.activateSSI()
-		if l is not None and l[8] is not None and l[3] != "denysome":
-			LogEvent(INFO, self.session.jabberID, "Permissions not set in a compatible manner on SSI, switching to 'deny some'")
-			l[8].permitMode = oscar.AIM_SSI_PERMDENY_DENY_SOME
-			self.startModifySSI()
-			self.modifyItemSSI(l[8])
-			self.endModifySSI()
 		self.setProfile(self.session.description)
 		self.setIdleTime(0)
 		self.clientReady()
@@ -416,25 +375,35 @@ class B(oscar.BOSConnection):
 		if self.session.registeredmunge:
 			tmpjid=config.jid+"/registered"
 		if self.session.pytrans:
-			self.session.sendPresence(to=self.session.jabberID, fro=tmpjid, show=self.oscarcon.savedShow, status=self.oscarcon.savedFriendly, url=self.oscarcon.savedURL)
-		if not self.oscarcon.savedShow or self.oscarcon.savedShow == "online":
-			self.oscarcon.setBack(self.oscarcon.savedFriendly)
+			self.session.sendPresence(to=self.session.jabberID, fro=tmpjid, show=self.icqcon.savedShow, status=self.icqcon.savedFriendly, url=self.icqcon.savedURL)
+		if not self.icqcon.savedShow or self.icqcon.savedShow == "online":
+			self.icqcon.setBack(self.icqcon.savedFriendly)
 		else:
-			self.oscarcon.setAway(self.oscarcon.savedFriendly)
-		if hasattr(self.oscarcon, "myavatar") and not config.disableAvatars:
-			self.oscarcon.changeAvatar(self.oscarcon.myavatar)
-		self.oscarcon.setICQStatus(self.oscarcon.savedShow)
+			self.icqcon.setAway(self.icqcon.savedFriendly)
+		if hasattr(self.icqcon, "myavatar") and not config.disableAvatars:
+			self.icqcon.changeAvatar(self.icqcon.myavatar)
+		self.icqcon.setICQStatus(self.icqcon.savedShow)
 		self.requestOffline()
 		# Ok, lets get those nicknames.
-		for n in self.getnicknames:
+		for n in getnicknames:
 			self.getShortInfo(n).addCallback(self.gotNickname, n)
 
-	def gotNickname(self, (nick, first, last, email), uin):
+	def gotNickname(self, info, uin):
 		LogEvent(INFO, self.session.jabberID)
-		if nick:
-			unick,uenc = oscar.guess_encoding(nick, config.encoding)
+		if info[0]:
 			LogEvent(INFO, self.session.jabberID, "Found a nickname, lets update.")
-			self.oscarcon.legacyList.updateNickname(uin, unick)
+			self.icqcon.legacyList.updateNickname(uin, info[0])
+			savetheseusers = []
+			for g in self.ssigroups:
+				for u in g.users:
+					if u.name == uin:
+						savetheseusers.append(u)
+			if len(savetheseusers) > 0:
+				self.startModifySSI()
+				for u in savetheseusers:
+					u.nick = info[0]
+					self.modifyItemSSI(u)
+				self.endModifySSI()
 
 	def warnedUser(self, oldLevel, newLevel, username):
 		LogEvent(INFO, self.session.jabberID)
@@ -445,27 +414,27 @@ class B(oscar.BOSConnection):
 # Oscar Authenticator
 #############################################################################
 class OA(oscar.OscarAuthenticator):
-	def __init__(self,username,password,oscarcon,deferred=None,icq=1):
-		self.oscarcon = oscarcon
+	def __init__(self,username,password,icqcon,deferred=None,icq=1):
+		self.icqcon = icqcon
 		self.BOSClass = B
 		oscar.OscarAuthenticator.__init__(self,username,password,deferred,icq)
 
 	def connectToBOS(self, server, port):
 		if config.socksProxyServer:
-			c = socks5.ProxyClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.oscarcon)
-			return c.connectSocks5Proxy(server, port, config.socksProxyServer, config.socksProxyPort, "OABOS")
+			c = socks5.ProxyClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.icqcon)
+			return c.connectSocks5Proxy(server, int(port), config.socksProxyServer, int(config.socksProxyPort), "OABOS")
 		else:
-			c = protocol.ClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.oscarcon)
-			return c.connectTCP(server, port)
+			c = protocol.ClientCreator(reactor, self.BOSClass, self.username, self.cookie, self.icqcon)
+			return c.connectTCP(server, int(port))
 
 #	def connectionLost(self, reason):
 #		message = "ICQ connection lost! Reason: %s" % reason
 #		debug.log("OA: connectionLost: %s" % message)
 #		try:
-#			self.oscarcon.alertUser(message)
+#			self.icqcon.alertUser(message)
 #		except:
 #			pass
 #
 #		oscar.OscarConnection.connectionLost(self, reason)
-#		if hasattr(self.oscarcon, "session") and self.oscarcon.session:
-#			self.oscarcon.session.removeMe()
+#		if hasattr(self.icqcon, "session") and self.icqcon.session:
+#			self.icqcon.session.removeMe()

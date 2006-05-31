@@ -10,10 +10,6 @@ from debug import LogEvent, INFO, WARN, ERROR
 import lang
 import sha
 import legacy
-import globals
-import base64
-import Image
-import StringIO
 
 
 class Contact:
@@ -143,14 +139,7 @@ class Contact:
 	def updateNickname(self, nickname, push=True):
 		if self.nickname != nickname:
 			self.nickname = nickname
-			# will re-remove this if it's removed from JEP-0172.
-			#self.sendNickname()
 			if push: self.sendPresence()
-
-			n = Element((None, "nick"))
-			n.attributes["xmlns"] = globals.NICK
-			n.addContent(nickname)
-			self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.NICK, "current", n)
 	
 	def updatePresence(self, show, status, ptype, force=False, tojid=None, url=None):
 		updateFlag = (self.show != show or self.status != status or self.ptype != ptype or force)
@@ -166,49 +155,16 @@ class Contact:
 		if self.avatar == avatar: return
 		self.avatar = avatar
 		if push: self.sendPresence()
-
-		if self.avatar and not config.disableAvatars:
-			avatarHash = self.avatar.getImageHash()
-			avatarData = self.avatar.getImageData()
-			inbuff = StringIO.StringIO(avatarData)
-                        img = Image.open(inbuff)
-
-			d = Element((None, "data"))
-			d.attributes["xmlns"] = globals.AVATARDATA
-			d.addContent(base64.encodestring(avatarData).replace("\n",""))
-			self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.AVATARDATA, avatarHash, d)
-
-			m = Element((None, "metadata"))
-			m.attributes["xmlns"] = globals.AVATARMETADATA
-			mi = m.addElement("info")
-			mi.attributes["id"] = avatarHash
-			mi.attributes["type"] = "image/png"
-			mi.attributes["bytes"] = str(len(avatarData))
-			mi.attributes["height"] = str(img.size[0])
-			mi.attributes["width"] = str(img.size[1])
-			self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.AVATARMETADATA, avatarHash, m)
 	
 	def sendSub(self, ptype):
 		self.contactList.session.sendPresence(to=self.contactList.session.jabberID, fro=self.jid, ptype=ptype)
-
-	def sendNickname(self, tojid=None):
-		if not tojid:
-			tojid=self.contactList.session.jabberID
-		if self.nickname:
-			el = Element((None, "message"))
-			el.attributes["to"] = tojid
-			el.attributes["from"] = self.jid
-			nick = el.addElement("nick")
-			nick.attributes["xmlns"] = globals.NICK
-			nick.addContent(self.nickname)
-			self.contactList.session.pytrans.send(el)
 	
 	def sendPresence(self, tojid=None):
 		avatarHash = ""
 		if self.avatar and not config.disableAvatars:
 			avatarHash = self.avatar.getImageHash()
 		caps = Element((None, "c"))
-		caps.attributes["xmlns"] = globals.CAPS
+		caps.attributes["xmlns"] = "http://jabber.org/protocol/caps"
 		caps.attributes["node"] = legacy.url + "/protocol/caps"
 		caps.attributes["ver"] = legacy.version
 		if not tojid:

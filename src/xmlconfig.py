@@ -27,7 +27,7 @@ def importFile(conffile):
 		cdata = child.__str__()
 		children = [x for x in child.elements()]
 		if not hasattr(config, tag):
-			print "Ignoring unrecognized configuration option %r" % tag
+			LogEvent(WARN, "", "Ignoring unrecognized configuration option %r" % tag)
 		elif type(getattr(config, tag)) == dict:
 			# For options like <settings><username>blar</username><password>foo</password></settings>
 			try:
@@ -38,9 +38,9 @@ def importFile(conffile):
 					n = child.name
 					s = child.__str__()
 					myDict[n] = s
-					LogEvent(INFO, msg="Adding %r=%r to config dictionary %r" % (n, s, tag), skipargs=True)
+					LogEvent(INFO, "", "Adding %r=%r to config dictionary %r" % (n, s, tag))
 			except AttributeError:
-				print "Ignoring configuration option %r" % tag
+				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
 		elif type(getattr(config, tag)) == list:
 			# For options like <admins><jid>user1@host.com</jid><jid>user2@host.com</jid></admins>
 			try:
@@ -49,54 +49,38 @@ def importFile(conffile):
 				myList = getattr(config, tag)
 				for child in children:
 					s = child.__str__()
-					LogEvent(INFO, msg="Adding %r to config list %r" % (s, tag), skipargs=True)
+					LogEvent(INFO, "", "Adding %r to config list %r" % (s, tag))
 					myList.append(s)
 			except AttributeError:
-				print "Ignoring configuration option %r" % tag
+				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
 		elif type(getattr(config, tag)) == str:
 			# For config options like <ip>127.0.0.1</ip>
 			try:
 				if not cdata:
 					invalidError("Tag %r in your configuration file should be a string (ie, must have cdata)." % (tag))
-				LogEvent(INFO, msg="Setting config option %r = %r" % (tag, cdata), skipargs=True)
+				LogEvent(INFO, "", "Setting config option %r = %r" % (tag, cdata))
 				setattr(config, tag, cdata)
 			except AttributeError:
-				print "Ignoring configuration option %r" % tag
-		elif type(getattr(config, tag)) == int:
-			# For config options like <port>5347</port>
-			try:
-				if not cdata:
-					invalidError("Tag %r in your configuration file should be an integer (ie, must have numeric cdata)." % (tag))
-				LogEvent(INFO, msg="Setting config option %r = %r" % (tag, cdata), skipargs=True)
-				try:
-					setattr(config, tag, int(cdata))
-				except:
-					# Isn't an integer apparantly.
-					invalidError("Tag %r in your configuration file should be an integer (ie, must have numeric cdata)." % (tag))
-			except AttributeError:
-				print "Ignoring configuration option %r" % tag
+				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
 		elif type(getattr(config, tag)) == bool:
 			# For config options like <crossChat/>
 			try:
 				if cdata:
 					invalidError("Tag %r in your configuration file should be a boolean (ie, no cdata)." % (tag))
-				LogEvent(INFO, msg="Enabling config option %r" % (tag), skipargs=True)
+				LogEvent(INFO, "", "Enabling config option %r" % (tag))
 				setattr(config, tag, True)
 			except AttributeError:
-				print "Ignoring configuration option %r" % tag
-		elif isinstance(getattr(config, tag), config.DeprecatedVariable):
-			# For deprecated options, we will display a warning
-			getattr(config, tag)()
+				LogEvent(WARN, "", "Ignoring configuration option %r" % (tag))
 		else:
-			print "Ignoring unrecognized configuration option %r [unrecognized type %s]" % (tag, type(getattr(config, tag)))
+			LogEvent(WARN, "", "Ignoring unrecognized configuration option %r" % (tag))
 
 def importOptions(options):
 	for o in options:
-		LogEvent(INFO, msg="Setting config option %r = %r" % (o, options[o]), skipargs=True)
+		LogEvent(INFO, "", "Setting config option %r = %r" % (o, options[o]))
 		setattr(config, o, options[o])
 
 def Import(file = None, options = None):
-	LogEvent(INFO, msg="Created configuration entity", skipargs=True)
+	LogEvent(INFO, "", "Created configuration entity")
 	if file != None:
 		importFile(file)
 	if options != None:

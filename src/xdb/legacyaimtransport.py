@@ -76,7 +76,7 @@ class XDB:
 			
 			self.__writeFile(file, document.toXml())
 		except:
-			LogEvent(INFO, msg="XDB error writing entry %s to file %s" % (xdbns, file))
+			LogEvent(INFO, "", "XDB error writing entry %s to file %s" % (xdbns, file))
 			raise
 	
 	def remove(self, file):
@@ -86,7 +86,7 @@ class XDB:
 		try:
 			os.remove(file)
 		except:
-			LogEvent(INFO, msg="XDB error removing file " + file)
+			LogEvent(INFO, "", "XDB error removing file " + file)
 			raise
 
 	def formRegEntry(self, username, password):
