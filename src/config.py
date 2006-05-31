@@ -8,13 +8,6 @@
 
 if type(True) != bool: from bool import bool
 
-class DeprecatedVariable:
-	def __init__(self, msg):
-		self.msg = msg
-
-	def __call__(self):
-		print "WARNING: %s" % self.msg
-
 jid = "icq.localhost"
 compjid = ""
 spooldir = ".."
@@ -23,44 +16,33 @@ mainServer = "127.0.0.1"
 mainServerJID = ""
 website = ""
 reactor = ""
-port = 5347
-webport = 0
+port = "5347"
+webport = ""
 secret = "secret"
-websecret = DeprecatedVariable("websecret is no longer used as web interface auths against JID now.")
 lang = "en"
 encoding = "iso-8859-1"
 icqServer = "login.icq.com"
-icqPort = 5238
+icqPort = "5238"
 sessionGreeting = ""
 registerMessage = ""
 crossChat = bool(False)
-debugLevel = 0 # 0->None, 1->Traceback, 2->WARN,ERROR, 3->INFO,WARN,ERROR
+debugLevel = "0" # 0->None, 1->Traceback, 2->WARN,ERROR, 3->INFO,WARN,ERROR
 debugFile = ""
 disableRegister = bool(False)
 disableXHTML = bool(False)
 enableAutoInvite = bool(False)
 tracebackDebug = bool(False)
 socksProxyServer = ""
-socksProxyPort = 0
+socksProxyPort = ""
 admins = []
 xdbDriver = "xmlfiles"
 xdbDriver_mysql = {}
 xdbDriver_xmlfiles = {}
 useXCP = bool(False)
-useComponentBinding = bool(False)
-useRouteWrap = bool(False)
-useJ2Component = DeprecatedVariable("useJ2Component has been split up into useComponentBinding and useRouteWrap.")
+useJ2Component = bool(False)
 saslUsername = ""
 avatarsOnlyOnChat = bool(False)
 disableDefaultAvatar = bool(False)
 disableAvatars = bool(False)
-enableWebPresence = bool(False)
-disableWebPresence = DeprecatedVariable("disableWebPresence is now the default; use enableWebPresence to re-enable this functionality.")
+disableWebPresence = bool(False)
 disableMailNotifications = bool(False)
-messageArchiveJID = ""
-authRegister = ""
-authRegister_LDAP = {}
-disableIQAvatars = bool(False)
-disableVCardAvatars = bool(False)
-disablePEPAvatars = bool(False)
-disableAwayMessage = bool(False)

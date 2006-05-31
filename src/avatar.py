@@ -1,6 +1,7 @@
 # Copyright 2005-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+import utils
 import config
 from twisted.internet import reactor
 from tlib.twistwrap import Element
@@ -10,7 +11,6 @@ import sha
 import base64
 import os
 import os.path
-import imgmanip
 
 SPOOL_UMASK = 0077
 
@@ -25,19 +25,7 @@ def parsePhotoEl(photo):
 			imageType = e.__str__()
 	
 	if imageType != "image/png":
-		imageData = imgmanip.convertToPNG(imageData)
-	
-	return imageData
-
-def parseIQPhotoEl(photo):
-	""" Pass the iq-based photo element as an avatar, returns the avatar imageData """
-	imageType = photo.getAttribute("mimetype")
-	imageData = base64.decodestring(photo.__str__())
-
-	LogEvent(INFO)
-	
-	if imageType != "image/png":
-		imageData = imgmanip.convertToPNG(imageData)
+		imageData = utils.convertToPNG(imageData)
 	
 	return imageData
 
@@ -63,14 +51,14 @@ class Avatar:
 		type = photo.addElement("TYPE")
 		type.addContent("image/png")
 		binval = photo.addElement("BINVAL")
-		binval.addContent(base64.encodestring(self.getImageData()).replace("\n", ""))
+		binval.addContent(base64.encodestring(self.getImageData()))
 		return photo
 
 	def makeDataElement(self):
 		""" Returns an XML Element that can be put into a jabber:x:avatar IQ stanza. """
 		data = Element((None, "data"))
 		data["mimetype"] = "image/png"
-		data.addContent(base64.encodestring(self.getImageData()).replace("\n", ""))
+		data.addContent(base64.encodestring(self.getImageData()))
 		return data
 	
 	def __eq__(self, other):
@@ -97,14 +85,14 @@ class AvatarCache:
 		Returns an Avatar object. """
 		avatar = Avatar(imageData, self)
 		key = avatar.getImageHash()
-		LogEvent(INFO, msg="Setting avatar %r" % (key))
+		LogEvent(INFO, "", "Setting avatar %r" % (key))
 		prev_umask = os.umask(SPOOL_UMASK)
 		try:
 			f = open(self.dir(key) + key, 'wb')
 			f.write(imageData)
 			f.close()
 		except IOError, e:
-			LogEvent(WARN, msg="IOError writing to avatar %r - %r" % (key, str(e)))
+			LogEvent(WARN, "", "IOError writing to avatar %r - %r" % (key, str(e)))
 		os.umask(prev_umask)
 		return avatar
 	
@@ -119,12 +107,12 @@ class AvatarCache:
 		try:
 			filename = self.dir(key) + key
 			if os.path.isfile(filename):
-				LogEvent(INFO, msg="Getting avatar %r" % (key))
+				LogEvent(INFO, "", "Getting avatar %r" % (key))
 				f = open(filename, 'rb')
 				data = f.read()
 				f.close()
 				return data
 			else:
-				LogEvent(INFO, msg="Avatar not found %r" % (key))
+				LogEvent(INFO, "", "Avatar not found %r" % (key))
 		except IOError, e:
-			LogEvent(INFO, msg="IOError reading avatar %r - %r" % (key, str(e)))
+			LogEvent(INFO, "", "IOError reading avatar %r - %r" % (key, str(e)))

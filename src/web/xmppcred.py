@@ -6,20 +6,19 @@ XMPP credential classes
 
 from twisted.cred import portal, checkers, credentials, error as credError
 from twisted.internet import protocol, reactor, defer
-from tlib.ifcompat import Interface, implements
-from tlib.twistwrap import client, xmlstream, jid
+from zope.interface import Interface, implements
 from twisted.python import log, failure
+from twisted.words.protocols.jabber import client, xmlstream, jid
 from twisted.protocols import basic
 
 class XMPPChecker(object):
     implements(checkers.ICredentialsChecker)
     # TODO - other interfaces?
     credentialInterfaces = (credentials.IUsernamePassword,)
-    def __init__(self,server=None, port=5222,v=0,tryonce=0):
+    def __init__(self,server=None, port=5222,v=0):
         self.server   = server
         self.port     = int(port)
         self.v        = v
-        self.tryonce  = tryonce
         
         
     def _cbPasswordMatch(self, xs):
@@ -62,9 +61,6 @@ class XMPPChecker(object):
     def authd(self, xmlstream):
         if not self.d.called:
             self.d.callback(xmlstream)
-        if self.tryonce and self.jfactory:
-            self.jfactory.stopTrying()
-            self.jfactory = None
 
     def authe(self, e):
         if not self.d.called:

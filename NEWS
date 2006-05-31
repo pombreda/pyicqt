@@ -1,13 +1,3 @@
-0.8:
-
-* Pubsub/PEP support.
-
-* More thorough avatar support.
-
-0.7b:
-
-* Web interface works in Twisted 1.* again.
-
 0.7a:
 
 * ICQ nicknames are now retrieved and propaged via event updates.

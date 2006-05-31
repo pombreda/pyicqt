@@ -3,3 +3,4 @@
 
 from glue import LegacyConnection, translateAccount
 from glue import name, url, version, id, defaultAvatar
+from glue import startStats, updateStats, addCommands

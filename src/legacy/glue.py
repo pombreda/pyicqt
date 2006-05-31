@@ -24,7 +24,7 @@ import md5
 name = "ICQ Transport"
 
 # The transport's version
-version = "post-0.7a"
+version = "0.7a"
 
 # URL of the transport's web site
 url = "http://pyicq-t.blathersource.org"
@@ -65,6 +65,27 @@ def jid2icq(jid):
 # This function is called to handle legacy id translation to a JID
 translateAccount = icq2jid
 
+def startStats(statistics):
+	""" Fills the misciq.Statistics class with the statistics fields.
+	You must put a command_OnlineUsers and command_OnlineUsers_Desc
+	attributes into the lang classes for this to work.
+	Note that OnlineUsers is a builtin stat. You don't need to
+	reimplement it yourself. """
+	pass
+
+def updateStats(statistics):
+	""" This will get called regularly. Use it to update any global
+	statistics """
+	pass
+
+def addCommands(pytrans):
+	""" This function is expected to create handlers for legacy
+	specific ad-hoc commands, and set them up with disco as
+	appropriate """
+	import legacyiq
+	pytrans.ICQEmailLookup = legacyiq.EmailLookup(pytrans)
+	pytrans.ICQConfirmAccount = legacyiq.ConfirmAccount(pytrans)
+
 
 
 ############################################################################
@@ -73,12 +94,12 @@ translateAccount = icq2jid
 class LegacyConnection:
 	""" A glue class that connects to the legacy network """
 	def __init__(self, username, password, session):
-		import buddies
+		import legacylist
 
 		self.username = username
 		self.password = password
 		self.session = session
-		self.legacyList = buddies.BuddyList(self.session)
+		self.legacyList = legacylist.LegacyList(self.session)
 		self.savedShow = None
 		self.savedFriendly = None
 		self.savedURL = None
@@ -87,13 +108,13 @@ class LegacyConnection:
 		self.userinfoID = 0
 		self.deferred = defer.Deferred()
 		self.deferred.addErrback(self.errorCallback)
-		hostport = (config.icqServer, config.icqPort)
+		hostport = (config.icqServer, int(config.icqPort))
 		LogEvent(INFO, self.session.jabberID, "Creating")
 		if config.socksProxyServer and config.socksProxyPort:
 			self.oa = icqt.OA
 			self.creator = socks5.ProxyClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
 			LogEvent(INFO, self.session.jabberID, "Connect via socks proxy")
-			self.creator.connectSocks5Proxy(config.icqServer, config.icqPort, config.socksProxyServer, config.socksProxyPort, "ICQCONN")
+			self.creator.connectSocks5Proxy(config.icqServer, int(config.icqPort), config.socksProxyServer, int(config.socksProxyPort), "ICQCONN")
 		else:
 			self.oa = icqt.OA
 			self.creator = protocol.ClientCreator(self.reactor, self.oa, self.username, self.password, self, deferred=self.deferred, icq=1)
@@ -137,21 +158,15 @@ class LegacyConnection:
 		LogEvent(INFO, self.session.jabberID)
 		from glue import jid2icq
 		try:
-			self.session.pytrans.serviceplugins['Statistics'].stats['OutgoingMessages'] += 1
-			self.session.pytrans.serviceplugins['Statistics'].sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
+			self.session.pytrans.statistics.stats['OutgoingMessages'] += 1
+			self.session.pytrans.statistics.sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
 			uin = jid2icq(target)
 			wantIcon = 0
+			offline = 0
 			if self.bos.requesticon.has_key(uin):
 				LogEvent(INFO, self.session.jabberID, "Going to ask for target's icon.")
 				wantIcon = 1
 				del self.bos.requesticon[uin]
-			offline = 1
-			try:
-				if self.legacyList.ssicontacts[uin]['presence'] != "unavailable":
-					offline = 0
-			except:
-				# well then they're online in some way
-				pass
 
 			iconSum = None
 			iconLen = None
@@ -170,17 +185,14 @@ class LegacyConnection:
 					encoding = "utf-16be"
 					charset = "unicode"
 				LogEvent(INFO, self.session.jabberID, "Encoding %r" % encoding)
-				self.bos.sendMessage(uin, [[message,charset]], offline=offline, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
-				self.session.sendArchive(target, self.session.jabberID, message)
+				self.bos.sendMessage(uin, [[message,charset]], offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 			else:
 				if xhtml and not config.disableXHTML:
 					xhtml = utils.xhtml_to_aimhtml(xhtml)
-					self.bos.sendMessage(uin, xhtml, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
-					self.session.sendArchive(target, self.session.jabberID, message)
+					self.bos.sendMessage(uin, xhtml, offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 				else:
 					htmlized = oscar.html(message)
-					self.bos.sendMessage(uin, htmlized, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
-					self.session.sendArchive(target, self.session.jabberID, message)
+					self.bos.sendMessage(uin, htmlized, offline=1, wantIcon=wantIcon, autoResponse=autoResponse, iconSum=iconSum, iconLen=iconLen, iconStamp=iconStamp)
 		except AttributeError:
 			self.alertUser(lang.get("sessionnotactive", config.jid))
 
@@ -194,7 +206,7 @@ class LegacyConnection:
 				show = self.legacyList.ssicontacts[c]['show']
 				status = self.legacyList.ssicontacts[c]['status']
 				ptype = self.legacyList.ssicontacts[c]['presence']
-				url = self.legacyList.ssicontacts[c]['url']
+				url = self.LegacyList.ssicontacts[c]['url']
 				#FIXME, needs to be contact based updatePresence
 				self.session.sendPresence(to=self.session.jabberID, fro=jid, show=show, status=status, ptype=ptype, url=url)
 		except AttributeError:
@@ -486,8 +498,6 @@ class LegacyConnection:
 			nickname = vcard.addElement("NICKNAME")
 			nickname.addContent(utils.xmlify(usercol.nick))
 			if usercol.nick:
-				#unick,uenc = oscar.guess_encoding(usercol.nick, config.encoding)
-				#self.legacyList.updateNickname(usercol.userinfo, unick)
 				self.legacyList.updateNickname(usercol.userinfo, usercol.nick)
 			bday = vcard.addElement("BDAY")
 			bday.addContent(utils.xmlify(usercol.birthday))
@@ -649,16 +659,15 @@ class LegacyConnection:
 
 	def removeContact(self, userHandle):
 		LogEvent(INFO, self.session.jabberID)
+		if userHandle in self.bos.authorizationRequests:
+			self.bos.sendAuthorizationResponse(userHandle, False, "")
+			self.bos.authorizationRequests.remove(userHandle)
+
+		def cb(arg=None):
+			self.updatePresence(userHandle, "unsubscribed")
+
 		try:
-			def cb(arg=None):
-				self.updatePresence(userHandle, "unsubscribed")
-
 			savetheseusers = []
-
-			if userHandle in self.bos.authorizationRequests:
-				self.bos.sendAuthorizationResponse(userHandle, False, "")
-				self.bos.authorizationRequests.remove(userHandle)
-
 			for g in self.bos.ssigroups:
 				for u in g.users:
 					icqHandle = self.icq2uhandle(u.name)

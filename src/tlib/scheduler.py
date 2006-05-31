@@ -34,8 +34,7 @@ class Scheduler:
         self.bigLock.release()
         
     def bindIntoClass(self,fam,sub,classid):
-        """
-        Messages come in marked with fam and sub; we need to bind them into classes.
+        """+        Messages come in marked with fam and sub; we need to bind them into classes.
         AOL tells us what fam,sub combination goes to which class.
         """
         snacid=str(fam)+str(sub)

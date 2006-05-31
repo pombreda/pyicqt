@@ -81,18 +81,6 @@
 	<!-- (uncomment to disable) -->
 	<!-- <disableDefaultAvatar/> -->
 
-	<!-- Disable use of iq-based avatars (JEP-0008) -->
-	<!-- (uncomment to disable) -->
-	<!-- <disableIQAvatars/> -->
-
-	<!-- Disable use of vcard-based avatars (JEP-0153) -->
-	<!-- (uncomment to disable) -->
-	<!-- <disableVCardAvatars/> -->
-
-	<!-- Disable use of PEP-based avatars (JEP-0084) -->
-	<!-- (uncomment to disable) -->
-	<!-- <disablePEPAvatars/> -->
-
 	<!-- You can choose which users you wish to have as administrators. These users can perform some tasks with Ad-Hoc commands that others cannot -->
 	<admins>
 	<!--<jid>admin@host.com</jid>-->
@@ -139,13 +127,8 @@
 	<!-- do not have PIL installed. -->
 	<!-- <disableAvatars/> -->
 
-	<!-- Enable web presence indicator.  This can increase ICQ spam. -->
-	<!-- <enableWebPresence/> -->
-
-	<!-- Disable automatic send (via im) of away message when away set. -->
-	<!-- Note that away messages are -in addition to- the away status -->
-	<!-- message. -->
-	<!-- <disableAwayMessage/> -->
+	<!-- Disable web presence indicator. -->
+	<!-- <disableWebPresence/> -->
 
 	<!-- Use Jabber.com's XCP component protocol extensions. -->
 	<!-- <useXCP/> -->
@@ -154,39 +137,7 @@
 	<!-- secret, above, is used for sasl password -->
 	<!-- <saslUsername/> -->
 
-	<!-- Use external component binding. -->
-	<!-- This dodges the need to manually configure all jids that talk to this transport. -->
-	<!-- Jabberd2 requires saslUsername and useRouteWrap for this to work. -->
-	<!-- Wildfire as of 2.6.0 requires just this. -->
-	<!-- <useComponentBinding/> -->
-
-	<!-- Wrap stanzas in <route> stanza. -->
-	<!-- Jabberd2 requires this for useComponentBinding. -->
-	<!-- <useRouteWrap/> -->
-
-	<!-- JID of message archive service -->
-	<!-- <messageArchiveJID>datasink.example.org</messageArchiveJID> -->
-
-	<!-- If registration authentication is used, enter the method -->
-	<!-- Auth configs often require additional options to be specified. -->
-	<!-- See associated config entries per authRegister example. -->
-	<!-- NOTE: limited to LDAP for now -->
-
-	<!-- THIS IS UNTESTED AS OF YET -->
-	<!-- <authRegister>LDAP</authRegister> -->
-	<!-- For LDAP auth, make sure to uncomment <authRegister_LDAP> -->
-	<!-- and </authRegister_LDAP> and fill out the options in between. -->
-	<!-- <authRegister_LDAP> -->
-	<!-- The fqdn or ip address of the LDAP server -->
-	<!-- <server>ldap.example.org</server> -->
-	<!-- The Root DN to be used to perform LDAP searches -->
-	<!-- <rootDN>CN=Administrator,CN=Users,DC=example,DC=org</rootDN> -->
-	<!-- The password for the Root DN -->
-	<!-- <password>SECRET</password> -->
-	<!-- The Base DN to search for users -->
-	<!-- <baseDN>DC=example,DC=org</baseDN> -->
-	<!-- The attribute to search for the user ID. -->
-	<!-- 'samAccountname' in Windows, 'uid' on most other systems -->
-	<!-- <uidAttr>samAccountname</uidAttr> -->
-	<!-- </authRegister_LDAP> -->
+	<!-- Use Jabberd 2's component protocol extensions. -->
+	<!-- Requires saslUsername to work. -->
+	<!-- <useJ2Component/> -->
 </pyicqt>
