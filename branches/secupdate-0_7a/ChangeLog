@@ -1,3 +1,8 @@
+2006-05-31  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/xdb/mysql.py:
+	Fixed possible security hole and idle disconnections.
+
 2006-03-06  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
