@@ -1,3 +1,9 @@
+2006-05-30  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	* src/legacy/icqt.py:
+	Added setting of permdeny 'properly' upon login.
+
 2006-05-29  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/xdb/mysql.py:

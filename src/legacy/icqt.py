@@ -400,6 +400,12 @@ class B(oscar.BOSConnection):
 				LogEvent(INFO, self.session.jabberID, "Found icon %s" % (str(i)))
 				self.ssiiconsum.append(i)
 		self.activateSSI()
+		if l is not None and l[8] is not None and l[3] != "denysome":
+			LogEvent(INFO, self.session.jabberID, "Permissions not set in a compatible manner on SSI, switching to 'deny some'")
+			l[8].permitMode = oscar.AIM_SSI_PERMDENY_DENY_SOME
+			self.startModifySSI()
+			self.modifyItemSSI(l[8])
+			self.endModifySSI()
 		self.setProfile(self.session.description)
 		self.setIdleTime(0)
 		self.clientReady()
