@@ -22,11 +22,20 @@ class VCardFactory:
 		froj = jid.JID(fro)
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
+		filter = None
 		if itype != "get" and itype != "error":
 			self.pytrans.iq.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns="vcard-temp", etype="cancel", condition="feature-not-implemented")
 			return
 
 		LogEvent(INFO, msg="Sending vCard")
+
+		for child in el.elements():
+			if child.name == "vCard" and child.uri == globals.VCARD:
+				for child2 in child.elements():
+					if child2.name == "filter" and child2.uri == globals.VCARDFILTER:
+						filter = child2
+						break
+				break
 
 		toGateway = not (to.find('@') > 0)
 		if not toGateway:
@@ -75,10 +84,15 @@ class VCardFactory:
 
 			self.pytrans.send(iq)
 		else:
-			c.fillvCard(vCard, to).addCallback(self.gotvCardResponse, iq)
+			c.fillvCard(vCard, to).addCallback(self.gotvCardResponse, iq, filter)
 
-	def gotvCardResponse(self, vcard, iq):
+	def gotvCardResponse(self, vcard, iq, filter):
 		LogEvent(INFO)
+		if filter:
+			for child in filter.elements():
+				for vchild in vcard.elements():
+					if vchild.name.lower() == child.name.lower():
+						vcard.children.remove(vchild)
 		self.pytrans.send(iq)
 
 	def getMyVCard(self, el):

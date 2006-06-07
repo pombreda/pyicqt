@@ -71,7 +71,10 @@ class B(oscar.BOSConnection):
 		if userinfo:
 			for i in range(len(userinfo)):
 				#userinfo[i] = userinfo[i].decode(config.encoding, "replace").encode("utf-8", "replace")
-				userinfo[i],uenc = oscar.guess_encoding(userinfo[i], config.encoding)
+				try:
+					userinfo[i],uenc = oscar.guess_encoding(userinfo[i], config.encoding)
+				except UnicodeError:
+					userinfo[i] = userinfo[i].encode('utf-8', 'replace')
 		if self.oscarcon.userinfoCollection[id].gotUserInfo(id, type, userinfo):
 			# True when all info packages has been received
 			self.oscarcon.gotvCard(self.oscarcon.userinfoCollection[id])
