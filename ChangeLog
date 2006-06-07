@@ -1,3 +1,12 @@
+2006-06-06  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/globals.py:
+	* src/services/VCardFactory.py:
+	Added support for JEP-0164, vcard filtering.
+
+	* src/legacy/icqt.py:
+	Fixed problem with unicode handling.
+
 2006-05-30  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
