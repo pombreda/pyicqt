@@ -12,7 +12,8 @@ import sha
 import legacy
 import globals
 import base64
-import Image
+if not config.disableAvatars:
+	import Image
 import StringIO
 
 
