@@ -7,6 +7,8 @@
 # This will go away when Twisted has real SASL support.  (yay!)
 # Kinda hacky at the moment.  Fair warning.
 
+# This does -not- work with > Twisted 2.2.0.
+
 TLS_XMLNS = 'urn:ietf:params:xml:ns:xmpp-tls'
 SASL_XMLNS = 'urn:ietf:params:xml:ns:xmpp-sasl'
 BIND_XMLNS = 'urn:ietf:params:xml:ns:xmpp-bind'
