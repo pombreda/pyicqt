@@ -77,7 +77,7 @@ class VCardFactory:
 			URL = vCard.addElement("URL")
 			URL.addContent(legacy.url)
 
-			if not config.disableAvatars:
+			if not config.disableAvatars and not config.disableVCardAvatars:
 				from legacy import defaultAvatar
 				PHOTO = defaultAvatar.makePhotoElement()
 				vCard.addChild(PHOTO)

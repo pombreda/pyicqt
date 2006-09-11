@@ -168,7 +168,7 @@ class Contact:
 		self.avatar = avatar
 		if push: self.sendPresence()
 
-		if self.avatar and not config.disableAvatars:
+		if self.avatar and not config.disableAvatars and not config.disablePEPAvatars:
 			avatarHash = self.avatar.getImageHash()
 			avatarData = self.avatar.getImageData()
 			inbuff = StringIO.StringIO(avatarData)
@@ -223,7 +223,7 @@ class Contact:
 		if self.nickname:
 			NICKNAME = vCard.addElement("NICKNAME")
 			NICKNAME.addContent(self.nickname)
-		if self.avatar and not config.disableAvatars:
+		if self.avatar and not config.disableAvatars and not config.disableVCardAvatars:
 			PHOTO = self.avatar.makePhotoElement()
 			vCard.addChild(PHOTO)
 		user = jid.split('@')[0]

@@ -384,8 +384,6 @@ class PyTransport(component.Service):
 						LogEvent(INFO, msg="New session created")
 						# Send the first presence
 						s.onPresence(el)
-						# Get the capabilities
-						s.getCapabilities(el)
 					else:
 						LogEvent(INFO, msg="Failed to create session")
 						jabw.sendMessage(self, to=froj.userhost(), fro=config.jid, body=lang.get("notregistered", ulang))
