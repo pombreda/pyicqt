@@ -4,6 +4,10 @@
 	Adjusted sendRosterImport to match JEP-0172 more accurately.
 	Thanks to guest from blathersource for submitting patch.
 
+	* src/sasl.py:
+	* config_example.xml:
+	Added quick note about lack of functionality with > Twisted 2.2.0.
+
 2006-06-13  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/session.py:
