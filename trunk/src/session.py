@@ -46,9 +46,19 @@ class Session(jabw.JabberConnection):
 		self.jabberID = jabberID # the JabberID of the Session's user
 		self.username = username # the legacy network ID of the Session's user
 		self.password = password
-		self.nickname = ""
-		self.description = ""
+		self.description = None
+		self.nickname = None
+		self.nicknamePri = 0	# priority of nickname:
+					# 0 = no nickname
+					# 1 = vcard based nickname
+					# 2 = pep based nickname
 		self.avatar = None
+		self.avatarPri = 0	# priority of avatar:
+					# 0 = no avatar
+					# 1 = default avatar
+					# 2 = vcard based avatar
+					# 3 = iq based avatar
+					# 4 = pep based avatar
 		self.lang = ulang
 
 		if rosterID.resource == "registered":
@@ -70,9 +80,15 @@ class Session(jabw.JabberConnection):
 
 		if config.sessionGreeting:
 			self.sendMessage(to=self.jabberID, fro=config.jid, body=config.sessionGreeting)
-		self.updateNickname("")
-		self.updateDescription("")
-		self.doVCardUpdate(punttoiq=True)
+		# Set default avatar to start with, should do this better
+		self.legacycon.updateAvatar()
+		self.avatarPri = 1
+		self.updateNickname(self.nickname)
+		self.updateDescription(self.description)
+		self.doVCardUpdate()
+		if not config.disableIQAvatars:
+			self.doIQAvatarUpdate()
+		self.doDiscoRequest()
 		LogEvent(INFO, self.jabberID, "Created!")
 
 		self.pytrans.serviceplugins['Statistics'].stats["TotalSessions"] += 1
@@ -118,11 +134,52 @@ class Session(jabw.JabberConnection):
 		
 		LogEvent(INFO, self.jabberID, "Removed!")
 
-	def doVCardUpdate(self, punttoiq=False):
-		if config.disableVCardAvatars:
-			self.doIQAvatarUpdate()
-			return
+	def hasCapability(self, capability):
+		for c in self.capabilities:
+			if c == capability:
+				return True
+		return False
 
+	def doDiscoRequest(self):
+		def userDiscoInfoReceived(el):
+			if not self.alive: return
+			LogEvent(INFO, self.jabberID)
+			fro = el.getAttribute("from")
+			for e in el.elements():
+				if e.name == "query" and e.uri == globals.DISCO_INFO:
+					for item in e.elements():
+						if item.name == "feature":
+							var = item.getAttribute("var")
+							self.capabilities.append(var)
+			LogEvent(INFO, self.jabberID, "Capabilities of %r:\n\t%s" % (fro, "\n\t".join(self.capabilities)))
+
+		def serverDiscoInfoReceived(el):
+			if not self.alive: return
+			LogEvent(INFO, self.jabberID)
+			fro = el.getAttribute("from")
+			for e in el.elements():
+				if e.name == "query" and e.uri == globals.DISCO_INFO:
+					for item in e.elements():
+						if item.name == "feature":
+							var = item.getAttribute("var")
+							self.capabilities.append(var)
+			LogEvent(INFO, self.jabberID, "Capabilities of %r:\n\t%s" % (fro, "\n\t".join(self.capabilities)))
+
+		def errback(args=None):
+			LogEvent(INFO, self.jabberID, "Error fetching disco info")
+
+		LogEvent(INFO, self.jabberID, "Fetching disco info from %r" % self.jabberID)
+		d = self.sendDiscoRequest(to=self.jabberID, fro=config.jid)
+		d.addCallback(userDiscoInfoReceived)
+		d.addErrback(errback)
+
+		sjid = jid.JID(self.jabberID).host
+		LogEvent(INFO, self.jabberID, "Fetching disco info from %r" % sjid)
+		d = self.sendDiscoRequest(to=sjid, fro=config.jid)
+		d.addCallback(serverDiscoInfoReceived)
+		d.addErrback(errback)
+
+	def doVCardUpdate(self):
 		def vCardReceived(el):
 			if not self.alive: return
 			LogEvent(INFO, self.jabberID)
@@ -132,50 +189,34 @@ class Session(jabw.JabberConnection):
 					vCard = e
 					break
 			if not vCard:
-				if not config.disableAvatars:
-					if punttoiq:
-						self.doIQAvatarUpdate()
-					else:
-						self.legacycon.updateAvatar() # Default avatar
 				return
-			avatarSet = False
 			for e in vCard.elements():
 				if e.name == "DESC":
 					self.updateDescription(e.__str__())
-				if e.name == "NICKNAME":
+				if e.name == "NICKNAME" and self.nicknamePri < 1:
 					self.updateNickname(e.__str__())
-				if e.name == "PHOTO" and not config.disableAvatars:
+					self.nicknamePri = 1
+				if e.name == "PHOTO" and not config.disableAvatars and not config.disableVCardAvatars and self.avatarPri < 2:
 					imageData = avatar.parsePhotoEl(e)
 					if not imageData:
 						errback(Exception("Invalid image data")) # Possibly it wasn't in a supported format?
 					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
 					self.legacycon.updateAvatar(self.avatar)
-					avatarSet = True
-			if not avatarSet and not config.disableAvatars:
-				if punttoiq:
-					self.doIQAvatarUpdate()
-				else:
-					self.legacycon.updateAvatar() # Default avatar
+					self.avatarPri = 2
 
 		def errback(args=None):
 			LogEvent(INFO, self.jabberID, "Error fetching vcard (avatar)")
-			if not config.disableAvatars and self.alive:
-				if punttoiq:
-					self.doIQAvatarUpdate()
-				else:
-					self.legacycon.updateAvatar() # Default avatar
 
-		LogEvent(INFO, self.jabberID, "Fetching vcard (avatar)")
+		LogEvent(INFO, self.jabberID, "Fetching vcard")
 		d = self.sendVCardRequest(to=self.jabberID, fro=config.jid)
 		d.addCallback(vCardReceived)
 		d.addErrback(errback)
 
 	def doIQAvatarUpdate(self):
-		if config.disableIQAvatars: return
+		if config.disableAvatars or config.disableIQAvatars: return
 
 		def errback(args=None):
 			LogEvent(INFO, self.jabberID, "Error fetching IQ-based avatar")
-			if not config.disableAvatars and self.alive: self.legacycon.updateAvatar()
 
 		def storageAvatarReceived(el):
 			if not self.alive: return
@@ -188,19 +229,15 @@ class Session(jabw.JabberConnection):
 					query = e
 					break
 			if not query:
-				if not config.disableAvatars: self.legacycon.updateAvatar() # Default avatar
 				return
-			avatarSet = False
 			for e in query.elements():
-				if e.name == "data" and not config.disableAvatars:
+				if e.name == "data" and self.avatarPri < 3:
 					imageData = avatar.parseIQPhotoEl(e)
 					if not imageData:
 						errback(Exception("Invalid image data")) # Possibly it wasn't in a supported format?
 					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
 					self.legacycon.updateAvatar(self.avatar)
-					avatarSet = True
-			if not avatarSet and not config.disableAvatars:
-				self.legacycon.updateAvatar() # Default avatar
+					self.avatarPri = 3
 
 		def iqAvatarReceived(el):
 			if not self.alive: return
@@ -218,19 +255,15 @@ class Session(jabw.JabberConnection):
 					query = e
 					break
 			if not query:
-				if not config.disableAvatars: self.legacycon.updateAvatar() # Default avatar
 				return
-			avatarSet = False
 			for e in query.elements():
-				if e.name == "data" and not config.disableAvatars:
+				if e.name == "data" and self.avatarPri < 3:
 					imageData = avatar.parseIQPhotoEl(e)
 					if not imageData:
 						errback(Exception("Invalid image data")) # Possibly it wasn't in a supported format?
 					self.avatar = self.pytrans.avatarCache.setAvatar(imageData)
 					self.legacycon.updateAvatar(self.avatar)
-					avatarSet = True
-			if not avatarSet and not config.disableAvatars:
-				self.legacycon.updateAvatar() # Default avatar
+					self.avatarPri = 3
 
 		LogEvent(INFO, self.jabberID, "Fetching IQ-based avatar")
 		highestActive = self.highestResource()

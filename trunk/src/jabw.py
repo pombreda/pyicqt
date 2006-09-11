@@ -280,49 +280,27 @@ class JabberConnection:
 		r.attributes["xmlns"] = globals.SUBSYNC
 		item = r.addElement("item")
 		item.attributes["subscription"] = sub
-		if name:
-			try:
-				item.attributes["name"] = unicode(name)
-			except:
-				# FIXME, why do i need this?
-				pass
+		n = el.addElement("nick")
+		n.attributes["xmlns"] = globals.NICK
+		n.addContent(unicode(name))
 		for group in groups:
 			g = item.addElement("group")
 			g.addContent(group)
 		
 		self.pytrans.send(el)
 
-	def getCapabilities(self, el): 
+	def sendDiscoRequest(self, to, fro):
 		""" Requests the capabilities of the client """
-		LogEvent(INFO)
-		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		LogEvent(INFO, self.jabberID)
 
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "get"
-		iq.attributes["from"] = config.jid
-		iq.attributes["to"] = froj.full()
+		iq.attributes["from"] = fro
+		iq.attributes["to"] = to
 		query = iq.addElement("query")
 		query.attributes["xmlns"] = globals.DISCO_INFO
 
-		self.pytrans.iq.sendIq(iq).addCallback(self.gotCapabilities)
-
-	def gotCapabilities(self, el):
-		fro = el.getAttribute("from")
-		for e in el.elements():
-			if e.name == "query" and e.uri == globals.DISCO_INFO:
-				for item in e.elements():
-					if item.name == "feature":
-						var = item.getAttribute("var")
-						self.capabilities.append(var)
-
-		LogEvent(INFO, self.jabberID, "Capabilities of %r:\n\t%r" % (fro, "\n\t".join(self.capabilities)))
-
-	def hasCapability(self, capability):
-		for c in self.capabilities:
-			if c == capability:
-				return True
-		return False
+		return self.pytrans.iq.sendIq(iq)
 
 	def onMessage(self, el):
 		""" Handles incoming message packets """
@@ -480,6 +458,6 @@ class JabberConnection:
 		""" Override this method to be notified when a nickname has been received """
 		pass
 
-	def avatarHashReceieved(self, source, dest, avatarHash):
+	def avatarHashReceived(self, source, dest, avatarHash):
 		""" Override this method to be notified when an avatar hash is received """
 		pass

@@ -1,3 +1,30 @@
+2006-09-11  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/jabw.py:
+	Adjusted sendRosterImport to match JEP-0172 more accurately.
+	Thanks to guest from blathersource for submitting patch.
+
+2006-06-13  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/session.py:
+	Added priorities to nicknames and avatars.
+
+	* src/jabw.py:
+	* src/session.py:
+	* src/main.py:
+	Moved around capabilities request and renamed.
+
+2006-06-12  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/services/VCardFactory.py:
+	Added check for vcard avatar disable.
+
+	* src/contact.py:
+	Added check for pep avatar disable.
+
+	* src/jabw.py:
+	Minor cosmetic tweak.
+
 2006-06-08  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/contact.py:
