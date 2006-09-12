@@ -8,6 +8,12 @@
 	* config_example.xml:
 	Added quick note about lack of functionality with > Twisted 2.2.0.
 
+	* src/tlib/twisted-1.3.0:
+	Removed what has been reconsidered to be a bad idea.
+
+	* src:
+	Added svn:externals link for twistfix directory (to twistfix-0.6).
+
 2006-06-13  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/session.py:
