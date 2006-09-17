@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID
 import jabw
 import config
 import lang
@@ -23,7 +24,7 @@ class ConnectUsers:
 		ID = el.getAttribute("id")
 		ulang = utils.getLang(el)
 
-		if config.admins.count(jid.JID(to).userhost()) == 0:
+		if config.admins.count(internJID(to).userhost()) == 0:
 			self.pytrans.iq.sendIqError(to=to, fro=config.jid, ID=ID, xmlns=globals.COMMANDS, etype="cancel", condition="not-authorized")
 			return
 

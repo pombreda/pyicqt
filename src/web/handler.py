@@ -15,7 +15,9 @@ import lang
 import string
 import avatar
 from xmppcred import XMPPRealm, XMPPChecker, IXMPPAvatar
-from tlib.twistwrap import jid, http
+from twisted.words.protocols.jabber.jid import internJID
+from tlib.httpcompat import http
+
 
 X = os.path.sep
 
@@ -47,7 +49,7 @@ class WebInterface_template(rend.Page):
 			username = username[0:port_sep]
 		if username:
 			try:
-				j = jid.JID(username)
+				j = internJID(username)
 			except InvalidFormat:
 				return self._loginFailed(None, ctx)
 			jabberHost = j.host

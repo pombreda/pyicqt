@@ -91,6 +91,7 @@
 
 	<!-- Disable use of PEP-based avatars (JEP-0084) -->
 	<!-- (uncomment to disable) -->
+	<!-- NOT IMPLEMENTED YET -->
 	<!-- <disablePEPAvatars/> -->
 
 	<!-- You can choose which users you wish to have as administrators. These users can perform some tasks with Ad-Hoc commands that others cannot -->

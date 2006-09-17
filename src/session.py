@@ -10,7 +10,7 @@ import avatar
 import globals
 from debug import LogEvent, INFO, WARN, ERROR
 import lang
-from tlib.twistwrap import jid
+from twisted.words.protocols.jabber.jid import internJID
 
 
 
@@ -173,7 +173,7 @@ class Session(jabw.JabberConnection):
 		d.addCallback(userDiscoInfoReceived)
 		d.addErrback(errback)
 
-		sjid = jid.JID(self.jabberID).host
+		sjid = internJID(self.jabberID).host
 		LogEvent(INFO, self.jabberID, "Fetching disco info from %r" % sjid)
 		d = self.sendDiscoRequest(to=sjid, fro=config.jid)
 		d.addCallback(serverDiscoInfoReceived)
@@ -275,7 +275,7 @@ class Session(jabw.JabberConnection):
 	def updateNickname(self, nickname):
 		self.nickname = nickname
 		if not self.nickname:
-			j = jid.JID(self.jabberID)
+			j = internJID(self.jabberID)
 			self.nickname = j.user
 		self.setStatus(self.show, self.status, self.url)
 

@@ -3,7 +3,7 @@
 
 import utils
 from twisted.internet import reactor
-from tlib.twistwrap import Element
+from twisted.words.xish.domish import Element
 import jabw
 import config
 from debug import LogEvent, INFO, WARN, ERROR
@@ -148,10 +148,10 @@ class Contact:
 			#self.sendNickname()
 			if push: self.sendPresence()
 
-			n = Element((None, "nick"))
-			n.attributes["xmlns"] = globals.NICK
-			n.addContent(nickname)
-			self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.NICK, "current", n)
+			#n = Element((None, "nick"))
+			#n.attributes["xmlns"] = globals.NICK
+			#n.addContent(nickname)
+			#self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.NICK, "current", n)
 	
 	def updatePresence(self, show, status, ptype, force=False, tojid=None, url=None):
 		updateFlag = (self.show != show or self.status != status or self.ptype != ptype or force)
@@ -168,26 +168,26 @@ class Contact:
 		self.avatar = avatar
 		if push: self.sendPresence()
 
-		if self.avatar and not config.disableAvatars and not config.disablePEPAvatars:
-			avatarHash = self.avatar.getImageHash()
-			avatarData = self.avatar.getImageData()
-			inbuff = StringIO.StringIO(avatarData)
-                        img = Image.open(inbuff)
+		#if self.avatar and not config.disableAvatars and not config.disablePEPAvatars:
+			#avatarHash = self.avatar.getImageHash()
+			#avatarData = self.avatar.getImageData()
+			#inbuff = StringIO.StringIO(avatarData)
+                        #img = Image.open(inbuff)
 
-			d = Element((None, "data"))
-			d.attributes["xmlns"] = globals.AVATARDATA
-			d.addContent(base64.encodestring(avatarData).replace("\n",""))
-			self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.AVATARDATA, avatarHash, d)
+			#d = Element((None, "data"))
+			#d.attributes["xmlns"] = globals.AVATARDATA
+			#d.addContent(base64.encodestring(avatarData).replace("\n",""))
+			#self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.AVATARDATA, avatarHash, d)
 
-			m = Element((None, "metadata"))
-			m.attributes["xmlns"] = globals.AVATARMETADATA
-			mi = m.addElement("info")
-			mi.attributes["id"] = avatarHash
-			mi.attributes["type"] = "image/png"
-			mi.attributes["bytes"] = str(len(avatarData))
-			mi.attributes["height"] = str(img.size[0])
-			mi.attributes["width"] = str(img.size[1])
-			self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.AVATARMETADATA, avatarHash, m)
+			#m = Element((None, "metadata"))
+			#m.attributes["xmlns"] = globals.AVATARMETADATA
+			#mi = m.addElement("info")
+			#mi.attributes["id"] = avatarHash
+			#mi.attributes["type"] = "image/png"
+			#mi.attributes["bytes"] = str(len(avatarData))
+			#mi.attributes["height"] = str(img.size[0])
+			#mi.attributes["width"] = str(img.size[1])
+			#self.contactList.session.pytrans.pubsub.localPublish(self.jid, globals.AVATARMETADATA, avatarHash, m)
 	
 	def sendSub(self, ptype):
 		self.contactList.session.sendPresence(to=self.contactList.session.jabberID, fro=self.jid, ptype=ptype)

@@ -3,7 +3,7 @@
 
 import imgmanip
 import utils
-from tlib.twistwrap import Element
+from twisted.words.xish.domish import Element
 from twisted.internet import protocol, reactor, defer, task
 from tlib import oscar
 from tlib import socks5, sockserror

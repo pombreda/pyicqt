@@ -2,7 +2,7 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import imgmanip
-from tlib.twistwrap import Element
+from twisted.words.xish.domish import Element
 from tlib import oscar
 from legacy import glue
 import config

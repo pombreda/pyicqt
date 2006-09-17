@@ -21,7 +21,8 @@ try:
 except ImportError:
 	SSL = None
 
-from tlib.twistwrap import component, jstrports, client, Element, elementStream, xmlstream
+from twisted.words.xish.domish import Element, elementStream
+from twisted.words.protocols.jabber import component, jstrports, client, xmlstream
 from twisted.application import service
 
 class SASLXmlStream(xmlstream.XmlStream):

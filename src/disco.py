@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID
 from twisted.internet.defer import Deferred
 from twisted.internet import reactor
 import sys
@@ -73,8 +74,8 @@ class ServiceDiscovery:
 		iqType = el.getAttribute("type")
 		ulang = utils.getLang(el)
 		try: # StringPrep
-			froj = jid.JID(fro)
-			to = jid.JID(to).full()
+			froj = internJID(fro)
+			to = internJID(to).full()
 		except Exception, e:
 			LogEvent(INFO, msg="Dropping IQ because of stringprep error")
 

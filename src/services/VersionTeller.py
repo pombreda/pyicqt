@@ -2,7 +2,7 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element
+from twisted.words.xish.domish import Element
 import svninfo
 import legacy
 import config

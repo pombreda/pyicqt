@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID, InvalidFormat
 import shutil
 import sys
 import os
@@ -349,8 +350,8 @@ def doSpoolPrepCheck():
 		if os.path.isfile(pre + file) and file.find(".xml"):
 			file = utils.unmangle(file).decode("utf-8", "replace")
 			try:
-				filej = jid.JID(file).full()
-			except jid.InvalidFormat, UnicodeDecodeError:
+				filej = internJID(file).full()
+			except InvalidFormat, UnicodeDecodeError:
 				print "Unable to stringprep "+file+".  Putting into BAD directory."
 				file = utils.mangle(file)
 				if not os.path.isdir(pre + "BAD"):

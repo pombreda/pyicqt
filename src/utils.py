@@ -10,7 +10,7 @@ import os.path
 import sys
 import globals
 from twisted.web import microdom
-from tlib.twistwrap import Element, SuxElementStream
+from twisted.words.xish.domish import Element, SuxElementStream
 
 X = os.path.sep
 

@@ -3,7 +3,7 @@
 
 import config
 from twisted.internet import reactor
-from tlib.twistwrap import Element
+from twisted.words.xish.domish import Element
 from debug import LogEvent, INFO, WARN, ERROR
 import lang
 import sha

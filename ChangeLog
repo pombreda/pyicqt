@@ -1,3 +1,52 @@
+2006-09-17  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/main.py:
+	* src/contact.py:
+	* src/config.py:
+	* config_example.xml:
+	Disabled pubsub/pep stuff since it's no longer valid/useful.
+
+	* src/web/handler.py:
+	* src/web/xmppcred.py:
+	* src/adhoc.py:
+	* src/avatar.py:
+	* src/contact.py:
+	* src/disco.py:
+	* src/iq.py:
+	* src/jabw.py:
+	* src/pubsub.py:
+	* src/register.py:
+	* src/sasl.py:
+	* src/session.py:
+	* src/utils.py:
+	* src/xmlconfig.py:
+	* src/main.py:
+	* src/xdb/legacyaimtransport.py:
+	* src/xdb/legacyjittransport.py:
+	* src/xdb/xmlfiles.py:
+	* src/services/VersionTeller.py:
+	* src/services/VCardFactory.py:
+	* src/services/Statistics.py:
+	* src/services/SearchFactory.py:
+	* src/services/RosterRetrieval.py:
+	* src/services/LastActivity.py:
+	* src/services/IqAvatarFactory.py:
+	* src/services/GatewayTranslator.py:
+	* src/services/EntityTime.py:
+	* src/services/ConnectUsers.py:
+	* src/legacy/glue.py:
+	* src/legacy/buddies.py:
+	* src/legacy/services/ConfirmAccount.py:
+	* src/legacy/services/EmailLookup.py:
+	* tools/migrate.py:
+	Updated to use twistwrap instead of tlib.
+
+	* src/tlib/jabber:
+	* src/tlib/domish.py:
+	* src/tlib/xmlstream.py:
+	* src/tlib/twistwrap.py:
+	Removed due to lack of need anymore.
+
 2006-09-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:

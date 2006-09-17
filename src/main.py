@@ -1,6 +1,9 @@
 # Copyrigh 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+import twistfix
+twistfix.main()
+
 import utils
 import getopt
 import sys
@@ -20,11 +23,6 @@ if __name__ == "__main__":
 
 from debug import LogEvent, INFO, WARN, ERROR
 import debug
-
-from tlib.twistwrap import VersionNumber
-if VersionNumber(sys.version[:3]) < VersionNumber("2.2"):
-	print("You are using version %s of Python, at least 2.2 is required." % (sys.version[:3]))
-	sys.exit(0)
 
 import config
 import xmlconfig
@@ -66,15 +64,8 @@ for o, v in opts:
 		print "   -l <file>           write debugging output to file"
 		print "   -o <var>=<setting>  set config var to setting"
 		sys.exit(0)
-#reload(debug)
 debug.reloadConfig()
 
-#if config.extendedDebugOn:
-#	from twisted.python import log
-#	if debug.debugFile:
-#		log.startLogging(debug.debugFile, 0)
-#	else:
-#		log.startLogging(sys.stdout, 0)
 xmlconfig.Import(conffile, options)
 
 def reloadConfig(a, b):
@@ -134,8 +125,11 @@ else:
 
 from twisted.internet import reactor, task
 from twisted.internet.defer import Deferred
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber import component
+from twisted.words.protocols.jabber.jid import internJID
 import twisted.python.log
-from tlib.twistwrap import component, jid, Element
+
 
 import xdb
 import avatar
@@ -145,7 +139,7 @@ import jabw
 import iq
 import disco
 import adhoc
-import pubsub
+#import pubsub
 import register
 import legacy
 import lang
@@ -176,7 +170,7 @@ class PyTransport(component.Service):
 		# Ad-hoc commands support
 		self.adhoc = adhoc.AdHocCommands(self)
 		# Pubsub/PEP support
-		self.pubsub = pubsub.PublishSubscribe(self)
+		#self.pubsub = pubsub.PublishSubscribe(self)
 		# Registration support
 		self.registermanager = register.RegisterManager(self)
 
@@ -199,10 +193,6 @@ class PyTransport(component.Service):
 		# Routine cleanup/updates/etc
 		self.loopTask = task.LoopingCall(self.loopFunc)
 		self.loopTask.start(60.0)
-		
-		# Display active sessions if debug mode is on
-		#if config.debugOn:
-		#	twisted.python.log.addObserver(self.exceptionLogger)
 
 
 	def loadPlugins(self, dir):
@@ -228,16 +218,6 @@ class PyTransport(component.Service):
 		for session in self.sessions.copy():
 			self.sessions[session].removeMe()
 
-	#def exceptionLogger(self, *kwargs):
-	#	if len(config.debugLog) > 0:
-	#		kwargs = kwargs[0]
-	#		if kwargs.has_key("failure"):
-	#			failure = kwargs["failure"]
-	#			failure.printTraceback(debug) # Pass debug as a pretend file object because it implements the write method
-	#			if config.debugLog:
-	#				debug.flushDebugSmart()
-	#				print "Exception occured! Check the log!"
-
 	def makeMessageID(self):
 		self.messageID += 1
 		return str(self.messageID)
@@ -245,13 +225,6 @@ class PyTransport(component.Service):
 	def loopFunc(self):
 		numsessions = len(self.sessions)
 
-		#if config.debugOn and numsessions > 0:
-		#	debug.log("Sessions:")
-		#	for key in self.sessions:
-		#		debug.log("\t" + self.sessions[key].jabberID)
-		#		for res in self.sessions[key].resourceList:
-		#			debug.log("\t\t" + res)
-        
 		self.serviceplugins['Statistics'].stats["Uptime"] = int(time.time()) - self.startTime
 		if numsessions > 0:
 			oldDict = self.sessions.copy()
@@ -299,7 +272,7 @@ class PyTransport(component.Service):
 			to = obj.getAttribute("to")
 			route = Element((None,"route"))
 			route.attributes["from"] = config.jid
-			route.attributes["to"] = jid.JID(to).host
+			route.attributes["to"] = internJID(to).host
 			route.addChild(obj)
 			obj.attributes["xmlns"] = "jabber:client"
 			component.Service.send(self,route.toXml())
@@ -342,7 +315,7 @@ class PyTransport(component.Service):
 		to = el.getAttribute("to")
 		mtype = el.getAttribute("type")
 		try:
-			froj = jid.JID(fro)
+			froj = internJID(fro)
 		except Exception, e:
 			LogEvent(WARN, msg="Failed stringprep")
 			return
@@ -363,8 +336,8 @@ class PyTransport(component.Service):
 		# Ignore any presence broadcasts about other JD2 components
 		if to == None: return
 		try:
-			froj = jid.JID(fro)
-			toj = jid.JID(to)
+			froj = internJID(fro)
+			toj = internJID(to)
 		except Exception, e:
 			LogEvent(WARN, msg="Failed stringprep")
 			return
@@ -446,9 +419,6 @@ class App:
 			pf = file(config.pid,'w')
 			pf.write("%s\n" % pid);
 			pf.close()
-
-		# Initialize debugging
-		#debug.reloadConfig()
 
 		jid = config.jid
 		if config.useXCP and config.compjid: jid = config.compjid

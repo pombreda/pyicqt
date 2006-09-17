@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID
 from debug import LogEvent, INFO, WARN, ERROR
 import config
 import disco
@@ -51,8 +52,8 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None, nick
 
 def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=None, avatarHash=None, nickname=None, payload=[], url=None):
 	if ptype in ["subscribe", "subscribed", "unsubscribe", "unsubscribed"]:
-		to = jid.intern(to).userhost()
-		fro = jid.intern(fro).userhost()
+		to = internJID(to).userhost()
+		fro = internJID(fro).userhost()
 
 	el = Element((None, "presence"))
 	el.attributes["to"] = to
@@ -166,7 +167,7 @@ class JabberConnection:
 	def checkFrom(self, el):
 		""" Checks to see that this packet was intended for this object """
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		froj = internJID(fro)
 		
 		return (froj.userhost() == self.jabberID) # Compare with the Jabber ID that we're looking at
 	
@@ -309,8 +310,8 @@ class JabberConnection:
 		fro = el.getAttribute("from")
 		to = el.getAttribute("to")
 		try:
-			froj = jid.JID(fro)
-			toj = jid.JID(to)
+			froj = internJID(fro)
+			toj = internJID(to)
 		except Exception, e:
 			LogEvent(WARN, self.jabberID)
 			return
@@ -381,9 +382,9 @@ class JabberConnection:
 		if not self.checkFrom(el): return
 		LogEvent(INFO, self.jabberID)
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		froj = internJID(fro)
 		to = el.getAttribute("to")
-		toj = jid.JID(to)
+		toj = internJID(to)
 		
 		# Grab the contents of the <presence/> packet
 		ptype = el.getAttribute("type")
