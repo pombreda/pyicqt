@@ -1,26 +1,36 @@
 # Copyrigh 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
+import os, os.path, time, sys, codecs, getopt, shutil
+reload(sys)
+sys.setdefaultencoding("utf-8")
+sys.stdout = codecs.lookup('utf-8')[-1](sys.stdout)
+
+# Find the best reactor
+reactorchoices = ["epollreactor", "kqreactor", "cfreactor", "pollreactor", "selectreactor", "default"]
+for choice in reactorchoices:
+	try:
+		exec("from twisted.internet import %s as bestreactor" % choice)
+		if choice in ["selectreactor","default"]:
+			print selectWarning
+		break
+	except:
+		pass
+try:
+	bestreactor.install()
+except:
+	print "Unable to find a reactor.\nExiting..."
+	sys.exit(1)
+
 import twistfix
 twistfix.main()
-
-import utils
-import getopt
-import sys
-import os
-import shutil
-import time
-import codecs
-reload(sys)
-sys.setdefaultencoding('utf-8')
-del sys.setdefaultencoding
-sys.stdout = codecs.lookup('utf-8')[-1](sys.stdout)
 
 if __name__ == "__main__":
 	print "The transport can no longer be started from main.py.  Please use"
 	print "PyICQt.py from the root of the distribution instead."
 	sys.exit(0)
 
+import utils
 from debug import LogEvent, INFO, WARN, ERROR
 import debug
 
@@ -102,25 +112,6 @@ if config.reactor and len(config.reactor) > 0:
 		print "Unknown reactor: ", config.reactor, ". Using default, select(), reactor."
 		from twisted.internet import default as bestreactor
 		print selectWarning
-else:
-	# Find the best reactor
-	del sys.modules["twisted.internet.reactor"]
-	reactorchoices = ["epollreactor", "kqreactor", "cfreactor",
-		"pollreactor", "selectreactor", "default"]
-	for choice in reactorchoices:
-		try:
-			exec("from twisted.internet import %s as bestreactor" % choice)
-			if choice in ["selectreactor","default"]:
-				print selectWarning
-			LogEvent(INFO, msg="Enabled reactor %s" % reactorname, skipargs=True)
-			break
-		except:
-			pass
-	try:
-		bestreactor.install()
-	except:
-		print "Unable to find a reactor.\nExiting..."
-		sys.exit(1)
 
 
 from twisted.internet import reactor, task
