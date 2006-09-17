@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID
 from debug import LogEvent, INFO, WARN, ERROR
 import config
 import lang
@@ -15,7 +16,7 @@ class EmailLookup:
 
 	def incomingIq(self, el):
 		to = el.getAttribute("from")
-		toj = jid.JID(to)
+		toj = internJID(to)
 		ID = el.getAttribute("id")
 		ulang = utils.getLang(el)
 
@@ -91,14 +92,14 @@ class EmailLookup:
 
 	def lookupEmail(self, el, email, sessionid=None):
 		to = el.getAttribute("from")
-		toj = jid.JID(to)
+		toj = internJID(to)
 
 		self.pytrans.sessions[toj.userhost()].legacycon.bos.lookupEmail(email).addCallback(self.emailLookupResults, el, sessionid)
 
 	def emailLookupResults(self, results, el, sessionid):
 		LogEvent(INFO)
 		to = el.getAttribute("from")
-		toj = jid.JID(to)
+		toj = internJID(to)
 		ID = el.getAttribute("id")
 		ulang = utils.getLang(el)
 

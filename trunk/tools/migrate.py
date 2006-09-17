@@ -71,9 +71,12 @@ reload(debug)
 if len(args) != 2:
 	showhelp()
 
+import twistfix
+twistfix.main()
+
 import xmlconfig
 xmlconfig.Import(conffile, options)
-from tlib.twistwrap import Element
+from twisted.words.xish.domish import Element
 
 if args[0] == "dump":
 	import xdb

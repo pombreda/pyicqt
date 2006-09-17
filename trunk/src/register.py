@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID
 import session
 import legacy
 from debug import LogEvent, INFO, WARN, ERROR
@@ -85,7 +86,7 @@ class RegisterManager:
 		if itype == "get":
 			if config.authRegister:
 				# Check to see if they're registered
-				source = jid.JID(incoming.getAttribute("from")).userhost()
+				source = internJID(incoming.getAttribute("from")).userhost()
 				result = self.pytrans.xdb.getRegistration(source)
 				if result:
 					self.sendRegistrationFields(incoming)
@@ -98,7 +99,7 @@ class RegisterManager:
 		elif itype == "set":
 			if config.authRegister:
 				# Check to see if they're registered by local credentials
-				source = jid.JID(incoming.getAttribute("from")).userhost()
+				source = internJID(incoming.getAttribute("from")).userhost()
 				result = self.pytrans.xdb.getRegistration(source)
 				username = ""
 				password = ""
@@ -136,7 +137,7 @@ class RegisterManager:
 	def validateLocalRegistration(self, incoming):
 		# Grab the username and password
 		LogEvent(INFO)
-		source = jid.JID(incoming.getAttribute("from")).userhost()
+		source = internJID(incoming.getAttribute("from")).userhost()
 		ulang = utils.getLang(incoming)
 		username = None
 		password = None
@@ -191,7 +192,7 @@ class RegisterManager:
 		passEl = query.addElement("password")
 		
 		# Check to see if they're registered
-		source = jid.JID(incoming.getAttribute("from")).userhost()
+		source = internJID(incoming.getAttribute("from")).userhost()
 		result = self.pytrans.xdb.getRegistration(source)
 		if result:
 			username, password = result
@@ -204,7 +205,7 @@ class RegisterManager:
 	def updateRegistration(self, incoming):
 		# Grab the username and password
 		LogEvent(INFO)
-		source = jid.JID(incoming.getAttribute("from")).userhost()
+		source = internJID(incoming.getAttribute("from")).userhost()
 		ulang = utils.getLang(incoming)
 		username = None
 		password = None
@@ -239,8 +240,8 @@ class RegisterManager:
 				LogEvent(INFO, msg="Updated XDB")
 				self.successReply(incoming)
 				LogEvent(INFO, msg="Sent a result Iq")
-				(user, host, res) = jid.parse(incoming.getAttribute("from"))
-				jabw.sendPresence(self.pytrans, to=user + "@" + host, fro=config.jid, ptype="subscribe")
+				to = internJID(incoming.getAttribute("from")).userhost()
+				jabw.sendPresence(self.pytrans, to=to, fro=config.jid, ptype="subscribe")
 				if config.registerMessage:
 					jabw.sendMessage(self.pytrans, to=incoming.getAttribute("from"), fro=config.jid, body=config.registerMessage)
 			except:

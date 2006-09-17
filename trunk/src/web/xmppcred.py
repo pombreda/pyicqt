@@ -7,7 +7,8 @@ XMPP credential classes
 from twisted.cred import portal, checkers, credentials, error as credError
 from twisted.internet import protocol, reactor, defer
 from tlib.ifcompat import Interface, implements
-from tlib.twistwrap import client, xmlstream, jid
+from twisted.words.protocols.jabber import client, xmlstream
+from twisted.words.protocols.jabber.jid import internJID
 from twisted.python import log, failure
 from twisted.protocols import basic
 
@@ -20,8 +21,7 @@ class XMPPChecker(object):
         self.port     = int(port)
         self.v        = v
         self.tryonce  = tryonce
-        
-        
+
     def _cbPasswordMatch(self, xs):
         if xs:
             # TODO - send xmlstream 
@@ -46,7 +46,7 @@ class XMPPChecker(object):
 
     def login(self, username, password):
         self.d = defer.Deferred()
-        self.myJid = jid.JID(username)
+        self.myJid = internJID(username)
         if self.myJid.resource is None:
             self.myJid.resource = 'XMPPCred'
             

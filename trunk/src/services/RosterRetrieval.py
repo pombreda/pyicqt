@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID
 import config
 import lang
 from debug import LogEvent, INFO, WARN, ERROR
@@ -16,7 +17,7 @@ class RosterRetrieval:
 	def incomingIq(self, el):
 		to = el.getAttribute("from")
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		froj = internJID(fro)
 		ID = el.getAttribute("id")
 		if not hasattr(self.pytrans, "legacycon"):
 			self.pytrans.iq.sendIqError(to=to, fro=config.jid, ID=ID, xmlns=globals.COMMANDS, etype="cancel", condition="service-unavailable")

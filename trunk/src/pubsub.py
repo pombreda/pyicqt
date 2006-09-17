@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID
 from twisted.internet import reactor, task
 import config
 import lang
@@ -35,9 +36,9 @@ class PublishSubscribe:
 	def incomingIq(self, el):
 		itype = el.getAttribute("type")
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		froj = internJID(fro)
 		to = el.getAttribute("to")
-		toj = jid.JID(to)
+		toj = internJID(to)
 		ID = el.getAttribute("id")
 
 	def userDiscoItems(self, jid, query):

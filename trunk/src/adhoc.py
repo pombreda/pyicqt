@@ -2,7 +2,8 @@
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import utils
-from tlib.twistwrap import Element, jid
+from twisted.words.xish.domish import Element
+from twisted.words.protocols.jabber.jid import internJID
 import config
 import lang
 from debug import LogEvent, INFO, WARN, ERROR
@@ -25,7 +26,7 @@ class AdHocCommands:
 	def incomingIq(self, el):
 		itype = el.getAttribute("type")
 		fro = el.getAttribute("from")
-		froj = jid.JID(fro)
+		froj = internJID(fro)
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
 
