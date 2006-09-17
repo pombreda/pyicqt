@@ -67,7 +67,7 @@ for o, v in opts:
 		print "   -h                  print this help"
 		print "   -b                  daemonize/background transport"
 		print "   -c <file>           read configuration from this file"
-		print "   -d                  print debugging output"
+		print "   -d                  print debugging output (very little)"
 		print "   -D                  print extended debugging output"
 		print "   -g                  print garbage collection output"
 		print "   -t                  print debugging only on traceback"
@@ -119,7 +119,6 @@ from twisted.internet.defer import Deferred
 from twisted.words.xish.domish import Element
 from twisted.words.protocols.jabber import component
 from twisted.words.protocols.jabber.jid import internJID
-import twisted.python.log
 
 
 import xdb
