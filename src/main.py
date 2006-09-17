@@ -7,7 +7,7 @@ sys.setdefaultencoding("utf-8")
 sys.stdout = codecs.lookup('utf-8')[-1](sys.stdout)
 
 # Find the best reactor
-reactorchoices = ["epollreactor", "kqreactor", "cfreactor", "pollreactor", "selectreactor", "default"]
+reactorchoices = ["epollreactor", "kqreactor", "cfreactor", "pollreactor", "selectreactor", "posixbase", "default"]
 for choice in reactorchoices:
 	try:
 		exec("from twisted.internet import %s as bestreactor" % choice)
