@@ -50,6 +50,9 @@
 	* src/main.py:
 	Updated to match PyMSNt's handling of reactors.
 
+	* src/main.py:
+	Added note about debug log.
+
 2006-09-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:
