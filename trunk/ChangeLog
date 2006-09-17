@@ -47,6 +47,9 @@
 	* src/tlib/twistwrap.py:
 	Removed due to lack of need anymore.
 
+	* src/main.py:
+	Updated to match PyMSNt's handling of reactors.
+
 2006-09-11  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/jabw.py:
