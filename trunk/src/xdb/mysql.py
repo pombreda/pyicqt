@@ -32,14 +32,14 @@ class XDB:
 		Returns a username and password. """
 		self.db.ping()
 		c=self.db.cursor()
-                if config.xdbDriver_mysql.get("format","") == "encrypted":
-			c.execute("SELECT username,UNHEX(encryptedpassword) FROM register WHERE owner = '%s'" % jabberID)
-		else:
-			c.execute("SELECT username,password FROM register WHERE owner = '%s'" % jabberID)
+		c.execute("SELECT username,password,UNHEX(encryptedpassword) FROM register WHERE owner = '%s'" % jabberID)
 		ret = c.fetchone()
 		if ret:
-			(username,password) = ret
-			return (username,password)
+			(username,password,encpass) = ret
+			if encpass:
+				return (username,encpass)
+			else:
+				return (username,password)
 		else:
 			return None
 

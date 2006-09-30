@@ -21,6 +21,12 @@
 	* tools/migrate.py:
 	Fixed bug with lack of utils import.
 
+	* src/xdb/mysql.py:
+	Added check for easy migration between encrypted and not encrypted.
+
+	* src/legacy/glue.py:
+	Updated for version 0.8 release.
+
 2006-09-17  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
