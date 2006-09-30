@@ -29,6 +29,7 @@ class AdHocCommands:
 		froj = internJID(fro)
 		to = el.getAttribute("to")
 		ID = el.getAttribute("id")
+		ulang = utils.getLang(el)
 
 		LogEvent(INFO, msg="Looking for handler")
 
@@ -40,11 +41,11 @@ class AdHocCommands:
 			handled = False
 			if child.name == "query" and xmlns == globals.DISCO_INFO:
 				if node and self.commands.has_key(node) and itype == "get":
-					self.sendCommandInfoResponse(to=fro, ID=ID)
+					self.sendCommandInfoResponse(to=fro, ID=ID, node=node, ulang=ulang)
 					handled = True
 			elif child.name == "query" and xmlns == globals.DISCO_ITEMS:
 				if node and self.commands.has_key(node) and itype == "get":
-					self.sendCommandItemsResponse(to=fro, ID=ID)
+					self.sendCommandItemsResponse(to=fro, ID=ID, node=node, ulang=ulang)
 					handled = True
 			elif child.name == "command" and xmlns == globals.COMMANDS:
 				if node and self.commands.has_key(node) and (itype == "set" or itype == "error"):
@@ -79,7 +80,7 @@ class AdHocCommands:
 
 		self.pytrans.send(iq)
 
-	def sendCommandInfoResponse(self, to, ID):
+	def sendCommandInfoResponse(self, to, ID, node, ulang):
 		LogEvent(INFO, msg="Replying to disco#info")
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
@@ -89,12 +90,23 @@ class AdHocCommands:
 		query = iq.addElement("query")
 		query.attributes["xmlns"] = globals.DISCO_INFO
 
+		# Add identity
+		identity = query.addElement("identity")
+		identity.attributes["name"] = lang.get(self.commandNames[node], ulang)
+		identity.attributes["category"] = "automation"
+		identity.attributes["type"] = "command-node"
+
 		# Add supported feature
 		feature = query.addElement("feature")
 		feature.attributes["var"] = globals.COMMANDS
+
+		# Add supported feature
+		feature = query.addElement("feature")
+		feature.attributes["var"] = globals.XDATA
+
 		self.pytrans.send(iq)
 
-	def sendCommandItemsResponse(self, to, ID):
+	def sendCommandItemsResponse(self, to, ID, node, ulang):
 		LogEvent(INFO, msg="Replying to disco#items")
 		iq = Element((None, "iq"))
 		iq.attributes["type"] = "result"
