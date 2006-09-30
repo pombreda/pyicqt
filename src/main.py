@@ -88,6 +88,8 @@ def reloadConfig(a, b):
 if os.name == "posix":
 	import signal
 	signal.signal(signal.SIGHUP, reloadConfig)
+	# Load scripts for PID and daemonizing
+	from twisted.scripts import twistd
 
 selectWarning = "Unable to install any good reactors (kqueue, cf, epoll, poll).\nWe fell back to using select. You may have scalability problems.\nThis reactor will not support more than 1024 connections +at a time.  You may silence this message by choosing 'select' or 'default' as your reactor in the transport config."
 if config.reactor and len(config.reactor) > 0:
@@ -384,31 +386,20 @@ class PyTransport(component.Service):
 
 class App:
 	def __init__(self):
-		# Check that there isn't already a PID file
+		# Check for any other instances
+		if config.pid and os.name != "posix":
+			config.pid = ""
 		if config.pid:
-			if os.path.isfile(config.pid):
-				try:
-					pf = open(config.pid)
-					pid = int(str(pf.readline().strip()))
-					pf.close()
-					if os.name == "posix":
-						try:
-							os.kill(pid, signal.SIGHUP)
-							self.alreadyRunning()
-						except OSError:
-							# The process is still up
-							pass
-					else:
-						self.alreadyRunning()
-				except ValueError:
-					# The pid file doesn't have a pid in it
-					pass
+			twistd.checkPID(config.pid)
 
-			# Create a PID file
-			pid = str(os.getpid())
-			pf = file(config.pid,'w')
-			pf.write("%s\n" % pid);
-			pf.close()
+		# Do any auto-update stuff
+		xdb.housekeep()
+
+		# Daemonise the process and write the PID file
+		if daemonizeme and os.name == "posix":
+			twistd.daemonize()
+		if config.pid:
+			self.writePID()
 
 		jid = config.jid
 		if config.useXCP and config.compjid: jid = config.compjid
@@ -429,29 +420,26 @@ class App:
 		print "Exiting..."
 		sys.exit(1)
 
+	def writePID(self):
+		# Create a PID file
+		pid = str(os.getpid())
+		pf = open(config.pid, "w")
+		pf.write("%s\n" % pid)
+		pf.close()
+
 	def shuttingDown(self):
 		self.transportSvc.removeMe()
-		if config.pid:
-			def cb(ignored=None):
-				os.remove(config.pid)
-			d = Deferred()
-			d.addCallback(cb)
-			reactor.callLater(3.0, d.callback, None)
-			return d
+		def cb(ignored=None):
+			if config.pid:
+				twistd.removePID(config.pid)
+		d = Deferred()
+		d.addCallback(cb)
+		reactor.callLater(3.0, d.callback, None)
+		return d
 
 
 
 def main():
-	if daemonizeme:
-		import daemonize
-		if len(config.debugFile) > 0:
-			daemonize.daemonize(stdout=config.debugFile,stderr=config.debugFile)
-		else:
-			daemonize.daemonize()
-
-	# Do any auto-update stuff
-	xdb.housekeep()
-
 	app = App()
 	if config.webport:
 		try:

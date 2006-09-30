@@ -4,6 +4,13 @@
 	* src/legacy/glue.py:
 	Added handling of presence probes.
 
+	* src/adhoc.py:
+	Improved ad-hoc support.
+
+	* src/main.py:
+	* src/daemonize.py:
+	Fixed backgrounded mode by switching to twistd.
+
 2006-09-17  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
