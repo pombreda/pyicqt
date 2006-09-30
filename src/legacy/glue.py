@@ -218,6 +218,12 @@ class LegacyConnection:
 			#self.alertUser(lang.get("sessionnotactive", config.jid))
 			pass
 
+        def sendShowStatus(self, jid=None):
+		if not self.session: return
+		if not jid:
+			jid = self.jabberID
+		self.session.sendPresence(to=jid, fro=config.jid, show=self.savedShow, status=self.savedFriendly)
+
  	def setStatus(self, nickname, show, friendly, url=None):
 		LogEvent(INFO, self.session.jabberID)
 

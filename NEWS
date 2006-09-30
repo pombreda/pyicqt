@@ -1,6 +1,6 @@
 0.8:
 
-* Pubsub/PEP support.
+* Support for newer Twisted versions.
 
 * More thorough avatar support.
 

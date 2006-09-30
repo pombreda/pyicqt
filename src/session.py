@@ -340,7 +340,14 @@ class Session(jabw.JabberConnection):
 	def presenceReceived(self, source, resource, to, tor, priority, ptype, show, status, url=None):
 		# Checks resources and priorities so that the highest priority resource always appears as the
 		# legacy services status. If there are no more resources then the session is deleted
-		self.handleResourcePresence(source, resource, to, tor, priority, ptype, show, status, url)
+		if ptype == 'probe':
+			LogEvent(INFO, self.jabberID, "Responding to presence probe")
+			if to == config.jid:
+				self.legacycon.sendShowStatus(source)
+			else:
+				self.contactList.getContact(to).sendPresence(source)
+		else:
+			self.handleResourcePresence(source, resource, to, tor, priority, ptype, show, status, url)
 
 		
 	def handleResourcePresence(self, source, resource, to, tor, priority, ptype, show, status, url):
