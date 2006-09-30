@@ -20,6 +20,7 @@ class XDB:
 			host=config.xdbDriver_mysql["server"],
 			user=config.xdbDriver_mysql["username"],
 			passwd=config.xdbDriver_mysql["password"],
+			charset="utf8",
 			db=config.xdbDriver_mysql["database"]
 		)
 		if not self.db:
@@ -31,7 +32,10 @@ class XDB:
 		Returns a username and password. """
 		self.db.ping()
 		c=self.db.cursor()
-		c.execute("SELECT username,password FROM register WHERE owner = '%s'" % jabberID)
+                if config.xdbDriver_mysql.get("format","") == "encrypted":
+			c.execute("SELECT username,UNHEX(encryptedpassword) FROM register WHERE owner = '%s'" % jabberID)
+		else:
+			c.execute("SELECT username,password FROM register WHERE owner = '%s'" % jabberID)
 		ret = c.fetchone()
 		if ret:
 			(username,password) = ret
@@ -58,7 +62,10 @@ class XDB:
 		self.db.ping()
 		c=self.db.cursor()
 		c.execute("DELETE FROM register WHERE owner = '%s'" % jabberID)
-		c.execute("INSERT INTO register(owner,username,password) VALUES('%s','%s','%s')" % (jabberID, username, password))
+                if config.xdbDriver_mysql.get("format","") == "encrypted":
+			c.execute("INSERT INTO register(owner,username,encryptedpassword) VALUES('%s','%s',HEX('%s'))" % (jabberID, username, password))
+		else:
+			c.execute("INSERT INTO register(owner,username,password) VALUES('%s','%s','%s')" % (jabberID, username, password))
 
 	def removeRegistration(self, jabberID):
 		""" Removes a registration from the XDB. """

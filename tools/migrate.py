@@ -40,6 +40,7 @@ sys.path.append("../src")
 import debug
 import getopt
 import config
+import utils
 
 def showhelp():
 	print "./migrate.py [options] cmd file"
