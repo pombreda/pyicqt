@@ -11,6 +11,16 @@
 	* src/daemonize.py:
 	Fixed backgrounded mode by switching to twistd.
 
+	* src/xdb/mysql.py:
+	* config_example.xml:
+	Added ability to encrypt passwords.
+
+	* src/xdb/mysql.py:
+	Set charset to utf8.
+
+	* tools/migrate.py:
+	Fixed bug with lack of utils import.
+
 2006-09-17  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:

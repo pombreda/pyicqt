@@ -2,7 +2,23 @@
 
 * Support for newer Twisted versions.
 
+* Improved ad-hoc command support.
+
+* Improved daemonized mode support.
+
+* Improved roster import support.
+
+* Support for vcard filtering (JEP-0164).
+
+* Improved unicode handling.
+
+* Fixes for handling of ICQ permissions.
+
 * More thorough avatar support.
+
+* Added support for MySQL database encrypted passwords.
+
+* Lots of misc other improvements.
 
 0.7b:
 

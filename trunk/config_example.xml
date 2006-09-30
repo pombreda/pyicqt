@@ -125,6 +125,7 @@
 	<!--<password>pyicqt</password>-->
 	<!--<database>pyicqt</database>-->
 	<!--<server>localhost</server>-->
+	<!--<format>encrypted</format>--> <!-- Enable encryption of passwords -->
 	<!--</xdbDriver_mysql>-->
 
 	<!-- For XMLFiles -->
