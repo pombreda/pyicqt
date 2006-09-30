@@ -1,3 +1,9 @@
+2006-09-30  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/session.py:
+	* src/legacy/glue.py:
+	Added handling of presence probes.
+
 2006-09-17  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/main.py:
@@ -52,6 +58,9 @@
 
 	* src/main.py:
 	Added note about debug log.
+
+	* src/services/VCardFactory.py:
+	Fixed wrong number of args passed bug.
 
 2006-09-11  Daniel Henninger  <jadestorm@nc.rr.com>
 

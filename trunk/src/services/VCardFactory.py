@@ -57,7 +57,7 @@ class VCardFactory:
 				iq.attributes["type"] = "result"
 				vCard = iq.addElement("vCard")
 				vCard.attributes["xmlns"] = globals.VCARD
-				self.pytrans.legacycon.getvCardNotInList(vCard, to).addCallback(self.gotvCardResponse, iq)
+				self.pytrans.legacycon.getvCardNotInList(vCard, to).addCallback(self.gotvCardResponse, iq, filter)
 				return
 				# Lets leave this up to the legacy pieces
 				#self.pytrans.iq.sendIqError(to=fro, fro=config.jid, ID=ID, xmlns="vcard-temp", etype="cancel", condition="recipient-unavailable")
