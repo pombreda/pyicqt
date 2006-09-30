@@ -27,6 +27,10 @@ srcdist:
 	rm -f /tmp/$(TNAME)-$${ver}.tar.gz; \
 	mkdir /tmp/$(TNAME)-$${ver}; \
 	tar --no-recursion -cf - $${files} | ( cd /tmp/$(TNAME)-$${ver}; tar -xf - ); \
+	mkdir -p /tmp/$(TNAME)-$${ver}/src/twistfix; \
+	cd src/twistfix; \
+	files=`svn list -R`; \
+	tar --no-recursion -cf - $${files} | ( cd /tmp/$(TNAME)-$${ver}/src/twistfix; tar -xf - ); \
 	cd /tmp; \
 	tar --owner=nobody --group=nobody -cvzf $(TNAME)-$${ver}.tar.gz $(TNAME)-$${ver}; \
 	ls -l $(TNAME)-$${ver}.tar.gz
