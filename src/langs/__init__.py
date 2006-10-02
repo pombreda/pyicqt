@@ -3,7 +3,7 @@
 
 import os
 
-files=os.listdir("src/langs");
+files=os.listdir("src/langs")
 for i in range(len(files)):
 	if files[i] == "__init__.py": continue
 	if files[i].endswith(".py"):

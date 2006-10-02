@@ -138,7 +138,7 @@ class LegacyConnection:
 		from glue import jid2icq
 		try:
 			self.session.pytrans.serviceplugins['Statistics'].stats['OutgoingMessages'] += 1
-			self.session.pytrans.serviceplugins['Statistics'].sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)        
+			self.session.pytrans.serviceplugins['Statistics'].sessionUpdate(self.session.jabberID, 'OutgoingMessages', 1)
 			uin = jid2icq(target)
 			wantIcon = 0
 			if self.bos.requesticon.has_key(uin):
@@ -218,7 +218,7 @@ class LegacyConnection:
 			#self.alertUser(lang.get("sessionnotactive", config.jid))
 			pass
 
-        def sendShowStatus(self, jid=None):
+	def sendShowStatus(self, jid=None):
 		if not self.session: return
 		if not jid:
 			jid = self.jabberID
@@ -711,17 +711,19 @@ class LegacyConnection:
 					del g.usersToID[u]
 
 	def errorCallback(self, result):
-		LogEvent(INFO, self.session.jabberID)
-		errmsg = result.getErrorMessage()
-		errmsgs = errmsg.split("'")
-		message = "Authentication Error!" 
-		if errmsgs[1]:
-			message = message+"\n"+errmsgs[1]
-		if errmsgs[3]:
-			message = message+"\n"+errmsgs[3]
-		self.alertUser(message)
-
-		self.session.removeMe()
+		try:
+			LogEvent(INFO, self.session.jabberID)
+			errmsg = result.getErrorMessage()
+			errmsgs = errmsg.split("'")
+			message = "Authentication Error!" 
+			if errmsgs[1]:
+				message = message+"\n"+errmsgs[1]
+			if errmsgs[3]:
+				message = message+"\n"+errmsgs[3]
+			self.alertUser(message)
+			self.session.removeMe()
+		except:
+			pass
 
 	def findGroupByID(self, groupID):
 		for x in self.bos.ssigroups:

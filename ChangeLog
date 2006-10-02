@@ -1,3 +1,15 @@
+2006-10-01  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/langs/__init__.py:
+	* src/main.py:
+	Minor cosmetic tweaks.
+
+	* config_example.xml:
+	Added better example of saslUsername usage.
+
+	* src/legacy/glue.py:
+	Killed pointless traceback.
+
 2006-09-30  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/session.py:
