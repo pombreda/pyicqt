@@ -155,7 +155,7 @@
 	<!-- SASL username used to bind to Jabber server. -->
 	<!-- secret, above, is used for sasl password -->
 	<!-- NOTE: This does not work with Twisted > 2.2.0. -->
-	<!-- <saslUsername/> -->
+	<!-- <saslUsername>username</saslUsername> -->
 
 	<!-- Use external component binding. -->
 	<!-- This dodges the need to manually configure all jids that talk to this transport. -->

@@ -1,4 +1,4 @@
-# Copyrigh 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
+# Copyright 2004-2006 Daniel Henninger <jadestorm@nc.rr.com>
 # Licensed for distribution under the GPL version 2, check COPYING for details
 
 import os, os.path, time, sys, codecs, getopt, shutil
