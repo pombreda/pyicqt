@@ -57,3 +57,5 @@ class IqAvatarFactory:
 		if c.avatar:
 			DATA = c.avatar.makeDataElement()
 			query.addChild(DATA)
+
+		self.pytrans.send(iq)
