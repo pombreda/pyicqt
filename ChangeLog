@@ -1,3 +1,8 @@
+2007-02-16  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/xdb/mysql.py:
+	Applied patch from Alexander Sulfrian to handle mysql auto-reconnect.
+
 2006-10-03  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/services/IqAvatarFactory.py:

@@ -27,10 +27,26 @@ class XDB:
 			print "Unable to connect to MySQL database."
 			os.exit(1)
 
+	def db_ping(self):
+		""" 
+		Wrapper function for MySQLdb.ping() to reconnect on lost connection
+		""" 
+		try:
+			self.db.ping()
+		except:
+			self.db=MySQLdb.connect(
+				host=config.xdbDriver_mysql["server"],
+				user=config.xdbDriver_mysql["username"],
+				passwd=config.xdbDriver_mysql["password"],
+				charset="utf8",
+				db=config.xdbDriver_mysql["database"]
+			)
+			self.db.ping()
+
 	def getRegistration(self, jabberID):
 		""" Retrieve registration information from the XDB.
 		Returns a username and password. """
-		self.db.ping()
+		self.db_ping()		
 		c=self.db.cursor()
 		c.execute("SELECT username,password,UNHEX(encryptedpassword) FROM register WHERE owner = '%s'" % jabberID)
 		ret = c.fetchone()
@@ -45,7 +61,7 @@ class XDB:
 
 	def getRegistrationList(self):
 		""" Returns an array of all of the registered jids. """
-		self.db.ping()
+		self.db_ping()
 		c=self.db.cursor()
 		c.execute("SELECT owner FROM register")
 		results = []
@@ -59,7 +75,7 @@ class XDB:
 	def setRegistration(self, jabberID, username, password):
 		""" Sets up or creates a registration in the XDB.
 		username and password are for the legacy account. """
-		self.db.ping()
+		self.db_ping()
 		c=self.db.cursor()
 		c.execute("DELETE FROM register WHERE owner = '%s'" % jabberID)
                 if config.xdbDriver_mysql.get("format","") == "encrypted":
@@ -69,7 +85,7 @@ class XDB:
 
 	def removeRegistration(self, jabberID):
 		""" Removes a registration from the XDB. """
-		self.db.ping()
+		self.db_ping()
 		c=self.db.cursor()
 		c.execute("DELETE FROM register WHERE owner = '%s'" % jabberID)
 		c.execute("DELETE FROM settings WHERE owner = '%s'" % jabberID)
@@ -78,7 +94,7 @@ class XDB:
 
 	def getSettingList(self, jabberID):
 		""" Gets a list of all settings for a user from the XDB. """
-		self.db.ping()
+		self.db_ping()
 		c=self.db.cursor()
 		c.execute("SELECT variable,value FROM settings WHERE owner = '%s'" % (jabberID))
 		results = []
@@ -92,7 +108,7 @@ class XDB:
 
 	def getSetting(self, jabberID, variable):
 		""" Gets a user setting from the XDB. """
-		self.db.ping()
+		self.db_ping()
 		c=self.db.cursor()
 		c.execute("SELECT value FROM settings WHERE owner = '%s' AND variable = '%s'" % (jabberID, variable))
 		ret = c.fetchone()
@@ -104,7 +120,7 @@ class XDB:
 
 	def setSetting(self, jabberID, variable, value):
 		""" Sets a user setting in the XDB. """
-		self.db.ping()
+		self.db_ping()
 		c=self.db.cursor()
 		c.execute("DELETE FROM settings WHERE owner = '%s' AND variable = '%s'" % (jabberID, variable))
 		c.execute("INSERT INTO settings(owner,variable,value) VALUES('%s','%s','%s')" % (jabberID, variable, value))
@@ -112,7 +128,7 @@ class XDB:
 	def getListEntry(self, type, jabberID, legacyID):
 		""" Retrieves a legacy ID entry from a list in
 		the XDB, based off the type and jabberID you provide. """
-		self.db.ping()
+		self.db_ping()
 		attributes = {}
 		c=self.db.cursor()
 		c.execute("SELECT attribute,value FROM list_attributes WHERE owner = '%s' AND type = '%s' AND jid = '%s'" % (jabberID, type, legacyID))
@@ -126,7 +142,7 @@ class XDB:
 	def getListTypes(self, jabberID):
 		""" Returns an array containing a list of all list types
 		associated with a user. """
-		self.db.ping()
+		self.db_ping()
 		types = []
 		c=self.db.cursor()
 		c.execute("SELECT type FROM lists WHERE owner = '%s'" % (jabberID))
@@ -141,7 +157,7 @@ class XDB:
 		""" Retrieves an array containing an entire list of a
 		 jabberID's from the XDB, based off the type and jabberID
 		you provide. """
-		self.db.ping()
+		self.db_ping()
 		entities = []
 		c=self.db.cursor()
 		c.execute("SELECT jid FROM lists WHERE owner = '%s' AND type = '%s'" % (jabberID, type))
@@ -151,6 +167,7 @@ class XDB:
 			entity = []
 			entity.append(jid)
 			attributes = {}
+			self.db_ping()
 			ic = self.db.cursor()
 			ic.execute("SELECT attribute,value FROM list_attributes WHERE owner = '%s' AND type = '%s' AND jid = '%s'" % (jabberID, type, jid))
 			iret = ic.fetchone()
@@ -165,7 +182,7 @@ class XDB:
 	def setListEntry(self, type, jabberID, legacyID, payload = {}):
 		""" Updates or adds a legacy ID entry to a list in
 		the XDB, based off the type and jabberID you provide. """
-		self.db.ping()
+		self.db_ping()
 		c=self.db.cursor()
 		c.execute("DELETE FROM lists WHERE owner = '%s' AND type = '%s' AND jid = '%s'" % (jabberID, type, legacyID))
 		c.execute("DELETE FROM list_attributes WHERE owner = '%s' AND type = '%s' AND jid = '%s'" % (jabberID, type, legacyID))
@@ -176,7 +193,7 @@ class XDB:
 	def removeListEntry(self, type, jabberID, legacyID):
 		""" Removes a legacy ID entry from a list in
 		the XDB, based off the type and jabberID you provide. """
-		self.db.ping()
+		self.db_ping()
 		c=self.db.cursor()
 		c.execute("DELETE FROM lists WHERE owner = '%s' AND type = '%s' AND jid = '%s'" % (jabberID, type, legacyID))
 		c.execute("DELETE FROM list_attributes WHERE owner = '%s' AND type = '%s' AND jid = '%s'" % (jabberID, type, legacyID))
