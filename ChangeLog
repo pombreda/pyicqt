@@ -1,3 +1,8 @@
+2007-03-22  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Applied patch from Michael Dyrna to fix password hash issues.
+
 2007-02-16  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/xdb/mysql.py:
