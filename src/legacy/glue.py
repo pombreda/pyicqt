@@ -24,7 +24,7 @@ import md5
 name = "ICQ Transport"
 
 # The transport's version
-version = "0.8"
+version = "0.8a"
 
 # URL of the transport's web site
 url = "http://pyicq-t.blathersource.org"
