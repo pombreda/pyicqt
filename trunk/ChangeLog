@@ -1,3 +1,9 @@
+2007-06-03  Daniel Henninger  <jadestorm@nc.rr.com>
+
+	* src/tlib/oscar.py:
+	Applied patches from Scott Dial and Chris Carlin for OSCAR changes,
+	delayed messages, and stability fixes.
+
 2007-03-22  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:

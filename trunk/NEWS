@@ -1,3 +1,11 @@
+0.8a:
+
+* Fixes for delayed in packets getting through to AIM.
+
+* Fixes for AIM protocol changes regarding away messages and contacts.
+
+* Lots of stability improvements.
+
 0.8:
 
 * Support for newer Twisted versions.

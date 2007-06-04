@@ -31,6 +31,8 @@ James Bunton and the people of Psi, of whose work the icon was based on.
 
 TheTofu (Christopher Zorn) for his XMPP authenticator code from palaver.
 
+Scott Dial for stability improvements and OSCAR protocol patches.
+
 The Twisted Matrix development team who have put together this wonderful
 framework we are making use of.  =)  I'd like to especially thank
 Paul Swartz <z3p@twistedmatrix.com> for his work on the oscar.py piece and
