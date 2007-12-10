@@ -1,0 +1,443 @@
+This needs to be formatted correctly for Google's Wiki Syntax.
+
+==Introduction==
+
+<div style="vertical-align: middle"><span style="float:left; height: 130.0px">[[Image:PyICQt.png]]</span>
+Welcome to the online documentation for PyICQt!  This will always be the most up to date documentation available for the transport and, at some point, may replace that which is distributed with the transport altogether.  Multiple authors help keep this documentation up to date and I expect it to continue to improve as time goes on.  If you have external documentation related to the transport, please let us know and we will add in a link!  Also do not be afraid to let us know what could be improved!  See [[BlatherWiki:About|About BlatherWiki]] for information on how to contact us.</div>
+
+==Related Links==
+* [http://pyicq-t.blathersource.org Main site]
+* [http://www.blathersource.org/project.php?projid=pyicq-t Project site]
+* [http://www.icq.com/ ICQ.com]
+
+==Features==
+
+In my neverending quest to make PyICQt feature rich, I'm attempting to put
+up a list of currently supported features, and planned features.  Drop me
+a note if there is something you would like that is not listed here:
+
+{| class="featureslist"
+|- style="background-color: #5cbb57'" 
+! Feature
+! Description
+! Status
+|-
+| Messaging
+| Ability to message users on ICQ, and receive messages.
+| <FONT COLOR='#00aa00'>Complete</FONT>
+|-
+| Presence
+| Ability to see others online, and others to see you.
+| <FONT COLOR='#00aa00'>Complete</FONT>
+|-
+| Group Chat
+| Ability to join and talk in chat rooms. (IRC based)
+| <FONT COLOR='#aa0000'>Incomplete</FONT>
+|-
+| VCard Support
+| Ability to request a VCard of an ICQ user.
+| <FONT COLOR='#00aa00'>Complete</FONT>
+|-
+| HTML Messages
+| Color and fonts in messages.
+| <FONT COLOR='#00aa00'>Complete</FONT>
+|-
+| Buddy Icons
+| Buddy Icons/Avatars displayed and set.
+| <FONT COLOR='#00aa00'>Complete</FONT>
+|-
+| Typing Notifications
+| Notifications when typing starts on either end.
+| <FONT COLOR='#00aa00'>Complete</FONT>
+|-
+| New E-mail notifications
+| Receive notifications when your ICQmail  adres has new mail.
+| <FONT COLOR='#aa0000'>Incomplete</FONT>
+|-
+| Change ICQ password
+| Change the password you use to log on to your ICQ account
+| <FONT COLOR='#aa0000'>Incomplete</FONT>
+|-
+| Invisible Presence
+| Ability to be hidden, but still logged in.
+| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#invisible|<FONT STYLE='font-size: 60%'><SUP>2</SUP></FONT>]]
+|-
+| Confirm ICQ account
+| Confirm the number you've entered is actually an ICQ number
+| <FONT COLOR='#00aa00'>Complete</FONT>
+|-
+| Crosschat support
+| Exchange messages, presence, etc. with AIM users.
+| <FONT COLOR='#00aa00'>Complete</FONT>
+|-
+| File Transfer
+| Ability to send files between ICQ and Jabber
+| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#filetransfer|<FONT STYLE='font-size: 60%'><SUP>1</SUP></FONT>]]
+|-
+| New account registration
+| Ability to create a new ICQ account
+| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#signup|<FONT STYLE='font-size: 60%'><SUP>3</SUP></FONT>]]
+|-
+| Voice chat
+| Talk with ICQ users using ICQphone or ICQ Voice Chat
+| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#proxy|<FONT STYLE='font-size: 60%'><SUP>4</SUP></FONT>]]
+|-
+| Video/Voice Messaging
+| See and talk to other ICQ users
+| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#proxy|<FONT STYLE='font-size: 60%'><SUP>4</SUP></FONT>]]
+|}
+
+<FONT STYLE='font-size: 80%'><SPAN ID=filetransfer>1</SPAN> - [http://www.jabber.org/jeps/jep-0096.html JEP 96] on file transfers is not finalized yet.</FONT><BR />
+<FONT STYLE='font-size: 80%'><SPAN ID=invisible>2</SPAN> - This may never happen because invisibility in jabber means invisibility from the transport too.</FONT>
+<BR />
+<FONT STYLE='font-size: 80%'><SPAN ID=signup>3</SPAN> - You can sign up for an ICQ account [https://www.icq.com/register/ here].</FONT>
+<BR />
+<FONT STYLE='font-size: 80%'><SPAN ID=proxy>4</SPAN> - It will probably be difficult to support these. The idea of proxying voice & video using Jingle on the Jabber side also doesn't sound nice.</FONT>
+
+==Installation==
+
+===Before You Start===
+
+Before you install, you need to make sure you have the following things:
+
+* A [http://www.jabber.org/ Jabber] server; Known to work with:
+** [http://jabberd.jabberstudio.org/ Jabberd 1.*]
+** [http://jabberd.jabberstudio.org/ Jabberd 2.*]
+** [http://www.jivesoftware.org/wildfire/ Wildfire]
+** [http://ejabberd.jabber.ru/ ejabberd]
+* [http://www.python.org/ Python] 2.2.0 or later
+* [http://www.twistedmatrix.com/ Twisted] framework (both 1.* and 2.* series should be fine)
+* Optional: [http://www.nevow.org/ Nevow] for web interface
+* Optional: [http://msn-transport.jabberstudio.org/?page=downloads epoll] for epoll reactor (Linux 2.6 kernel required)
+* Optional: [http://sourceforge.net/projects/mysql-python mysql-python] for [http://www.mysql.org mysql] database backend
+* Optional: [http://www.pythonware.com/products/pil/ Python Imaging Library (PIL)] for avatar support (note '''disableAvatars''' option if you don't want them)
+* Optional: [http://python-ldap.sourceforge.net/ LDAP client API] for LDAP authenticated registration support (see '''authRegister''' option)
+
+Also note that there may be a [[#Tutorials|tutorial]] to walk
+you through installation and configuration.
+
+If you are planning to use the subversion repository, please note that the Repository is reachable via the subversion protocol, not via http. Make sure that port 3690 is not firewalled.  Alternatively, you can download a tarball of the current repository [http://www.blathersource.org/project.php?projid=pyicq-t here].
+
+===Transport Configuration===
+
+After untarring the distribution, your first task is to create the transport
+configuration file.  The easiest way to do this is, in the root of the
+distribution, copy '''config_example.xml''' to '''config.xml''', and edit '''config.xml'''.
+The configuration options should be fairly self explanatory.  However, if you
+need some assistance, check out the [[#Configuration|Configuration]] section.
+If you are upgrading from a previous version, you should always look over '''config_example.xml''' to see what options may have been added, removed, or changed.
+
+===Spool Setup===
+
+There are multiple 'drivers' for the transport's spool.  The default and most basic is called '''xmlfiles''', and is capable of automatically converting the spool that [http://jit.jabberstudio.org/ JIT] uses.  If you are migrating from an earlier version of the c-based aim transport, you can either point the '''spooldir''' variable at the location of the old spool (and make sure to also set '''jid''' to the same jid the old transport used), or you can copy of JIT's spool directory to a new location pointed to by '''spooldir'''/'''jid'''.  There is also a tool to [[Migration Tool|convert]] between different spool drivers, including the ability to convert a PyAIMt spool into one compatible with the [http://aim-transport.jabberstudio.org c-based aim transport] or JIT.  If you are not migrating, simply 'mkdir' the spool directory at '''spooldir'''/'''jid''' and make sure the transport will have access to write to it.
+
+The available spool drivers are described as follows:
+
+<div class="indentedsection">
+====xmlfiles====
+
+This is the default driver, and stores the spool files in a "hashed directory structure".  The layout is designed to provide fairly good performance.  All files are in XML format and are stored as plain text.  The driver has one option, '''format''', which can be set to '''encrypted''' to shroud passwords.  See '''config_example.xml''' for an example of how to enable this option. 
+
+====mysql====
+
+This driver stores the spool inside of a MySQL database.  There is a [[MySQL Tutorial|tutorial]] available that explains the procedure for setting up the MySQL database.
+
+====legacyjittransport====
+
+This driver stores the spool in the same format [http://jit.jabberstudio.org/ JIT] uses.  '''Please note:''' This driver is not intended to be used regularly.  It only really exists to allow the [[Migration Tool|migration tool]] to convert between newer spool formats and this spool format at will.  If you use this as your driver, a lot of functionality will be lost.  (such as caching of known avatars)
+
+====legacyaimtransport====
+
+This driver stores the spool in the same format the [http://aim-transport.jabberstudio.org/ c-based aim transport] uses.  '''Please note:''' This driver is not intended to be used regularly.  It only really exists to allow the [[Migration Tool|migration tool]] to convert between newer spool formats and this spool format at will.  If you use this as your driver, a lot of functionality will be lost.  (such as caching of known avatars)
+
+====template====
+
+This driver is not a real driver.  It is a stub that is intended to provide a starting point for anyone who wants to write their own driver for another spool file database format.  If you write such a driver, please submit it back to [[User:Jadestorm|Daniel Henninger]] so he can include it in the main distribution.
+</div>
+If you are migrating from JIT, you can either point the
+'''spooldir''' variable at the location of JIT's spool
+(make sure you also set '''jid''' to the same jid that JIT
+used), or copy the JIT spool directory to a new location pointed to by
+'''spooldir'''/'''jid'''.  If you are
+migrating from the c-based aim transport, there is a migration script
+in tools that can handle reading the old spool format and creating the
+new spool format.  Read over the top of the script for instructions.
+
+===Jabberd 2 Setup===
+
+You can set up the transport for Jabberd 2 in two different manners.  One involves using Jabberd 2's own component protocol and SASL, and the other involves doing very little, but will involve more when chatroom support is added to the transport.
+
+<div class="indentedsection">
+====Setup using component protocol and SASL====
+
+To use this setup method, you will need to add a user (or use an existing one) to Jabberd 2's router-users.xml config file.  By default, this file has one use in it named '''jabberd'''.  While I do not believe you have to, I would recommend that you create a separate user for the transports, like:
+<pre>
+&lt;user&gt;
+  &lt;name&gt;pytransport&lt;/name&gt;
+  &lt;secret&gt;mysecret&lt;/secret&gt;
+&lt;user&gt;
+</pre>
+You will likely need to restart Jabberd 2 at this point.  However, afterwards, you can add '''useJ2Component''', set '''saslUsername''' to the same '''name''' you put in router-users.xml above, and set '''secret''' to match '''secret''' from router-users.xml in your config.xml file.  The transport should connect to Jabberd 2 and bind as every jid it wishes to be.  (ie, it will bind as '''jid''' and '''confjid''' from your config.xml file)
+
+====Setup without component protocol or SASL====
+
+There is little or nothing you have to do.  Just make sure that the '''secret''' is set to something your server is expecting.  Note that this will change at some point when chatroom support is added to the transport.
+
+====Sample Configuration Files====
+
+<todo>Create sample config files</todo>
+<div class="samplefiles">
+[[PyICQt:Sample:JabberD2:config.xml|Sample config.xml]]
+</div>
+
+</div>
+
+===Jabberd 1 Setup===
+With Jabberd 1, you need to have something along these lines in your
+'''jabber.xml''' configuration file, within the '''jabber''' section.
+<pre>
+&lt;service id="icq.myserver.org"&gt;
+	&lt;accept&gt;
+		&lt;ip&gt;127.0.0.1&lt;/ip&gt;
+		&lt;port&gt;XXXX&lt;/port&gt;
+		&lt;secret&gt;secret&lt;/secret&gt;
+	&lt;/accept&gt;
+&lt;/service&gt;
+</pre>
+Also make sure you have something like this in the '''browse'''
+section:
+<pre>
+&lt;service type="icq" jid="icq.myserver.org" name="ICQ Transport"&gt;
+	&lt;ns&gt;jabber:iq:register&lt;/ns&gt;
+&lt;/service&gt;
+</pre>
+
+The entry in the browse section is optional - the gateway will work without it, but the users wont be able to see the gateway in the service discovery of your jabber server - the browse section specifies the content of the Service Discovery of your jabber-server.
+
+'''Hint:''' The tool "xmllint" (Debian Users: It is contained in the package libxml2-utils) to check the syntax of your xml config file (and even to format it nice, using the --format option).
+
+Make sure that the following configuration options are synced up in both
+entries:
+
+{| style="background-color: #5cbb57"
+|-
+| config.xml
+| &lt;=&gt;
+| jabber.xml
+|-
+| style="text-align: right" | jid
+| style="text-align: center" | =
+| style="text-align: left" | id
+|-
+| style="text-align: right" | jid
+| style="text-align: center" | =
+| style="text-align: left" | host
+|-
+| style="text-align: right" | secret
+| style="text-align: center" | =
+| style="text-align: left" | secret
+|-
+| style="text-align: right" | port
+| style="text-align: center" | =
+| style="text-align: left" | port
+|-
+|}
+After you make all of those changes, restart your Jabber server, and start
+up PyICQt and you should be good to go.
+
+<div class="indentedsection">
+
+====Sample Configuration Files====
+
+<todo>Create sample config files</todo>
+<div class="samplefiles">
+[[PyICQt:Sample:JabberD1:config.xml|Sample config.xml]]
+</div>
+
+</div>
+
+===Jive Wildfire Setup===
+
+The first thing you will need to do is to configure Wildfire so is willing to accept connections from external components.  To set this up, go into Wildfire's admin (web) console and look for '''External Components'''.  Once you have opened this category, make sure that '''Service Enabled''' is set to '''Enabled'''.  Make note of the '''Port''' and '''Default shared secret''' (and maybe change them if you want).  You will use those in the transport '''config.xml''' file.  There are more advanced things you can do here as well, but I am not getting into them here.  Once you have everything they want you want it, click '''Save Settings'''.
+
+After you have saved your Wildfire settings, edit your transport '''config.xml''' (you may need to copy '''config_example.xml''' to '''config.xml''' first) and make sure that the '''jid''' is set to whatever jid you want the transport to answer as, make sure that the port is set to the same thing you noted from the Wildfire admin console, and make sure '''secret''' is the same as the '''Default shared secret''' from the Wildfire admin console.  There are plenty of other options in   the transport config file.  I would recommend looking over the entire file and adjusting variables as they seem appropriate.  They should all be explained in the config file, but also here in the online documentation.
+
+After you finish with the config file, you should be able to fire up the transport and after it connects you should see it listed in Wildfire's '''Sessions''' tab, under '''Component Sessions'''.
+
+<div class="indentedsection">
+
+====Sample Configuration Files====
+
+<todo>Create sample config files</todo>
+<div class="samplefiles">
+[[PyICQt:Sample:Wildfire:config.xml|Sample config.xml]]
+</div>
+
+</div>
+
+===Ejabberd Setup===
+
+Configuring the transport for Ejabberd is similar to Jabberd 1, except that you most likely will not have to restart your jabber server to add the transport.  A detailed tutorial for setting up the transport with Ejabberd is provided [http://ejabberd.jabber.ru/pyicqt here].  Instead of maintaining similar documentation in two places, we are simply deferring to their documentation.
+
+====Sample Configuration Files====
+
+<div class="indentedsection">
+
+<todo>Create sample config files</todo>
+<div class="samplefiles">
+[[PyICQt:Sample:EJabberd:config.xml|Sample config.xml]]
+</div>
+
+</div>
+
+==Configuration==
+
+Most of the configuration options available are strictly to configure
+interaction between the transport and your Jabber server.  There is a
+'''config_example.xml''' file that exists in the
+root of the distribution that you can start with.  You
+should end up with a '''config.xml''' file in the
+root of the distribution.  In other words, copy
+'''config_example.xml''' to '''config.xml'''
+to get started.  Below are explanations of all of the current configuration
+options.
+
+===Options===
+
+{| class="optionslist"
+|-
+| '''jid'''
+| This is the Jabber ID that you would like to associate with this transport.
+|-
+| '''compjid'''
+| This is the component Jabber ID of the transport, for XCP clustering.
+|-
+| '''spooldir'''
+| This is the location of the spool directory associated with this transport.  This should -not- include the JID as the actual spool used is this config option + "/" + jid.
+|-
+| '''pid'''
+| This is the full path to a file you would like to store the transport's PID in.
+|-
+| '''mainServer'''
+| This is the hostname/ip address of the Jabber server this transport is to connect to.
+|-
+| '''mainServerJID'''
+| This is the jabber id of the Jabber server this transport is to connect to.
+|-
+| '''website'''
+| This is the web site that an end user can visit to find informamtion on your Jabber server.
+|-
+| '''port'''
+| This is the port over which this transport is to communicate with the Jabber server.
+|-
+| '''icqServer'''
+| This is the OSCAR server the transport will connect to.
+|-
+| '''icqPort'''
+| This is the port over which the transport will connect with the ICQ/OSCAR servers.
+|-
+| '''webport'''
+| This is the port over which the web admin interface is to respond.
+|-
+| '''secret'''
+| This is a shared secret between your Jabber server and this transport.
+|-
+| '''encoding'''
+| This is the default encoding you want messages to be treated as.  Note that Unicode support nullifies this, but not all ICQ clients support that.
+|-
+| '''lang'''
+| This is the default language you would like this transport to us when sending transport-initiated messages back to the user.
+|-
+| '''socksProxyServer'''
+| This is the hostname/ip address of a socks5 proxy server that the transport is to connect to AOL's OSCAR servers through.
+|-
+| '''socksProxyPort'''
+| This is the port of a socks5 proxy server that the transport is to connect to AOL's OSCAR servers through.
+|-
+| '''sessionGreeting'''
+| Set this to a welcome message you want your users to see upon logging in.  Leave blank/unset if you want no welcome message.
+|-
+| '''registerMessage'''
+| Set this to a welcome message you want your users to see upon registering with the transport.  Leave blank/unset if you want no welcome message.
+|-
+| '''crossChat'''
+| Enable this to permit chatting with ICQ users as well as AIM users.
+|-
+| '''disableRegister'''
+| Enable this to disable registration with the transport.
+|-
+| '''disableAvatars'''
+| Enable this to disable all avatar support in the transport.
+|-
+| '''disableDefaultAvatar'''
+| Enable this to disable use of the default avatars.  (ie, only show avatars if the person actually has one set)
+|-
+| '''avatarsOnlyOnChat'''
+| Enable this to only retrieve avatars during a chat session.
+|-
+| '''<strike>disableWebPresence</strike>'''
+| <strike>Enable this to disable web presence indicator.</strike>
+|-
+| '''enableWebPresence'''
+| Enable web presence indicator.  WARNING: This tends to trigger a lot of ICQ spam.
+|-
+| '''disableXHTML'''
+| Enable this to disable all XHTML support.
+|-
+| '''disableMailNotifications'''
+| Enable this to disable e-mail notification support.
+|-
+| '''enableAutoInvite'''
+| Enable this to trigger the transport to ping all known users upon startup, triggering them to log in if they're available.
+|-
+| '''admins'''
+| JIDs listed within this tag will have access to restricted ad-hoc command functionality.
+|-
+| '''reactor'''
+| Choose between version low-level reactors that drive the base functionality of the transport.  Choices are: poll, select, kqueue, epoll, and default.   For Linux 2.6, epoll is recommended because it is way faster. Follow [http://www.kegel.com/c10k.html this link] for (very) verbose information about this subject.  For FreeBSD, kqueue is recommended.  If you explicitly choose default, you will get the default reactor for that OS.  (this is important for Windows)  If you do not specify this variable, the transport will attempt to detect the best option you have available.  Under Windows, this detects the wrong thing, unfortunately.
+|-
+| '''xdbDriver'''
+| Choose between various methods of storing the transport's database.  Current choices are: xmlfiles (default), mysql, legacyjittransport (backwards compatibility with JIT), and legacyaimtransport (backwards compatibility with c-based aim-transport).  Note that some drivers have associated configuration options explained in config_example.xml.
+|-
+| '''useXCP'''
+| This enables protocol extensions that Jabber.com's server contains.
+|-
+| '''saslUsername'''
+| This, combined with secret, are the credentials that will be used when doing a SASL bind with a Jabber server.
+|-
+| '''<strike>useJ2Component</strike>'''
+| <strike>This enables protocol extensions that the JabberD2 server uses to allow binding as one or more JIDs.</strike>
+|-
+| '''useComponentBinding'''
+| This causes the transport to bind to whatever JIDs the transport intends to answer as.  This process is explained via [http://jabberd.jabberstudio.org/dev/docs/component.shtml Jabberd2's component protocol] and will be formed into a forthcoming JEP submission.  Wildfire supports this without SASL whereas Jabberd2 requires SASL (and hence, saslUsername to be set).
+|-
+| '''messageArchiveJID'''
+| This enables message archiving ([http://www.jabber.org/jeps/jep-0136.html JEP-0138]).  Set to the JID of something that implements this protocol.
+|-
+| '''authRegister'''
+| This causes the transport to require external authentication before being permitted to register.  Right now, only LDAP is supposed for this functionality.  All of the related fields specified in config_example.xml are required to be filled out for this functionality to work.  Please note that, to the end user, this will look like they are having to register twice.
+|-
+|}
+
+==Tutorials==
+
+Sometimes helpful folk provide tutorials on how to set up PyICQt for
+specific situations.  Any tutorials I am made aware of, or that we write up, are
+listed below.
+
+* [http://ejabberd.jabber.ru/pyicqt Configuring PyICQt to work with ejabberd]
+* [[MySQL Tutorial|Configuring PyICQt to use the MySQL XDB backend]]
+* [[Remote Access|Configuring PyICQt to be accessible from remote servers]]
+
+==Prepackaged versions==
+
+For Debian users, there is an apt repository which contains all the Python transports.
+Add this to your /etc/apt/sources.list to use it:<br>
+deb http://www.spectron-msim.com/debian/ transports main<br>
+deb-src http://www.spectron-msim.com/debian/ transports main<br>
+<br>
+The version of PyICQt there is outdated, a more recent version can be found here:<br>
+deb http://vontaene.de/apt/ ./<br>
+deb-src http://vontaene.de/apt/ ./<br>
+<br>
+The configuration files will be in /etc/jabber-transports. You'll also need to edit /etc/default/jabber-pyaim to enable the transport.
