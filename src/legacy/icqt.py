@@ -12,6 +12,7 @@ import re
 import time
 import binascii
 import md5
+import locale
 
 
 
@@ -144,13 +145,43 @@ class B(oscar.BOSConnection):
 		status = user.status
 		encoding = user.statusencoding
 		url = user.url
-		#status = re.sub("<[^>]*>","",status) # Removes any HTML tags
-		status = oscar.dehtml(status) # Removes any HTML tags
 		if encoding:
+			if encoding == "utf-16be":
+				status = status.decode("utf-16be", "replace")
 			if encoding == "unicode":
 				status = status.decode("utf-16be", "replace")
 			elif encoding == "iso-8859-1":
 				status = status.decode("iso-8859-1", "replace")
+			elif encoding == config.encoding:
+				status = status.decode(config.encoding, "replace")
+			elif encoding == "icq51pseudounicode":
+				# XXX: stupid Unicode test
+				# XXX: ICQ 5.1 CZ clients seem to wrap UTF-8 (assuming it's CP1250) into UTF-16
+				#      while e.g. Miranda sends it as ascii
+				##if len(status) != 0 and ord(status[0]) == 0:
+				if len(status) != 0:
+					status = str(status)
+					try:
+						status1 = status.decode('utf-16be', 'strict')
+						status1 = status1.encode('cp1250', 'strict')
+						status1 = status1.decode('utf-8', 'strict')
+						status = status1
+					except:
+						try:
+							status1 = status.decode('utf-8', 'strict')
+							status = status1
+						except:
+							try:
+								status1 = status.decode(config.encoding, "strict")
+								status = status1
+							except:
+								#status = "Wrong encoding:" + repr(status)
+								status = str(status).decode("iso-8859-1", "replace")
+		else:
+			# this is a fallback solution in case that the client status encoding has not been extracted, to avoid raising an exception
+			status = status.decode('utf-8', 'replace')
+			LogEvent(WARN, self.session.jabberID, "Unknown status message encoding for %s" % user.name)
+		status = oscar.dehtml(status) # Removes any HTML tags
 		if status == "Away" or status=="I am currently away from the computer." or status=="I am away from my computer right now.":
 			status = ""
 		if user.idleTime:
@@ -176,7 +207,9 @@ class B(oscar.BOSConnection):
 
 		if user.caps:
 			self.oscarcon.legacyList.setCapabilities(user.name, user.caps)
+		LogEvent(WARN, self.session.jabberID, "Status message before crash %s" % status)
 		status = status.encode("utf-8", "replace")
+		# status = status.encode(config.encoding, "replace")
 		if user.flags.count("away"):
 			self.getAway(user.name).addCallback(self.sendAwayPresence, user)
 		else:
@@ -321,13 +354,34 @@ class B(oscar.BOSConnection):
 				elif charset == 'utf-8': pass
 				elif charset == "us-ascii":
 					charset = "iso-8859-1"
+				elif charset == "iso-8859-1": pass
 				else:
 					LogEvent(INFO, self.session.jabberID, "Unknown charset (%s) of buddy's away message" % msg[0]);
 					charset = config.encoding
 					status = msg[0] + ": " + status
 
-			status = status.decode(charset, 'replace')
-			LogEvent(INFO, self.session.jabberID, "Away (%s, %s) message %s" % (charset, msg[0], status))
+			try:
+				status = status.decode(charset, 'strict')
+			except:
+				pass
+			try:
+				status1 = status.encode('cp1250', 'strict')
+				status = status1.decode('utf-8', 'strict')
+			except:
+				if ord(status[0]) == 0 and ord(status[len(status)-1]) == 0:
+                                	status = str(status[1:len(status)-1])
+				try :
+					status = str(status).decode('utf-8', 'strict')
+				except:
+					try:
+						status = str(status).decode('iso-8859-2', 'strict')
+					except:
+						status = "Status decoding failed: " + status
+			try:
+				utfmsg = unicode(msg[0], errors='replace')
+			except:
+				utfmsg = msg[0]
+			LogEvent(INFO, self.session.jabberID, "Away (%s, %s) message %s" % (charset, utfmsg, status))
 
 		if status == "Away" or status=="I am currently away from the computer." or status=="I am away from my computer right now.":
 			status = ""

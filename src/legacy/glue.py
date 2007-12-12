@@ -316,7 +316,11 @@ class LegacyConnection:
 		return self.getvCard(vcard, user)
 
 	def getvCardNotInList(self, vcard, jid):
-		LogEvent(INFO, self.session.jabberID)
+		try:
+			LogEvent(INFO, self.session.jabberID)
+		except AttributeError:
+			pass
+
 		user = jid.split('@')[0]
 		return self.getvCard(vcard, user)
 
@@ -440,7 +444,10 @@ class LegacyConnection:
 		#d.callback(vcard)
 
 	def getvCard(self, vcard, user):
-		LogEvent(INFO, self.session.jabberID)
+		try:
+			LogEvent(INFO, self.session.jabberID)
+		except AttributeError:
+			pass
 		if (not user.isdigit()):
 			try:
                         	d = defer.Deferred()

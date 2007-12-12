@@ -229,7 +229,12 @@ class BuddyList:
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", contact)
 			self.session.pytrans.xdb.setListEntry("roster", self.session.jabberID, contact.lower(), payload=self.xdbcontacts[contact.lower()])
 		else:
-			if nick and self.xdbcontacts[contact.lower()].get('nickname','') != nick:
+			decodednickname = self.xdbcontacts[contact.lower()].get('nickname','')
+			try:
+				decodednickname = unicode(decodednickname, errors='replace')
+			except:
+				pass
+			if nick and decodednickname != nick:
 				self.xdbcontacts[contact.lower()]['nickname'] = nick
 				c.updateNickname(nick, push=True)
 				self.session.sendRosterImport(icq2jid(contact), "subscribe", "both", nick)
