@@ -142,7 +142,11 @@ class Contact:
 			self.contactList.legacyList.deauthContact(self.jid)
 
 	def updateNickname(self, nickname, push=True):
-		if self.nickname != nickname:
+		try:
+			decodednickname = unicode(self.nickname, errors='replace')
+		except:
+			decodednickname = self.nickname
+		if decodednickname != "nickname":
 			self.nickname = nickname
 			# will re-remove this if it's removed from JEP-0172.
 			#self.sendNickname()
