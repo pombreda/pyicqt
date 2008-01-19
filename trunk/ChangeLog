@@ -1,3 +1,9 @@
+See
+ http://fisheye2.cenqua.com/browse/pyicqt
+for SVN logs.
+
+--- Old ChangeLog ---
+
 2007-06-03  Daniel Henninger  <jadestorm@nc.rr.com>
 
 	* src/tlib/oscar.py:
