@@ -22,7 +22,7 @@ def sendMessage(pytrans, to, fro, body, mtype=None, delay=None, xhtml=None, nick
 
 	if delay:
 		x = el.addElement("x")
-		x.attributes["xmlns"] = globals.IQDELAY
+		x.attributes["xmlns"] = globals.XDELAY
 		x.attributes["from"] = fro
 		x.attributes["stamp"] = delay
 
@@ -105,7 +105,9 @@ def sendPresence(pytrans, to, fro, show=None, status=None, priority=None, ptype=
 
 	pytrans.send(el)
 
-def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None, el=Element((None, "message"))):
+def sendErrorMessage(pytrans, to, fro, etype, condition, explanation, body=None, el=None):
+	if el is None:
+		el = Element((None, "message"))
 	el.attributes["to"] = to
 	el.attributes["from"] = fro
 	el.attributes["type"] = "error"

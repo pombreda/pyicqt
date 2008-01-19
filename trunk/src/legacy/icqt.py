@@ -234,7 +234,7 @@ class B(oscar.BOSConnection):
 		c.updatePresence(show=show, status=status, ptype=ptype)
 		self.oscarcon.legacyList.updateSSIContact(user.name, presence=ptype, show=show, status=status)
 
-	def receiveMessage(self, user, multiparts, flags):
+	def receiveMessage(self, user, multiparts, flags, delay=None):
 		from glue import icq2jid
 
 		LogEvent(INFO, self.session.jabberID, "%s %s %s" % (user.name, multiparts, flags))
@@ -257,7 +257,7 @@ class B(oscar.BOSConnection):
 		if "auto" in flags:
 			mtype = "headline"
 
-		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype=mtype, xhtml=xhtml)
+		self.session.sendMessage(to=self.session.jabberID, fro=sourcejid, body=text, mtype=mtype, delay=delay, xhtml=xhtml)
 		self.session.pytrans.serviceplugins['Statistics'].stats['IncomingMessages'] += 1
 		self.session.pytrans.serviceplugins['Statistics'].sessionUpdate(self.session.jabberID, 'IncomingMessages', 1)
 		if not config.disableAwayMessage and self.awayMessage and not "auto" in flags:
@@ -339,7 +339,7 @@ class B(oscar.BOSConnection):
 		else:
 			show = 'away'
 
-		status = oscar.dehtml(msg[1]) # Removes any HTML tags
+		status = msg[1]
 		url = user.url
 
 		if status != None:
@@ -365,7 +365,7 @@ class B(oscar.BOSConnection):
 			except:
 				pass
 			try:
-				status1 = status.encode('cp1250', 'strict')
+				status1 = status.encode(config.encoding, 'strict')
 				status = status1.decode('utf-8', 'strict')
 			except:
 				if ord(status[0]) == 0 and ord(status[len(status)-1]) == 0:
@@ -374,13 +374,14 @@ class B(oscar.BOSConnection):
 					status = str(status).decode('utf-8', 'strict')
 				except:
 					try:
-						status = str(status).decode('iso-8859-2', 'strict')
+						status = str(status).decode(config.encoding, 'strict')
 					except:
 						status = "Status decoding failed: " + status
 			try:
 				utfmsg = unicode(msg[0], errors='replace')
 			except:
 				utfmsg = msg[0]
+			status = oscar.dehtml(status)
 			LogEvent(INFO, self.session.jabberID, "Away (%s, %s) message %s" % (charset, utfmsg, status))
 
 		if status == "Away" or status=="I am currently away from the computer." or status=="I am away from my computer right now.":
