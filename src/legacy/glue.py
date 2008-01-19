@@ -24,10 +24,10 @@ import md5
 name = "ICQ Transport"
 
 # The transport's version
-version = "0.8a"
+version = "0.8b"
 
 # URL of the transport's web site
-url = "http://pyicq-t.blathersource.org"
+url = "http://pyicqt.googlecode.com/"
 
 # This should be set to the identity of the gateway
 id = "icq"

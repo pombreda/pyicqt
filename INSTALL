@@ -1,5 +1,5 @@
 More thorough install/configuration documents are available at:
-http://pyicq-t.blathersource.org/
+http://pyicqt.googlecode.com/
 
 There's really not much to the install at the moment.  It's important
 to make sure you have the following installed:
@@ -99,4 +99,4 @@ Once you have made all these changes, restart your Jabberd1.4.x server,
 then start PyICQt and it should all work.
 
 Note that the documentation on the web site is sometimes a tad more
-thorough, so you will want to look at http://pyicq-t.blathersource.org/.
+thorough, so you will want to look at http://pyicqt.googlecode.com/.
