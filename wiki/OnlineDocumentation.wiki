@@ -2,8 +2,7 @@ This needs to be formatted correctly for Google's Wiki Syntax.
 
 ==Introduction==
 
-<div style="vertical-align: middle"><span style="float:left; height: 130.0px">[[Image:PyICQt.png]]</span>
-Welcome to the online documentation for PyICQt!  This will always be the most up to date documentation available for the transport and, at some point, may replace that which is distributed with the transport altogether.  Multiple authors help keep this documentation up to date and I expect it to continue to improve as time goes on.  If you have external documentation related to the transport, please let us know and we will add in a link!  Also do not be afraid to let us know what could be improved!  See [[BlatherWiki:About|About BlatherWiki]] for information on how to contact us.</div>
+Welcome to the online documentation for PyICQt!  This will always be the most up to date documentation available for the transport and, at some point, may replace that which is distributed with the transport altogether.  Multiple authors help keep this documentation up to date and I expect it to continue to improve as time goes on.  If you have external documentation related to the transport, please let us know and we will add in a link!  Also do not be afraid to let us know what could be improved!  See [[BlatherWiki:About|About BlatherWiki]] for information on how to contact us.
 
 ==Related Links==
 * [http://pyicq-t.blathersource.org Main site]
@@ -16,83 +15,31 @@ In my neverending quest to make PyICQt feature rich, I'm attempting to put
 up a list of currently supported features, and planned features.  Drop me
 a note if there is something you would like that is not listed here:
 
-{| class="featureslist"
-|- style="background-color: #5cbb57'" 
-! Feature
-! Description
-! Status
-|-
-| Messaging
-| Ability to message users on ICQ, and receive messages.
-| <FONT COLOR='#00aa00'>Complete</FONT>
-|-
-| Presence
-| Ability to see others online, and others to see you.
-| <FONT COLOR='#00aa00'>Complete</FONT>
-|-
-| Group Chat
-| Ability to join and talk in chat rooms. (IRC based)
-| <FONT COLOR='#aa0000'>Incomplete</FONT>
-|-
-| VCard Support
-| Ability to request a VCard of an ICQ user.
-| <FONT COLOR='#00aa00'>Complete</FONT>
-|-
-| HTML Messages
-| Color and fonts in messages.
-| <FONT COLOR='#00aa00'>Complete</FONT>
-|-
-| Buddy Icons
-| Buddy Icons/Avatars displayed and set.
-| <FONT COLOR='#00aa00'>Complete</FONT>
-|-
-| Typing Notifications
-| Notifications when typing starts on either end.
-| <FONT COLOR='#00aa00'>Complete</FONT>
-|-
-| New E-mail notifications
-| Receive notifications when your ICQmail  adres has new mail.
-| <FONT COLOR='#aa0000'>Incomplete</FONT>
-|-
-| Change ICQ password
-| Change the password you use to log on to your ICQ account
-| <FONT COLOR='#aa0000'>Incomplete</FONT>
-|-
-| Invisible Presence
-| Ability to be hidden, but still logged in.
-| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#invisible|<FONT STYLE='font-size: 60%'><SUP>2</SUP></FONT>]]
-|-
-| Confirm ICQ account
-| Confirm the number you've entered is actually an ICQ number
-| <FONT COLOR='#00aa00'>Complete</FONT>
-|-
-| Crosschat support
-| Exchange messages, presence, etc. with AIM users.
-| <FONT COLOR='#00aa00'>Complete</FONT>
-|-
-| File Transfer
-| Ability to send files between ICQ and Jabber
-| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#filetransfer|<FONT STYLE='font-size: 60%'><SUP>1</SUP></FONT>]]
-|-
-| New account registration
-| Ability to create a new ICQ account
-| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#signup|<FONT STYLE='font-size: 60%'><SUP>3</SUP></FONT>]]
-|-
-| Voice chat
-| Talk with ICQ users using ICQphone or ICQ Voice Chat
-| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#proxy|<FONT STYLE='font-size: 60%'><SUP>4</SUP></FONT>]]
-|-
-| Video/Voice Messaging
-| See and talk to other ICQ users
-| <FONT COLOR='#aa0000'>Incomplete</FONT>[[#proxy|<FONT STYLE='font-size: 60%'><SUP>4</SUP></FONT>]]
-|}
+|| Feature || Description || Status ||
+|| Messaging || Ability to message users on ICQ, and receive messages. || Complete ||
+|| Presence || Ability to see others online, and others to see you. || Complete ||
+|| Group Chat || Ability to join and talk in chat rooms. (IRC based) || Incomplete ||
+|| VCard Support || Ability to request a VCard of an ICQ user. || Complete ||
+|| HTML Messages || Color and fonts in messages. || Complete ||
+|| Buddy Icons || Buddy Icons/Avatars displayed and set. || Complete ||
+|| Typing Notifications || Notifications when typing starts on either end. || Complete ||
+|| New E-mail notifications || Receive notifications when your ICQmail  adres has new mail. ||Incomplete ||
+|| Change ICQ password || Change the password you use to log on to your ICQ account || Incomplete ||
+|| Invisible Presence || Ability to be hidden, but still logged in. || Incomplete^2^ ||
+|| Confirm ICQ account || Confirm the number you've entered is actually an ICQ number || Complete ||
+|| Crosschat support || Exchange messages, presence, etc. with AIM users. ||Complete ||
+|| File Transfer || Ability to send files between ICQ and Jabber || Incomplete^1^ ||
+|| New account registration || Ability to create a new ICQ account || Incomplete^3^ ||
+|| Voice chat || Talk with ICQ users using ICQphone or ICQ Voice Chat || Incomplete^4^ ||
+|| Video/Voice Messaging || See and talk to other ICQ users || Incomplete^4^ ||
 
-<FONT STYLE='font-size: 80%'><SPAN ID=filetransfer>1</SPAN> - [http://www.jabber.org/jeps/jep-0096.html JEP 96] on file transfers is not finalized yet.</FONT><BR />
-<FONT STYLE='font-size: 80%'><SPAN ID=invisible>2</SPAN> - This may never happen because invisibility in jabber means invisibility from the transport too.</FONT>
-<BR />
-<FONT STYLE='font-size: 80%'><SPAN ID=signup>3</SPAN> - You can sign up for an ICQ account [https://www.icq.com/register/ here].</FONT>
-<BR />
-<FONT STYLE='font-size: 80%'><SPAN ID=proxy>4</SPAN> - It will probably be difficult to support these. The idea of proxying voice & video using Jingle on the Jabber side also doesn't sound nice.</FONT>
+*1* - [http://www.jabber.org/jeps/jep-0096.html JEP 96] on file transfers is not finalized yet.
+
+*2* - This may never happen because invisibility in jabber means invisibility from the transport too.
+
+*3* - You can sign up for an ICQ account [https://www.icq.com/register/ here].
+
+*4* - It will probably be difficult to support these. The idea of proxying voice & video using Jingle on the Jabber side also doesn't sound nice.
 
 ==Installation==
 
