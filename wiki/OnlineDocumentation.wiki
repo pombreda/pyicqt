@@ -87,7 +87,7 @@ If you are upgrading from a previous version, you should always look over _confi
 
 ===Spool Setup===
 
-There are multiple `drivers` for the transport's spool.  The default and most basic is called _xmlfiles_, and is capable of automatically converting the spool that [http://jit.jabberstudio.org/ JIT] uses.  If you are migrating from an earlier version of the c-based aim transport, you can either point the _spooldir_ variable at the location of the old spool (and make sure to also set _jid_ to the same jid the old transport used), or you can copy of JIT's spool directory to a new location pointed to by _spooldir_/_jid_.  There is also a tool to [Migration Tool|convert] between different spool drivers, including the ability to convert a PyAIMt spool into one compatible with the [http://aim-transport.jabberstudio.org c-based aim transport] or JIT.  If you are not migrating, simply `mkdir` the spool directory at _spooldir_/_jid_ and make sure the transport will have access to write to it.
+There are multiple `drivers` for the transport's spool.  The default and most basic is called _xmlfiles_, and is capable of automatically converting the spool that [http://jit.jabberstudio.org/ JIT] uses.  If you are migrating from an earlier version of the c-based aim transport, you can either point the _spooldir_ variable at the location of the old spool (and make sure to also set _jid_ to the same jid the old transport used), or you can copy of JIT's spool directory to a new location pointed to by _spooldir_/_jid_.  There is also a tool to convert between different spool drivers, including the ability to convert a PyAIMt spool into one compatible with the [http://aim-transport.jabberstudio.org c-based aim transport] or JIT.  If you are not migrating, simply `mkdir` the spool directory at _spooldir_/_jid_ and make sure the transport will have access to write to it.
 
 The available spool drivers are described as follows:
 
@@ -142,8 +142,6 @@ There is little or nothing you have to do.  Just make sure that the _secret_ is 
 ====Sample Configuration Files====
 
 *TODO*:Create sample config files
-
-[PyICQt:Sample:JabberD2:config.xml|Sample config.xml]
 
 ===Jabberd 1 Setup===
 With Jabberd 1, you need to have something along these lines in your
@@ -264,9 +262,9 @@ listed below.
 
 * [http://ejabberd.jabber.ru/pyicqt Configuring PyICQt to work with ejabberd]
 
-* [MySQL Tutorial|Configuring PyICQt to use the MySQL XDB backend]
+* Configuring PyICQt to use the MySQL XDB backend
 
-* [Remote Access|Configuring PyICQt to be accessible from remote servers]
+* Configuring PyICQt to be accessible from remote servers
 
 
 ==Prepackaged versions==
