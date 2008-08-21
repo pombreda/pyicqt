@@ -20,6 +20,7 @@ List of x-status names contains not only predefined statuses for English version
 
 === Settings menu ===
 This menu contains several categories
+
 *Contact list settings*
 
   * Show temporary ICQ contacts in roster
