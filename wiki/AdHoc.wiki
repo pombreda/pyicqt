@@ -1,0 +1,25 @@
+#summary End user PyICQt settings
+
+PyICQt supports different settings for every user. You can change them via Ad-Hoc menu (most jabber clients can do it)
+
+=== Settings menu ===
+This menu contains several categories
+*Contact list settings*
+
+  * Show temporary ICQ contacts in roster
+When you deleting contact from your ICQ contact list, it not deleting really, but marked as deleted and become 'temporary' contact. It's server feature and made by speed reasons as I think (may be you deleted contact by mistake and after some time will restore it - all this time contact 'cached' in your contact list).In most cases users shouldn't see these contacts. But when contact list on server corrupted, or user manually deleted all contacts from own list and want restore them back, it can be useful.
+Numbers of temporary contacts usually much more than numbers of real contacts (for me 141 vs 54) and getting them from server can take a long time. 
+If you enable this feature, you must re-login in PyICQt for applying changes.
+If you enabled and after disabled this feature, PyICQt don't will erase temporary contacts from your roster and you must delete them manually or re-register in PyICQt
+
+*X-status settings*
+
+Note: administrator of PyICQt may disable x-status support for all users 
+  * Support for x-status receiving
+If this option enabled, you can receive x-status messages from your contacts (if client of contact can supports x-statuses)
+If value changed from 'on' to 'off', option works immediately. If other case you can see x-status messages from contacts when they changed their states
+  * Support for x-status sending
+If this option enabled, your contacts can see your x-status message.
+If option disabled, you can't set own x-status
+  * Restore latest x-status after disconnect
+When you don't want change x-status long time, you can pick this option, and your latest x-status will automatically set after connecting to ICQ network
