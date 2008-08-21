@@ -1,6 +1,22 @@
-#summary End user PyICQt settings
+#summary End user PyICQt settings & commands
 
 PyICQt supports different settings for every user. You can change them via Ad-Hoc menu (most jabber clients can do it)
+
+=== Statistics for PyICQt menu ===
+You can see statistics for transport here
+ * Online Users
+ * Incoming Messages
+ * Uptime
+ * Total Sessions
+ * Max Concurrent Sessions
+ * Outgoing Messages
+
+=== Set x-status menu ===
+Using this menu you can choose x-status and fill details for it
+Choosing is 2-steps process:
+  # Selection x-status name from list
+  # Entering text for x-status title and description
+List of x-status names contains not only predefined statuses for English version of official ICQ client, but also and statuses from other localizations. Not all clients supports all these x-statuses, thereby minor statuses (from Angry to Typing) more preferred than major (all other)
 
 === Settings menu ===
 This menu contains several categories
