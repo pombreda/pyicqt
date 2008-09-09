@@ -61,3 +61,48 @@ Some x-status icons different in different clients. List of equivalents here:
 || - || - || Sex || - || Sex || - || Sex || - ||
 
 *Loc* in ICQ 5.1 column notes what status emerged in non-english localization of ICQ client
+
+=== X-statuses mapping ===
+Of course, jabber don't supports ICQ x-statuses. And impossible directly show x-status icon in roster of jabber client. Therefore PyICQt uses _mapping_: x-status icon represents as one from such jabber's abilities as:
+  * mood
+  * activity
+  * tune
+
+|| X-status || Mood || Activity || Tune ||
+|| Angry || Angry || - || - ||
+|| Taking a bath || - || Grooming: Taking a bath || - ||
+|| Tired || Stressed || - || - ||
+|| Party || - || Relaxing: Partying || - ||
+|| Drinking beer || - || Drinking: Having a beer || - ||
+|| Thinking || Serious || - || - ||
+|| Eating || - || Eating || - ||
+|| Watching TV || - || Relaxing: Watching TV || - ||
+|| Meeting || - || Relaxing: Socializing || - ||
+|| Coffee || - || Drinking: Having a coffee || - ||
+|| Listening to music || - || - || Tune ||
+|| Business || - || Having appointment || - ||
+|| Shooting || - || Traveling: Commuting || - ||
+|| Having fun || Contented || - || - ||
+|| On the phone || - || Talking: On the phone || - ||
+|| Gaming || - || Relaxing: Gaming || - ||
+|| Studying || - || Working: Studying || - ||
+|| Shopping || - || Relaxing: Shopping || - ||
+|| Feeling sick || Sick || - || - ||
+|| Sleeping || - || Inactive: Sleeping || - ||
+|| Surfing || - || Exercising: Swimming || - ||
+|| Browsing || - || Relaxing: Reading || - ||
+|| Working || - || Working || - ||
+|| Typing || - || Working: Writing || - ||
+|| Picnic || - || Relaxing: Going out || - ||
+|| Happy || Happy || - || - ||
+|| Chit chatting || - || Talking: In real life || - || 
+|| I'm high || - || Inactive: Hanging out || - ||
+|| I'm mooving || - || Excited || - || 
+|| To be or not to be || - || Amazed || - ||
+|| Watching a movie || - || Relaxing: Watching a movie || - ||
+|| Love || In love || - || - ||
+|| Searching || Curious || - || - ||
+|| Flirt || Flirtatious || - || - ||
+|| Blogging || Impressed || - || - ||
+
+For full representation you should use modern jabber client.
