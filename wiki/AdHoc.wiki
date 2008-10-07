@@ -31,15 +31,32 @@ If you enabled and after disabled this feature, PyICQt don't will erase temporar
 
 *X-status settings*
 
-Note: administrator of PyICQt may disable x-status support for all users 
-  * Support for x-status receiving
-If this option enabled, you can receive x-status messages from your contacts (if client of contact can supports x-statuses)
-If value changed from 'on' to 'off', option works immediately. If other case you can see x-status messages from contacts when they changed their states
-  * Support for x-status sending
+_NOTE:_ administrator of PyICQt may disable x-status support for all users
+  * Away messages sending
+Send status messages when your status 'away', 'n/a', or 'busy'. Sending of status messages in 'online' or 'free for chat' don't supported (and it's ICQ issue)
+  * Away messages receiving
+When this option enabled, you can see status messages (_away_ messages) from your contacts.
+  * X-statuses sending mode.
 If this option enabled, your contacts can see your x-status message.
 If option disabled, you can't set own x-status
+Value of option is mode of sending (like _ICQ 5.1_, _ICQ 6_ or combination).
+After changing of mode you should re-login into transport
   * Restore latest x-status after disconnect
 When you don't want change x-status long time, you can pick this option, and your latest x-status will automatically set after connecting to ICQ network
+  * X-statuses receiving mode
+If this option enabled, you can receive x-status messages from your contacts (if client of contact supports x-statuses).
+If value changed to 'None', option works immediately. If other cases you can see x-status messages from contacts when they changed their states.
+Value is one from _ICQ 5.1_, _ICQ 6_ and _ICQ 5.1+6_ (check ExtendedStatus page for full information about these modes)
+  * Allow status icons between 5.1 and 6
+When you selected 5.1 or 6 in previous option, you can't see x-status information from clients, which uses other mode. With this option enabled you can see x-status name (icon) for these contacts
+  * Display status icon as personal event
+Possibility see x-status icons for contacts. Jabber-client with PEP support required, and it should may display PEP event as icon.
+
+_NOTE:_ Icons for all activities (60+) don't created yet, and impossible see icons for all x-statuses now 
+  * Try display status text as personal event
+Very funny option :) Your contact can put name of mood or activity in x-status title and you will see PEP icon for this name. In current realization works only when _ICQ 6_ or _ICQ 5.1+6_ mode of x-status receiving enabled   
+  * Display status icon for transport (some client only)
+As least Gajim can draw in roster PEP icons for all contacts, including transports. Option uses this feature for displaying your own icon (i.e. icon for your x-status name)
 
 *Message settings*
 
