@@ -41,6 +41,29 @@ If option disabled, you can't set own x-status
   * Restore latest x-status after disconnect
 When you don't want change x-status long time, you can pick this option, and your latest x-status will automatically set after connecting to ICQ network
 
+*Message settings*
+
+  * utf-8 messages sending mode
+Send messages in utf-8 when:
+
+...contact supports utf-8 messages (_Always when it's possible_)
+
+...contact really uses utf-8 (_As reply on incoming utf-8 message_)
+
+...never (_Sending disabled_)
+
+  * Confirmations sending mode
+Send confirmations on incoming messages when:
+
+...contact can receive them (_Always_)
+
+...contact uses modern ICQ client (_Only for utf-8 messages_)
+
+...never (_Sending disabled_)
+
+  * Confirmations receiving
+Sends requests for messages confirmations. It's works when your jabber-client can send such requests (Bombus, for example) and contact's client can response on requests
+
 *Personal events settings*
 
 PyICQt try represent ICQ x-status for contacts as PEP event (you can read more about it at ExtendedStatus page) and uses for this aim 3 things: mood, activity and tune.
