@@ -40,3 +40,17 @@ If this option enabled, your contacts can see your x-status message.
 If option disabled, you can't set own x-status
   * Restore latest x-status after disconnect
 When you don't want change x-status long time, you can pick this option, and your latest x-status will automatically set after connecting to ICQ network
+
+*Personal events settings*
+
+PyICQt try represent ICQ x-status for contacts as PEP event (you can read more about it at ExtendedStatus page) and uses for this aim 3 things: mood, activity and tune.
+Unfortunately, not all jabber-clients understands these things, and you can choose only some things, which supported by your client.
+Most of clients supports moods and tune, supports of activity in most cases don't ready yet (seems only Jabbim and Tkabber can display this in stable version, Gajim and Miranda only in unstable builds)
+
+  * User mood receiving
+
+  * User activity receiving
+
+  * User tune receiving 
+
+_NOTE:_ It's global settings for user. If you connected to PyICQt with two and more resources, option apply for all them
