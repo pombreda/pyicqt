@@ -29,6 +29,10 @@ Numbers of temporary contacts usually much more than numbers of real contacts (f
 If you enable this feature, you must re-login in PyICQt for applying changes.
 If you enabled and after disabled this feature, PyICQt don't will erase temporary contacts from your roster and you must delete them manually or re-register in PyICQt
 
+  * Deny all authorization requests
+Don't send subscription messages from ICQ contacts to jabber-client. This option useful for spam protection. All users requested authorization will receive 'Request denied' answer.
+
+
 *X-status settings*
 
 _NOTE:_ administrator of PyICQt may disable x-status support for all users
