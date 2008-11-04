@@ -1,0 +1,6 @@
+#summary Roadmap for PyICQt users
+
+Hello, dear PyICQt user!
+You can see in this wiki such topics as:
+  * AdHoc - what commands supported by transport and what they do
+  * ExtendedStatus - page with details of ICQ x-status implementation
