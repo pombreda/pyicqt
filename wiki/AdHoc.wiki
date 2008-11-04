@@ -95,6 +95,15 @@ Most of clients supports moods and tune, supports of activity in most cases don'
 
   * User activity receiving
 
-  * User tune receiving 
+  * User tune receiving
+
+Clients supports personal events since versions:
+|| Client || Mood || Activity || Tune ||
+|| Psi    || 0.11|| -      || 0.11 ||
+|| Gajim  || 0.12|| 0.12 || 0.12 ||
+|| Jabbim || 0.4 || 0.4  || 0.4 ||
+|| Tkabber || 0.11.0 || 0.11.0 || 0.11.0 ||
+|| Coccinella || 0.95.14 || 0.96.2 || - ||
+|| Miranda IM || 0.7.0.27 || 0.8.0.18 || 0.7.0.36 ||
 
 _NOTE:_ It's global settings for user. If you connected to PyICQt with two and more resources, option apply for all them
