@@ -40,14 +40,14 @@ _NOTE:_ administrator of PyICQt may disable x-status support for all users
 Send status messages when your status 'away', 'n/a', or 'busy'. Sending of status messages in 'online' or 'free for chat' don't supported (and it's ICQ issue)
   * Away messages receiving
 When this option enabled, you can see status messages (_away_ messages) from your contacts.
-  * X-statuses sending mode.
+  * X-status sending mode.
 If this option enabled, your contacts can see your x-status message.
 If option disabled, you can't set own x-status
 Value of option is mode of sending (like _ICQ 5.1_, _ICQ 6_ or combination).
 After changing of mode you should re-login into transport
   * Restore latest x-status after disconnect
 When you don't want change x-status long time, you can pick this option, and your latest x-status will automatically set after connecting to ICQ network
-  * X-statuses receiving mode
+  * X-status receiving mode
 If this option enabled, you can receive x-status messages from your contacts (if client of contact supports x-statuses).
 If value changed to 'None', option works immediately. If other cases you can see x-status messages from contacts when they changed their states.
 Value is one from _ICQ 5.1_, _ICQ 6_ and _ICQ 5.1+6_ (check ExtendedStatus page for full information about these modes)
@@ -105,5 +105,6 @@ Clients supports personal events since versions:
 || Tkabber || 0.11.0 || 0.11.0 || 0.11.0 ||
 || Coccinella || 0.95.14 || 0.96.2 || - ||
 || Miranda IM || 0.7.0.27 || 0.8.0.18 || 0.7.0.36 ||
+|| Bombus || 0.7.1358 || - ||  0.7.1358 ||
 
 _NOTE:_ It's global settings for user. If you connected to PyICQt with two and more resources, option apply for all them
