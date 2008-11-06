@@ -28,7 +28,7 @@ user root
 }}}
 
 It's all. Now you should restart munin-node and look result at http://localhost/munin/ (in basic case):
-[./img/monitor/memory_pyicqt-week.png]
-[./img/monitor/threads_pyicqt-week.png]
 
+[http://pyicqt.googlecode.com/svn/wiki/img/monitor/memory_pyicqt-week.png]
 
+[http://pyicqt.googlecode.com/svn/wiki/img/monitor/threads_pyicqt-week.png]
