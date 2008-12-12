@@ -1,0 +1,8 @@
+#summary Small tips for users
+
+= Encodings =
+
+If encoding for your transport set to 'iso-8859-1' (this value used by default) and you see bad cyrillic symbols in:
+  # Offline messages from QIP's users:
+    * ask your contacts update their clients to 8080 buld
+    * ask your contacts add '/unioff' option to QIP's shortcut
