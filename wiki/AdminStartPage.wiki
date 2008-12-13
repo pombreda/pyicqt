@@ -1,4 +1,4 @@
-#summary Roadmap for PyICQt administartors
+#summary Roadmap for PyICQt administrators
 
 = Introduction =
 
