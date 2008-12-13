@@ -2,18 +2,18 @@
 
 = Introduction =
 
-You want set up own PyICQt installation, but don't know which should be first step? I hope this page can help make it
+You want to set up your own PyICQt installation, but don't know which should be first step? I hope this page can help to make it.
 
 
 = Details =
 
-  # Installation of transport require machine with some software. Check versions on your system. Tested as least with:
+  # Installation of the transport requires machine with some software. PyICQt is tested as least with:
     * Python - 2.4..2.5
     * Twisted - 2.5..8.1
-  # Then jabber server needed. I'm use [http://ejabberd.im ejabberd], but you can select any from 10+, listed on [http://xmpp.org/software/servers.shtml this page]. Documentation for server comes with it
-  # PyICQt self can be downloaded from this site (see [http://code.google.com/p/pyicqt/downloads/list Downloads] section) or pulled from repository of your distribution
-  # Configure interaction between server and transport (manual for ejabberd [http://www.ejabberd.im/pyicqt here])
-  # Done? Now restart them and try connect to own jabber server with [http://www.jabber.org/web/Clients jabber client] and make service discovery. If you see transport and it responses on yours requests - configuration was successful
+  # Then jabber server is needed. I use [http://ejabberd.im ejabberd], but you can choose any one from 10+, listed on [http://xmpp.org/software/servers.shtml this page]. Documentation for server comes with it.
+  # PyICQt itself can be downloaded from this site (see [http://code.google.com/p/pyicqt/downloads/list Downloads] section) or pulled from your distribution repository. 
+  # Configure interaction between server and transport (manual for ejabberd can be found [http://www.ejabberd.im/pyicqt here])
+  # Done? Now restart them and try to connect to your own jabber server with [http://www.jabber.org/web/Clients jabber client] and make service discovery. If you see transport and it responses on yours requests - configuration was successful
   # No more installation steps. Only documentation [http://code.google.com/p/pyicqt/wiki/UserStartPage for users]
 
 = Other? =

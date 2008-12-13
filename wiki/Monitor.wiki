@@ -2,9 +2,9 @@
 
 You have perfect jabber server and transports installed, all stuff works, but you have not enough information about current status of a platform?
 
-This page can made your life a bit better.
+This page can make your life a bit better.
 
-How monitor entire system? Better solution - choose special product for monitoring. For example, [http://munin.projects.linpro.no/ Munin]. It's a monitoring application, accessible via web interface with modular architecture. 
+How to monitor entire system? Better solution is to choose special product for monitoring. For example, [http://munin.projects.linpro.no/ Munin]. It's a monitoring application, accessible via web interface with modular architecture.
 
 If your server is ejabberd, you can get [http://muninexchange.projects.linpro.no/?search&cid=10&pid=103&phid=144 plugin] for it. You already can monitor server.
 
@@ -16,7 +16,7 @@ How to use:
   * Install Munin :)
   * Put *memory_* and *threads_* scripts to /usr/share/munin/plugins directory (check your path)
   * Make them executable
-  * Create symlinks in into /etc/munin/plugins (if you run PyICQt under pyicqt user, names should be a *memory_pyicqt* and *threads_pyicqt*)
+  * Create symlinks in /etc/munin/plugins (if you run PyICQt under pyicqt user, names should be a *memory_pyicqt* and *threads_pyicqt*)
   * Add to /etc/munin/plugin-conf.d/munin-node file lines:
 
 {{{
@@ -27,7 +27,7 @@ user root
 user root
 }}}
 
-It's all. Now you should restart munin-node and look result at http://localhost/munin/ (in basic case):
+That's all. Now you should restart munin-node and look result at http://localhost/munin/ (in basic case):
 
 [http://pyicqt.googlecode.com/svn/wiki/img/monitor/memory_pyicqt-week.png]
 

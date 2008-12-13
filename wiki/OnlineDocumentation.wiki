@@ -1,6 +1,6 @@
 ==Introduction==
 
-Welcome to the online documentation for PyICQt!  This will always be the most up to date documentation available for the transport and, at some point, may replace that which is distributed with the transport altogether.  Multiple authors help keep this documentation up to date and I expect it to continue to improve as time goes on.  If you have external documentation related to the transport, please let us know and we will add in a link!  Also do not be afraid to let us know what could be improved!  See BlatherWiki for information on how to contact us.
+Welcome to the online documentation for PyICQt!  This will always be the most up to date documentation available for the transport and, at some point, may replace that which is distributed with the transport altogether.  Multiple authors help to keep this documentation up to date and I expect it to continue improving as time goes on.  If you have external documentation related to the transport, please let us know and we will add a link!  Also do not be afraid to let us know what could be improved!  See BlatherWiki for information on how to contact us.
 
 ==Related Links==
 * [http://pyicq-t.blathersource.org Main site]
@@ -13,7 +13,7 @@ Welcome to the online documentation for PyICQt!  This will always be the most up
 
 In my neverending quest to make PyICQt feature rich, I'm attempting to put
 up a list of currently supported features, and planned features.  Drop me
-a note if there is something you would like that is not listed here:
+a note if there is something you would like to have and that is not listed here:
 
 || Feature || Description || Status ||
 || Messaging || Ability to message users on ICQ, and receive messages. || Complete ||
@@ -23,7 +23,7 @@ a note if there is something you would like that is not listed here:
 || HTML Messages || Color and fonts in messages. || Complete ||
 || Buddy Icons || Buddy Icons/Avatars displayed and set. || Complete ||
 || Typing Notifications || Notifications when typing starts on either end. || Complete ||
-|| New E-mail notifications || Receive notifications when your ICQmail  adres has new mail. ||Incomplete ||
+|| New E-mail notifications || Receive notifications when your ICQmail address has new mail. ||Incomplete ||
 || Change ICQ password || Change the password you use to log on to your ICQ account || Incomplete ||
 || Invisible Presence || Ability to be hidden, but still logged in. || Incomplete^2^ ||
 || Confirm ICQ account || Confirm the number you've entered is actually an ICQ number || Complete ||
@@ -71,48 +71,48 @@ Before you install, you need to make sure you have the following things:
 
 * Optional: [http://python-ldap.sourceforge.net/ LDAP client API] for LDAP authenticated registration support (see _authRegister_ option)
 
-Also note that there may be a Tutorials to walk
+Also note that there may be tutorials to guide
 you through installation and configuration.
 
-If you are planning to use the subversion repository, please note that the Repository is reachable via the subversion protocol, not via http. Make sure that port 3690 is not firewalled.  Alternatively, you can download a tarball of the current repository [http://www.blathersource.org/project.php?projid=pyicq-t here].
+If you are planning to use the subversion repository, please note that the Repository is reachable via the subversion protocol, not via http. Make sure that port 3690 is not firewalled.  Alternatively, you can download a tarball of the current repository.
 
 ===Transport Configuration===
 
-After untarring the distribution, your first task is to create the transport
-configuration file.  The easiest way to do this is, in the root of the
-distribution, copy _config_example.xml_ to _config.xml_, and edit _config.xml_.
+After unpacking the distribution, your first task is to create the transport
+configuration file.  The easiest way to do this is to copy _config_example.xml_
+from the root of the distribution to _config.xml_ and edit it.
 The configuration options should be fairly self explanatory.  However, if you
 need some assistance, check out the Configuration section.
-If you are upgrading from a previous version, you should always look over _config_example.xml_ to see what options may have been added, removed, or changed.
+If you are upgrading from a previous version, you should always look over _config_example.xml_ to see added, removed and changed options.
 
 ===Spool Setup===
 
-There are multiple `drivers` for the transport's spool.  The default and most basic is called _xmlfiles_, and is capable of automatically converting the spool that [http://jit.jabberstudio.org/ JIT] uses.  If you are migrating from an earlier version of the c-based aim transport, you can either point the _spooldir_ variable at the location of the old spool (and make sure to also set _jid_ to the same jid the old transport used), or you can copy of JIT's spool directory to a new location pointed to by _spooldir_/_jid_.  There is also a tool to convert between different spool drivers, including the ability to convert a PyAIMt spool into one compatible with the [http://aim-transport.jabberstudio.org c-based aim transport] or JIT.  If you are not migrating, simply `mkdir` the spool directory at _spooldir_/_jid_ and make sure the transport will have access to write to it.
+There are multiple `drivers` for the transport's spool.  The default and most basic is called _xmlfiles_, and it is capable of automatically converting the spool that [http://jit.jabberstudio.org/ JIT] uses.  If you are migrating from an earlier version of the c-based aim transport, you can either point the _spooldir_ variable at the location of the old spool (and make sure to also set _jid_ to the same jid the old transport used), or you can copy of JIT's spool directory to a new location pointed to by _spooldir_/_jid_.  There is also a tool to convert between different spool drivers, including the ability to convert a PyAIMt spool into one compatible with the [http://aim-transport.jabberstudio.org c-based aim transport] or JIT.  If you are not migrating, simply `mkdir` the spool directory at _spooldir_/_jid_ and make sure the transport will have access to write to it.
 
 The available spool drivers are described as follows:
 
 ====xmlfiles====
 
-This is the default driver, and stores the spool files in a "hashed directory structure".  The layout is designed to provide fairly good performance.  All files are in XML format and are stored as plain text.  The driver has one option, _format_, which can be set to _encrypted_ to shroud passwords.  See _config_example.xml_ for an example of how to enable this option. 
+This is the default driver. It stores the spool files in a "hashed directory structure".  The layout is designed to provide fairly good performance.  All files are in XML format and are stored as plain text.  The driver has one option, _format_, which can be set to _encrypted_ to shroud passwords.  See _config_example.xml_ for an example of how to enable this option.
 
 ====mysql====
 
-This driver stores the spool inside of a MySQL database.  There is a MySQL Tutorial available that explains the procedure for setting up the MySQL database.
+This driver stores the spool inside of a MySQL database.  There is a MySQL Tutorial available that explains how to set up the MySQL database.
 
 ====legacyjittransport====
 
-This driver stores the spool in the same format [http://jit.jabberstudio.org/ JIT] uses.  _Please note:_ This driver is not intended to be used regularly.  It only really exists to allow the Migration Tool to convert between newer spool formats and this spool format at will.  If you use this as your driver, a lot of functionality will be lost.  (such as caching of known avatars)
+This driver stores the spool in the same format [http://jit.jabberstudio.org/ JIT] uses.  _Please note:_ This driver is not intended to be used regularly.  It exists only to allow the Migration Tool to convert between newer spool formats and this spool format at will. If you use this as your driver, a lot of functionality will be lost (e.g. caching of known avatars).
 
 ====legacyaimtransport====
 
-This driver stores the spool in the same format the [http://aim-transport.jabberstudio.org/ c-based aim transport] uses.  _Please note:_ This driver is not intended to be used regularly.  It only really exists to allow the Migration Tool to convert between newer spool formats and this spool format at will.  If you use this as your driver, a lot of functionality will be lost.  (such as caching of known avatars)
+This driver stores the spool in the same format the [http://aim-transport.jabberstudio.org/ c-based aim transport] does.  _Please note:_ This driver is not intended to be used regularly.  It exists only to allow the Migration Tool to convert between newer spool formats and this spool format at will.  If you use this as your driver, a lot of functionality will be lost (e.g. caching of known avatars).
 
 ====template====
 
-This driver is not a real driver.  It is a stub that is intended to provide a starting point for anyone who wants to write their own driver for another spool file database format.  If you write such a driver, please submit it back to Daniel Henninger so he can include it in the main distribution.
+This driver is not a real driver.  It is a stub that is intended to provide a starting point for anyone wanting to write their own driver for another spool file database format.  If you write such a driver, please submit it back to upstream, it will be included in the main distribution.
 
 If you are migrating from JIT, you can either point the
-_spooldir_ variable at the location of JIT's spool
+_spooldir_ variable to the location of JIT's spool
 (make sure you also set _jid_ to the same jid that JIT
 used), or copy the JIT spool directory to a new location pointed to by
 _spooldir_/_jid_.  If you are
@@ -122,7 +122,7 @@ new spool format.  Read over the top of the script for instructions.
 
 ===Jabberd 2 Setup===
 
-You can set up the transport for Jabberd 2 in two different manners.  One involves using Jabberd 2's own component protocol and SASL, and the other involves doing very little, but will involve more when chatroom support is added to the transport.
+You can set up the transport for Jabberd 2 in two different ways.  One involves using Jabberd 2's own component protocol and SASL, and the other involves doing very little, but will involve more when chatroom support is added to the transport.
 
 ====Setup using component protocol and SASL====
 
@@ -165,7 +165,7 @@ section:
 
 The entry in the browse section is optional - the gateway will work without it, but the users wont be able to see the gateway in the service discovery of your jabber server - the browse section specifies the content of the Service Discovery of your jabber-server.
 
-_Hint:_ The tool "xmllint" (Debian Users: It is contained in the package libxml2-utils) to check the syntax of your xml config file (and even to format it nice, using the --format option).
+_Hint:_ The tool "xmllint" (Debian Users: It is contained in the package libxml2-utils) may be used to check the syntax of your xml config file (and even to format it nice, using the --format option).
 
 Make sure that the following configuration options are synced up in both
 entries:
@@ -175,7 +175,7 @@ entries:
 || jid || = || host ||
 || secret || = || secret ||
 || port || = || port ||
-After you make all of those changes, restart your Jabber server, and start
+After doing all those changes, restart your Jabber server, and start
 up PyICQt and you should be good to go.
 
 ====Sample Configuration Files====
@@ -184,9 +184,9 @@ up PyICQt and you should be good to go.
 
 ===Jive Wildfire Setup===
 
-The first thing you will need to do is to configure Wildfire so is willing to accept connections from external components.  To set this up, go into Wildfire's admin (web) console and look for _External Components_.  Once you have opened this category, make sure that _Service Enabled_ is set to _Enabled_.  Make note of the _Port_ and _Default shared secret_ (and maybe change them if you want).  You will use those in the transport _config.xml_ file.  There are more advanced things you can do here as well, but I am not getting into them here.  Once you have everything they want you want it, click _Save Settings_.
+The first thing you will need to do is to configure Wildfire to accept connections from external components.  To set this up, go into Wildfire's admin (web) console and look for _External Components_.  Once you have opened this category, make sure that _Service Enabled_ is set to _Enabled_.  Make note of the _Port_ and _Default shared secret_ (and maybe change them if you want).  You will use those in the transport _config.xml_ file.  There are more advanced things you can do here as well, but I am not getting into them here.  Once you have everything you want, click _Save Settings_.
 
-After you have saved your Wildfire settings, edit your transport _config.xml_ (you may need to copy _config_example.xml_ to _config.xml_ first) and make sure that the _jid_ is set to whatever jid you want the transport to answer as, make sure that the port is set to the same thing you noted from the Wildfire admin console, and make sure _secret_ is the same as the _Default shared secret_ from the Wildfire admin console.  There are plenty of other options in   the transport config file.  I would recommend looking over the entire file and adjusting variables as they seem appropriate.  They should all be explained in the config file, but also here in the online documentation.
+After saving your Wildfire settings, edit your transport _config.xml_ (you may need to copy _config_example.xml_ to _config.xml_ first) and make sure that the _jid_ is set to whatever jid you want the transport to answer as, make sure that the port is set to the same thing you noted from the Wildfire admin console, and make sure _secret_ is the same as the _Default shared secret_ from the Wildfire admin console.  There are plenty of other options in   the transport config file.  I would recommend looking over the entire file and adjusting variables as they seem appropriate.  They should all be explained in the config file, but also here in the online documentation.
 
 After you finish with the config file, you should be able to fire up the transport and after it connects you should see it listed in Wildfire's _Sessions_ tab, under _Component Sessions_.
 
@@ -256,7 +256,7 @@ options.
 
 ==Tutorials==
 
-Sometimes helpful folk provide tutorials on how to set up PyICQt for
+Sometimes helpful folks provide tutorials how to set up PyICQt for
 specific situations.  Any tutorials I am made aware of, or that we write up, are
 listed below.
 
@@ -269,7 +269,7 @@ listed below.
 
 ==Prepackaged versions==
 
-For Debian users, there is an apt repository which contains all the Python transports.
+There is an apt repository which contains all the Python transports for Debian users.
 Add this to your /etc/apt/sources.list to use it:
 
 deb http://www.spectron-msim.com/debian/ transports main

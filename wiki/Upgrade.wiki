@@ -2,7 +2,7 @@
 
 == 0.8 -> 0.8.1 ==
 
-If you are use MySQL as XDB backend, after upgrade you will get exception `"Table 'pyicqt.csettings' doesn't exist"`. Reason - some tables were added and used in new version.
+If you use MySQL as XDB backend, after upgrade you will get exception `"Table 'pyicqt.csettings' doesn't exist"`. Reason - some tables were added and used in new version.
 Necessary manually create these tables.
 _tools/db-setup.mysql_ file contains required commands. You should run mysql client and execute script like:
 {{{
