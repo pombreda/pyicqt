@@ -67,7 +67,7 @@ As least Gajim can draw in roster PEP icons for all contacts, including transpor
   * utf-8 messages sending mode
 Send messages in utf-8 when:
 
-...contact supports utf-8 messages (_Always when it's possible_)
+...contact supports utf-8 messages (_Always_)
 
 ...contact really uses utf-8 (_As reply on incoming utf-8 message_)
 
