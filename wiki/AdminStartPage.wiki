@@ -19,3 +19,4 @@ You want set up own PyICQt installation, but don't know which should be first st
 = Other? =
   * [OnlineDocumentation] - more comprehensive documentation, but partially out-of-date
   * [Monitor] - monitoring of a transport state
+  * [Upgrade] - updating from previous PyICQt's version
