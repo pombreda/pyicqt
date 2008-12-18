@@ -6,4 +6,4 @@ You can see in this wiki such topics as:
   * ExtendedStatus - page with details of ICQ x-status implementation
   * UserTips - short tips for work with transport
   * UserGuidePsi - manual for Psi users
-  * Reporting - when transport looks buggy
+  * [http://code.google.com/p/pyicqt/wiki/Reporting Reporting] - when transport looks buggy
