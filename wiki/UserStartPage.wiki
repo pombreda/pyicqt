@@ -6,4 +6,4 @@ You can see in this wiki such topics as:
   * ExtendedStatus - page with details of ICQ x-status implementation
   * UserTips - short tips for work with transport
   * UserGuidePsi - manual for Psi users
-  * BugReporting - when transport looks buggy
+  * Reporting - when transport looks buggy
