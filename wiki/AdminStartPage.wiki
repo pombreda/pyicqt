@@ -15,7 +15,7 @@ Recommended requirements:
   * OS - Linux
   * Python - 2.5
   * Twisted - 8.1
-Work of the transport can be unstable under Python =< 2.3. And it absolutely not tested under >= 2.6
+Work of the transport can be unstable under Python =< 2.3, stable under 2.6 (tested without high loads). For supporting of Python 3.0 changes necessary.
 
 2. Then jabber server is needed. I use [http://ejabberd.im ejabberd], but you can choose any one from 10+, listed on [http://xmpp.org/software/servers.shtml this page]. Documentation for server comes with it.
 
