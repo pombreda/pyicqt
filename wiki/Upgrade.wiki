@@ -18,3 +18,10 @@ New variables in config:
 || transportWebsite || Website, where user can get information about transport ||
 || supportRoom || Local jabber room, where user can discuss questions about using of transport ||
 || supportJid || JID of transport's admin or other person, who can help to user ||
+
+== 0.8.1 -> 0.8.1.1 ==
+
+Possibilities for unicode detection introduced in 0.8.1.1 provides better possibilities for offline messages interpretation.
+
+Variable in config:
+|| detectunicode || detection level (0 - detection disabled, 1 - in offline messages, 2 - in offline messages and nicknames) ||
