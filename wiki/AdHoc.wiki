@@ -85,11 +85,21 @@ Send confirmations on incoming messages when:
   * Confirmations receiving
 Sends requests for messages confirmations. It's works when your jabber-client can send such requests (Bombus, for example) and contact's client can response on requests.
 
+  * Encoding for outgoing offline messages
+Send offline messages encoded in:
+
+... _local_ one-byte encoding, specified in config
+
+... _Unicode_
+
+... In depends on remote client features (_auto detect_)
+
+
 *Personal events settings*
 
 PyICQt tries to represent ICQ x-status for contacts as PEP event (you can read more about it at ExtendedStatus page) and uses for this aim 3 things: mood, activity and tune.
 Unfortunately, not all jabber-clients understand these things, and you can choose only some things, which are supported by your client.
-Most of clients supports moods and tune, support of activity isn't ready yet in most cases (seems only Jabbim and Tkabber can display this in stable version, Gajim and Miranda — only in unstable builds)
+Most of clients supports moods and tune, support of activity isn't ready yet in most cases (seems only Gajim, Jabbim and Tkabber can display this in stable version, Miranda — only in unstable builds)
 
   * User mood receiving
 
