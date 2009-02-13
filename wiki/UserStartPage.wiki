@@ -2,6 +2,7 @@
 
 Hello, dear PyICQt user!
 You can see in this wiki such topics as:
+  * FAQ - most popular problems
   * AdHoc - what commands are supported by transport and what they do
   * ExtendedStatus - page with details of ICQ x-status implementation
   * UserTips - short tips for work with transport
