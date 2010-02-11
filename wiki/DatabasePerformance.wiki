@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Read this in case you have MySQL performance issues
 
 = Introduction =
 
